@@ -1,15 +1,8 @@
 <script setup lang="ts">
 import type { PaletteDefinition } from '~/types/palette'
 import {
-  alertVariants,
-  accordionItems,
   borderTokens,
-  buttonColors,
-  buttonVariants,
-  checkboxItems,
   colorScaleSteps,
-  componentMatrix,
-  componentTabs,
   divideTokens,
   fillTokens,
   outlineTokens,
@@ -23,14 +16,14 @@ import {
   strokeTokens,
   surfaceModes,
   textTokens,
-  utilityFamilies,
-  cardVariants,
-  radioItems,
-  selectItems
+  utilityFamilies
 } from '~/assets/ts/componets-data'
 
 defineProps<{
   exportPalette: PaletteDefinition
+  previewStyle?: Record<string, string>
+  previewMode: 'light' | 'dark'
+  isUsingDefaultTheme: boolean
 }>()
 
 const disableInteractive = ref(false)
@@ -46,10 +39,11 @@ function openExportModal() {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="space-y-5 rounded-[1.5rem] border border-default/70 bg-default/80 p-4 shadow-sm backdrop-blur-sm md:p-5" :style="previewStyle">
     <ThemeShowcaseHero
-      :semantic-colors="semanticColors"
-      :utility-families="utilityFamilies"
+      :palette-name="exportPalette.name"
+      :preview-mode="previewMode"
+      :is-using-default-theme="isUsingDefaultTheme"
       :disable-interactive="disableInteractive"
       @open-export="openExportModal"
       @update:disable-interactive="updateDisableInteractive"
@@ -60,7 +54,7 @@ function openExportModal() {
       :palette="exportPalette"
     />
 
-    <UTabs :items="showcaseTabs" variant="link" color="primary">
+    <UTabs :items="showcaseTabs" variant="link" color="primary" class="gap-4">
       <template #utilities>
         <ThemeShowcaseUtilities
           :semantic-colors="semanticColors"
@@ -80,16 +74,6 @@ function openExportModal() {
 
       <template #components>
         <ThemeShowcaseComponents
-          :component-matrix="componentMatrix"
-          :component-tabs="componentTabs"
-          :button-colors="buttonColors"
-          :button-variants="buttonVariants"
-          :alert-variants="alertVariants"
-          :card-variants="cardVariants"
-          :accordion-items="accordionItems"
-          :select-items="selectItems"
-          :radio-items="radioItems"
-          :checkbox-items="checkboxItems"
           :disable-interactive="disableInteractive"
         />
       </template>

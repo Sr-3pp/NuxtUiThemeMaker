@@ -151,9 +151,9 @@ export const utilityFamilies: UtilityFamilyItem[] = [
 ]
 
 export const showcaseTabs: ShowcaseTabItem[] = [
+  { label: 'Preview', value: 'components', slot: 'components' },
   { label: 'Utilities', value: 'utilities', slot: 'utilities' },
-  { label: 'Components', value: 'components', slot: 'components' },
-  { label: 'Palette', value: 'palette', slot: 'palette' }
+  { label: 'Ramps', value: 'palette', slot: 'palette' }
 ]
 
 export const componentMatrix: ComponentMatrixItem[] = [

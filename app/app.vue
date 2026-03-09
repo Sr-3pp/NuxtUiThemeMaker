@@ -5,11 +5,15 @@ import { defaultPalette, paletteOptions } from '~/utils/paletteRegistry'
 
 const colorMode = useColorMode()
 const isHydrated = ref(false)
+const isPaletteImportOpen = ref(false)
 const isPaletteEditorOpen = ref(false)
 
 const selectPaletteOptions = paletteOptions.map(option => ({
   label: option.name,
-  value: option.id
+  value: option.id,
+  description: option.type === 'default'
+    ? 'Start from the stock Nuxt UI theme with no custom overrides.'
+    : 'Use this preset as a starting template, then edit tokens.'
 }))
 
 type PaletteOptionId = typeof paletteOptions[number]['id']
@@ -47,8 +51,17 @@ const dynamicTheme = computed(() => {
   return themeBuilder(currentPalette.value.modes[currentMode.value])
 })
 
+const currentPaletteStatus = computed(() =>
+  currentPalette.value ? 'Custom palette' : 'Nuxt UI defaults'
+)
+
 function updateCurrentPalette(palette: PaletteDefinition) {
   paletteDrafts.value[currentPaletteId.value] = clonePalette(palette)
+}
+
+function importPalette(palette: PaletteDefinition) {
+  updateCurrentPalette(palette)
+  isPaletteImportOpen.value = false
 }
 
 onMounted(() => {
@@ -59,22 +72,68 @@ onMounted(() => {
 <template>
   <UApp>
     <NuxtRouteAnnouncer />
-    <UContainer class="space-y-6 py-10" :style="dynamicTheme">
-      <div class="flex items-center justify-between gap-4 rounded-xl border border-default bg-elevated/50 px-4 py-3">
-        <div class="flex items-center gap-3">
-          <USelect v-model="currentPaletteId" :items="selectPaletteOptions" placeholder="Select palette" />
-          <UButton color="primary" variant="soft" @click="isPaletteEditorOpen = true">
-            Edit palette
-          </UButton>
-          <UBadge color="neutral" variant="outline" class="capitalize">
-            {{ isHydrated ? currentMode : 'theme' }}
-          </UBadge>
-          <UColorModeSwitch />
+    <UContainer class="space-y-5 py-6 lg:py-8">
+      <div class="sticky top-4 z-20 rounded-2xl border border-default/80 bg-default/90 shadow-sm backdrop-blur">
+        <div class="flex flex-col gap-4 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+          <div class="min-w-0 space-y-1">
+            <p class="text-[11px] font-medium uppercase tracking-[0.22em] text-muted">
+              Nuxt UI Theme Builder
+            </p>
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-lg font-semibold tracking-tight text-highlighted">
+                {{ currentEditablePalette.name }}
+              </h1>
+              <UBadge color="neutral" variant="outline" class="capitalize">
+                {{ isHydrated ? currentMode : 'theme' }}
+              </UBadge>
+              <UBadge :color="currentPalette ? 'primary' : 'neutral'" :variant="currentPalette ? 'soft' : 'outline'">
+                {{ currentPaletteStatus }}
+              </UBadge>
+            </div>
+            <p class="text-sm text-muted">
+              Select a palette, adjust tokens, inspect the preview, then export the result.
+            </p>
+          </div>
+
+          <div class="flex flex-col gap-3 lg:items-end">
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="min-w-72 space-y-1">
+                <p class="text-[11px] font-medium uppercase tracking-[0.18em] text-muted">
+                  Start From Template
+                </p>
+                <USelect
+                  v-model="currentPaletteId"
+                  :items="selectPaletteOptions"
+                  placeholder="Choose a preset or start from Nuxt UI defaults"
+                />
+              </div>
+              <UButton color="neutral" variant="outline" @click="isPaletteImportOpen = true">
+                Import
+              </UButton>
+              <UButton color="primary" @click="isPaletteEditorOpen = true">
+                Edit tokens
+              </UButton>
+              <UColorModeSwitch />
+            </div>
+            <p class="text-xs text-muted lg:text-right">
+              Live preview updates immediately in the workspace below.
+            </p>
+          </div>
         </div>
       </div>
 
-      <ThemeShowcase :export-palette="currentEditablePalette" />
+      <ThemeShowcase
+        :export-palette="currentEditablePalette"
+        :preview-style="dynamicTheme"
+        :preview-mode="currentMode"
+        :is-using-default-theme="!currentPalette"
+      />
     </UContainer>
+
+    <PaletteImportModal
+      v-model:open="isPaletteImportOpen"
+      @import="importPalette"
+    />
 
     <PaletteEditorDrawer
       v-model:open="isPaletteEditorOpen"
