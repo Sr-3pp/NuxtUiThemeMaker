@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { PaletteDefinition } from '~/types/palette'
 import {
   alertVariants,
   accordionItems,
@@ -28,10 +29,19 @@ import {
   selectItems
 } from '~/assets/ts/componets-data'
 
+defineProps<{
+  exportPalette: PaletteDefinition
+}>()
+
 const disableInteractive = ref(false)
+const isExportModalOpen = ref(false)
 
 function updateDisableInteractive(value: boolean) {
   disableInteractive.value = value
+}
+
+function openExportModal() {
+  isExportModalOpen.value = true
 }
 </script>
 
@@ -41,7 +51,13 @@ function updateDisableInteractive(value: boolean) {
       :semantic-colors="semanticColors"
       :utility-families="utilityFamilies"
       :disable-interactive="disableInteractive"
+      @open-export="openExportModal"
       @update:disable-interactive="updateDisableInteractive"
+    />
+
+    <ThemeShowcasePaletteExport
+      v-model:open="isExportModalOpen"
+      :palette="exportPalette"
     />
 
     <UTabs :items="showcaseTabs" variant="link" color="primary">

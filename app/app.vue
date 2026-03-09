@@ -23,11 +23,24 @@ const paletteDrafts = ref<Record<PaletteOptionId, PaletteDefinition>>(
     ])
   ) as Record<PaletteOptionId, PaletteDefinition>
 )
-const currentPalette = computed(() => paletteDrafts.value[currentPaletteId.value])
+const currentEditablePalette = computed(() => paletteDrafts.value[currentPaletteId.value])
+function hasPaletteOverrides(palette: PaletteDefinition) {
+  return Object.values(palette.modes).some(mode =>
+    Object.values(mode).some(section =>
+      Object.values(section).some(token => token != null)
+    )
+  )
+}
+
+const currentPalette = computed<PaletteDefinition | null>(() =>
+  currentPaletteId.value === 'default' && !hasPaletteOverrides(currentEditablePalette.value)
+    ? null
+    : currentEditablePalette.value
+)
 
 const currentMode = computed<'light' | 'dark'>(() => colorMode.value === 'dark' ? 'dark' : 'light')
 const dynamicTheme = computed(() => {
-  if (!isHydrated.value) {
+  if (!isHydrated.value || !currentPalette.value) {
     return undefined
   }
 
@@ -60,12 +73,12 @@ onMounted(() => {
         </div>
       </div>
 
-      <ThemeShowcase />
+      <ThemeShowcase :export-palette="currentEditablePalette" />
     </UContainer>
 
     <PaletteEditorDrawer
       v-model:open="isPaletteEditorOpen"
-      :palette="currentPalette"
+      :palette="currentEditablePalette"
       :default-mode="currentMode"
       @save="updateCurrentPalette"
     />

@@ -8,6 +8,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
+  'open-export': []
   'update:disableInteractive': [value: boolean]
 }>()
 
@@ -41,7 +42,7 @@ function updateDisableInteractive(value: boolean) {
           <UButton color="primary" variant="solid">
             Preview theme
           </UButton>
-          <UButton color="neutral" variant="outline">
+          <UButton color="neutral" variant="outline" @click="emit('open-export')">
             Export tokens
           </UButton>
           <div class="inline-flex items-center gap-2 rounded-lg border border-default bg-default px-3 py-2">
