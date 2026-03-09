@@ -1,0 +1,57 @@
+{
+  "name": "Volt & Cobalt Accessible",
+  "modes": {
+    "light": {
+      "ui": {
+        "primary": "#E14D00", 
+        "secondary": "#007A8A",
+        "neutral": "#1E293B",
+        "success": "#15803D",
+        "info": "#0369A1",
+        "warning": "#854D0E",
+        "error": "#B91C1C",
+        "text": "#0F172A",
+        "text-dimmed": "#64748B",
+        "text-muted": "#475569",
+        "text-toned": "#334155",
+        "text-highlighted": "#020617",
+        "text-inverted": "#FFFFFF",
+        "bg": "#F8FAFC",
+        "bg-muted": "#F1F5F9",
+        "bg-elevated": "#FFFFFF",
+        "bg-accented": "#E2E8F0",
+        "bg-inverted": "#020617",
+        "border": "#CBD5E1",
+        "border-muted": "#E2E8F0",
+        "border-accented": "#94A3B8",
+        "border-inverted": "#0F172A"
+      }
+    },
+    "dark": {
+      "ui": {
+        "primary": "#DFFF00",
+        "secondary": "#00E5FF",
+        "neutral": "#0F172A",
+        "success": "#22C55E",
+        "info": "#38BDF8",
+        "warning": "#FACC15",
+        "error": "#EF4444",
+        "text": "#F1F5F9",
+        "text-dimmed": "#94A3B8",
+        "text-muted": "#64748B",
+        "text-toned": "#475569",
+        "text-highlighted": "#FFFFFF",
+        "text-inverted": "#020617",
+        "bg": "#020617",
+        "bg-muted": "#0B1220",
+        "bg-elevated": "#111827",
+        "bg-accented": "#1E293B",
+        "bg-inverted": "#F8FAFC",
+        "border": "#1E293B",
+        "border-muted": "#0B1220",
+        "border-accented": "#334155",
+        "border-inverted": "#F1F5F9"
+      }
+    }
+  }
+}
