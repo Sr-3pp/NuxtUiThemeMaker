@@ -22,8 +22,8 @@ const isOpen = computed({
 const paletteSchema = z.object({
   name: z.string().trim().min(1, 'Palette name is required'),
   modes: z.object({
-    light: z.record(z.string(), z.record(z.string(), z.string().trim().min(1, 'Color value is required'))),
-    dark: z.record(z.string(), z.record(z.string(), z.string().trim().min(1, 'Color value is required')))
+    light: z.record(z.string(), z.record(z.string(), z.union([z.string().trim().min(1, 'Color value is required'), z.null()]))),
+    dark: z.record(z.string(), z.record(z.string(), z.union([z.string().trim().min(1, 'Color value is required'), z.null()])))
   })
 })
 
@@ -51,6 +51,15 @@ function formatLabel(value: string) {
 
 function sectionEntries(mode: PaletteModeKey) {
   return Object.entries(formState.modes[mode]) as Array<[string, PaletteTokenGroup]>
+}
+
+function getTokenValue(tokens: PaletteTokenGroup, tokenKey: string) {
+  return tokens[tokenKey] ?? ''
+}
+
+function updateTokenValue(tokens: PaletteTokenGroup, tokenKey: string, value: string | number) {
+  const nextValue = String(value).trim()
+  tokens[tokenKey] = nextValue.length > 0 ? nextValue : null
 }
 
 watch(() => props.open, (open) => {
@@ -92,7 +101,7 @@ watch(formState, (value) => {
         <UFormField
           label="Palette name"
           name="name"
-          description="This label is reused in the palette selector."
+          description="This name is used in the editor state only."
           required
         >
           <UInput
@@ -147,13 +156,14 @@ watch(formState, (value) => {
                     <div class="flex items-center gap-3">
                       <div
                         class="h-10 w-10 shrink-0 rounded-md border border-default bg-default"
-                        :style="{ backgroundColor: tokens[tokenKey] }"
+                        :style="{ backgroundColor: tokens[tokenKey] ?? 'transparent' }"
                       />
                       <UInput
-                        v-model="tokens[tokenKey]"
+                        :model-value="getTokenValue(tokens, tokenKey)"
                         color="primary"
                         variant="outline"
                         placeholder="#0f172a"
+                        @update:model-value="updateTokenValue(tokens, tokenKey, $event)"
                       />
                     </div>
                   </UFormField>
@@ -199,13 +209,14 @@ watch(formState, (value) => {
                     <div class="flex items-center gap-3">
                       <div
                         class="h-10 w-10 shrink-0 rounded-md border border-default bg-default"
-                        :style="{ backgroundColor: tokens[tokenKey] }"
+                        :style="{ backgroundColor: tokens[tokenKey] ?? 'transparent' }"
                       />
                       <UInput
-                        v-model="tokens[tokenKey]"
+                        :model-value="getTokenValue(tokens, tokenKey)"
                         color="primary"
                         variant="outline"
                         placeholder="#020617"
+                        @update:model-value="updateTokenValue(tokens, tokenKey, $event)"
                       />
                     </div>
                   </UFormField>

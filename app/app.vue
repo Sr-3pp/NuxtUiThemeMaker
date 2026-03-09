@@ -1,37 +1,29 @@
 <script setup lang="ts">
-import palette_1 from '~/assets/palettes/extreme-sport-landing.json'
-import palette_2 from '~/assets/palettes/carbon-and-sulfur.json'
 import type { PaletteDefinition } from '~/types/palette'
 import { clonePalette } from '~/utils/palette'
+import { defaultPalette, paletteOptions } from '~/utils/paletteRegistry'
 
 const colorMode = useColorMode()
 const isHydrated = ref(false)
 const isPaletteEditorOpen = ref(false)
 
-const defaultPalette: PaletteDefinition = {
-  name: 'Default',
-  modes: {
-    light: {},
-    dark: {}
-  }
-}
+const selectPaletteOptions = paletteOptions.map(option => ({
+  label: option.name,
+  value: option.id
+}))
 
-const palettes = {
-  default: defaultPalette,
-  extremeSportLanding: palette_1,
-  carbonAndSulfur: palette_2
-} as const
+type PaletteOptionId = typeof paletteOptions[number]['id']
 
-type PaletteKey = keyof typeof palettes
-
-const paletteDrafts = ref<Record<PaletteKey, PaletteDefinition>>({
-  default: clonePalette(defaultPalette),
-  extremeSportLanding: clonePalette(palette_1),
-  carbonAndSulfur: clonePalette(palette_2)
-})
-
-const currentPaletteKey = ref<PaletteKey>('default')
-const currentPalette = computed(() => paletteDrafts.value[currentPaletteKey.value])
+const currentPaletteId = ref<PaletteOptionId>('default')
+const paletteDrafts = ref<Record<PaletteOptionId, PaletteDefinition>>(
+  Object.fromEntries(
+    paletteOptions.map(option => [
+      option.id,
+      clonePalette(option.type === 'preset' ? option.palette : defaultPalette)
+    ])
+  ) as Record<PaletteOptionId, PaletteDefinition>
+)
+const currentPalette = computed(() => paletteDrafts.value[currentPaletteId.value])
 
 const currentMode = computed<'light' | 'dark'>(() => colorMode.value === 'dark' ? 'dark' : 'light')
 const dynamicTheme = computed(() => {
@@ -42,20 +34,13 @@ const dynamicTheme = computed(() => {
   return themeBuilder(currentPalette.value.modes[currentMode.value])
 })
 
-const paletteOptions = computed(() => [
-  { label: paletteDrafts.value.default.name, value: 'default' },
-  { label: paletteDrafts.value.extremeSportLanding.name, value: 'extremeSportLanding' },
-  { label: paletteDrafts.value.carbonAndSulfur.name, value: 'carbonAndSulfur' }
-])
-
 function updateCurrentPalette(palette: PaletteDefinition) {
-  paletteDrafts.value[currentPaletteKey.value] = clonePalette(palette)
+  paletteDrafts.value[currentPaletteId.value] = clonePalette(palette)
 }
 
 onMounted(() => {
   isHydrated.value = true
 })
-
 </script>
 
 <template>
@@ -64,7 +49,7 @@ onMounted(() => {
     <UContainer class="space-y-6 py-10" :style="dynamicTheme">
       <div class="flex items-center justify-between gap-4 rounded-xl border border-default bg-elevated/50 px-4 py-3">
         <div class="flex items-center gap-3">
-          <USelect v-model="currentPaletteKey" :items="paletteOptions" placeholder="Select palette" />
+          <USelect v-model="currentPaletteId" :items="selectPaletteOptions" placeholder="Select palette" />
           <UButton color="primary" variant="soft" @click="isPaletteEditorOpen = true">
             Edit palette
           </UButton>
