@@ -16,7 +16,7 @@ const avatars = [
   { text: 'AM', chip: { color: 'success', inset: true } },
   { text: 'SK', chip: { color: 'warning', inset: true } },
   { text: 'JT', chip: { color: 'primary', inset: true } }
-]
+] as const
 </script>
 
 <template>
