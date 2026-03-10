@@ -47,6 +47,7 @@ const previewTheme = computed(() => {
     >
       <template #components>
         <ThemePreviewActions :disable-interactive="props.disableInteractive" />
+        <ThemePreviewNavigation :disable-interactive="props.disableInteractive" class="mt-6" />
       </template>
 
       <template #forms>

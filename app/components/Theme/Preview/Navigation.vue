@@ -61,6 +61,24 @@ const breadcrumbItems = [
 ]
 
 const currentPage = ref(3)
+const stepperItems = [
+  {
+    title: 'Foundation',
+    description: 'Select semantic accents and neutral scale.',
+    icon: 'i-lucide-swatch-book'
+  },
+  {
+    title: 'Components',
+    description: 'Review button, form and overlay states.',
+    icon: 'i-lucide-layout-grid'
+  },
+  {
+    title: 'Publish',
+    description: 'Validate contrast and copy the share URL.',
+    icon: 'i-lucide-share-2'
+  }
+]
+const currentStep = ref(2)
 </script>
 
 <template>
@@ -98,7 +116,7 @@ const currentPage = ref(3)
 
       <UCard variant="outline">
         <template #header>
-          <p class="text-sm font-medium text-highlighted">Menus and traversal</p>
+          <p class="text-sm font-medium text-highlighted">Menus, traversal and progress</p>
         </template>
 
         <div class="space-y-5">
@@ -129,6 +147,20 @@ const currentPage = ref(3)
               :items-per-page="8"
               show-edges
               active-color="primary"
+              :disabled="props.disableInteractive"
+            />
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">Stepper</p>
+              <p class="text-xs text-muted">Step {{ currentStep }} of {{ stepperItems.length }}</p>
+            </div>
+            <UStepper
+              v-model="currentStep"
+              :items="stepperItems"
+              color="primary"
+              orientation="vertical"
               :disabled="props.disableInteractive"
             />
           </div>
