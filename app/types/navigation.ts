@@ -6,6 +6,11 @@ export interface AppNavigationProps {
   currentPaletteStatus: string
   currentMode: string
   disableInteractivePreviews: boolean
+  isAuthenticated: boolean
+  sessionEmail?: string | null
+  activeOwnedPaletteSlug?: string | null
+  activeOwnedPalettePublic?: boolean
+  isWorking?: boolean
 }
 
 export interface AppNavigationEmits {
@@ -13,5 +18,9 @@ export interface AppNavigationEmits {
   openPaletteImport: []
   openTokensEditor: []
   openExport: []
+  copyShareUrl: []
+  deletePalette: []
+  persistVisibility: [nextIsPublic: boolean]
+  signOut: []
   toggleInteractivePreviews: [value: boolean]
 }

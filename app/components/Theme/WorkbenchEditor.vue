@@ -84,7 +84,7 @@ async function copyActiveExport() {
 <template>
   <UDashboardPanel
     :ui="{
-      root: 'max-h-screen overflow-auto',
+      root: 'h-screen overflow-auto pt-20',
       body: 'block'
     }"
   >
@@ -97,6 +97,26 @@ async function copyActiveExport() {
     </template>
 
     <template #body>
+      <div class="flex justify-between mb-4">
+        <UButton
+          type="button"
+          color="primary"
+          class="bg-[#4cd964] text-black hover:bg-[#65e27c]"
+          :loading="props.isWorking"
+          @click.prevent="emit('save')"
+        >
+          Save
+        </UButton>
+        <UButton
+          type="button"
+          color="neutral"
+          variant="outline"
+          :loading="props.isWorking"
+          @click.prevent="emit('saveAsNew')"
+        >
+          Save As New
+        </UButton>
+      </div>
       <template v-if="props.tab === 'tokens'">
         <div class="mb-4 flex flex-col items-center justify-between rounded-2xl border dark:border-white/10 bg-white/5 px-4 py-3 gap-2">
           <p class="text-xs uppercase tracking-[0.16em] w-full">

@@ -32,7 +32,12 @@ function swatchesFor(option: PaletteOption) {
 </script>
 
 <template>
-  <UDashboardPanel>
+  <UDashboardPanel
+    :ui="{
+      root: 'h-screen overflow-auto pt-20',
+      body: 'block'
+    }"
+  >
     <template #header>
       <UDashboardNavbar title="Theme Presets">
         <template #leading>
@@ -42,17 +47,17 @@ function swatchesFor(option: PaletteOption) {
     </template>
 
     <template #body>
-      <UInput
-        v-model="searchModel"
-        icon="i-lucide-search"
-        variant="outline"
-        color="neutral"
-        placeholder="Search presets..."
-        class="[&_input]:border-white/10 [&_input]:bg-white/5 [&_input]:text-white/90 [&_input]:shadow-none [&_input::placeholder]:text-white/35"
-      />
+      <div class="flex flex-col gap-4">
+        <UInput
+          v-model="searchModel"
+          icon="i-lucide-search"
+          variant="outline"
+          color="neutral"
+          placeholder="Search presets..."
+          class="[&_input]:border-white/10 [&_input]:bg-white/5 [&_input]:text-white/90 [&_input]:shadow-none [&_input::placeholder]:text-white/35"
+        />
 
-      <div class="space-y-2">
-        <div class="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-3">
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-3 flex flex-col gap-4">
           <div class="flex items-center justify-between gap-3">
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">
               My Palettes

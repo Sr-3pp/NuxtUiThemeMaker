@@ -33,13 +33,14 @@ const previewTheme = computed(() => {
 </script>
 
 <template>
-  <div :style="previewTheme" class="h-full px-4">
+  <div :style="previewTheme" class="h-full">
     <UTabs
       v-model="previewTab"
       :items="previewTabs"
       color="neutral"
       variant="pill"
       :ui="{
+        root: 'mb-4',
         list: 'inline-flex rounded-2xl border border-white/10 bg-white/5 p-1',
         trigger: 'rounded-xl px-4 py-2 text-sm text-white/60 data-[state=active]:bg-black data-[state=active]:text-white hover:text-white',
         indicator: 'hidden'

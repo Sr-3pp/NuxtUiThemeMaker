@@ -14,11 +14,14 @@ export interface UpdatePaletteTokenPayload {
 export interface ThemeWorkbenchEditorProps {
   palette: PaletteDefinition
   sourcePalette: PaletteDefinition
+  isWorking?: boolean
   defaultMode?: PaletteModeKey
   tab: EditorTab
 }
 
 export interface ThemeWorkbenchEditorEmits {
+  save: []
+  saveAsNew: []
   'update-token': [payload: UpdatePaletteTokenPayload]
   'update:tab': [value: EditorTab]
 }
