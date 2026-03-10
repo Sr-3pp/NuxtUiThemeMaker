@@ -4,6 +4,15 @@ defineProps<{
     currentPalette: import('~/types/palette').PaletteDefinition | null
     currentPaletteStatus: string
     currentMode: string
+    disableInteractivePreviews: boolean
+}>()
+
+defineEmits<{
+    resetCurrentPalette: []
+    openPaletteImport: []
+    openTokensEditor: []
+    openExport: []
+    toggleInteractivePreviews: [value: boolean]
 }>()
 </script>
 
@@ -41,6 +50,19 @@ defineProps<{
             </div>
 
             <UColorModeSwitch />
+
+            <div class="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80">
+              <div class="flex items-center gap-2">
+                <UIcon name="i-lucide-hand" class="h-4 w-4" />
+                <span>{{ disableInteractivePreviews ? 'Disable component states' : 'Enable component states' }}</span>
+              </div>
+              <USwitch
+                :model-value="disableInteractivePreviews"
+                size="sm"
+                color="neutral"
+                @update:model-value="$emit('toggleInteractivePreviews', $event)"
+              />
+            </div>
 
             <UButton color="neutral" variant="ghost" class="text-white/80 hover:text-white" @click="$emit('resetCurrentPalette')">
               <UIcon name="i-lucide-rotate-ccw" class="h-4 w-4" />

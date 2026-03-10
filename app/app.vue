@@ -59,11 +59,12 @@ function resetCurrentPalette() {
         :current-palette="currentPalette"
         :current-palette-status="currentPaletteStatus"
         :current-mode="currentMode"
+        :disable-interactive-previews="disableInteractivePreviews"
         @resetCurrentPalette="resetCurrentPalette"
         @openPaletteImport="isPaletteImportOpen = true"
         @openTokensEditor="editorTab = 'tokens'"
         @openExport="editorTab = 'export'"
-        @disableInteractivePreviews="disableInteractivePreviews = !disableInteractivePreviews"
+        @toggleInteractivePreviews="disableInteractivePreviews = $event"
       />
 
       <div class="grid min-h-[calc(100vh-69px)] xl:grid-cols-[256px_minmax(0,1fr)_320px]">
