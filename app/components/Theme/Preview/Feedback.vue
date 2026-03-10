@@ -1,7 +1,7 @@
 <script setup lang="ts">
-const props = defineProps<{
-  disableInteractive: boolean
-}>()
+import type { PreviewInteractiveProps } from '~/types/theme-preview'
+
+const props = defineProps<PreviewInteractiveProps>()
 
 const alerts = [
   {

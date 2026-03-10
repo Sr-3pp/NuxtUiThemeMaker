@@ -1,4 +1,6 @@
 import type { PaletteDefinition, PaletteMode, PaletteOptionId, PaletteTokenGroup } from '~/types/palette'
+import type { PaletteDraftMap } from '~/types/composables'
+import type { UpdatePaletteTokenPayload } from '~/types/theme-builder'
 import { clonePalette } from '~/utils/palette'
 import { defaultPalette, paletteOptions } from '~/utils/paletteRegistry'
 
@@ -79,8 +81,8 @@ export function usePaletteManager() {
       option.id,
       clonePalette(option.type === 'preset' ? option.palette : defaultPalette)
     ])
-  ) as Record<PaletteOptionId, PaletteDefinition>
-  const paletteDrafts = ref<Record<PaletteOptionId, PaletteDefinition>>(initialDrafts)
+  ) as PaletteDraftMap
+  const paletteDrafts = ref<PaletteDraftMap>(initialDrafts)
   const fallbackDraft = clonePalette(defaultPalette)
   const defaultPaletteOption = paletteOptions.find(option => option.id === 'default')!
 
@@ -103,12 +105,7 @@ export function usePaletteManager() {
     paletteDrafts.value[currentPaletteId.value] = clonePalette(palette)
   }
 
-  function updatePaletteToken(payload: {
-    mode: 'light' | 'dark'
-    section: string
-    token: string
-    value: string | null
-  }) {
+  function updatePaletteToken(payload: UpdatePaletteTokenPayload) {
     const nextDraft = clonePalette(currentEditablePalette.value)
     const modeDraft = nextDraft.modes[payload.mode]
     const targetGroup = getTokenGroup(modeDraft, payload.section)

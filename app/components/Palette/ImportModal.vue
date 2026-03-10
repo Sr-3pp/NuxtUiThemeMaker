@@ -2,16 +2,12 @@
 import { z } from 'zod'
 import type { TabsItem } from '@nuxt/ui'
 import type { PaletteDefinition } from '~/types/palette'
+import type { ImportTab, PaletteImportModalEmits, PaletteImportModalProps } from '~/types/palette-components'
 import { clonePalette } from '~/utils/palette'
 
-const props = defineProps<{
-  open: boolean
-}>()
+const props = defineProps<PaletteImportModalProps>()
 
-const emit = defineEmits<{
-  import: [palette: PaletteDefinition]
-  'update:open': [value: boolean]
-}>()
+const emit = defineEmits<PaletteImportModalEmits>()
 
 const isOpen = computed({
   get: () => props.open,
@@ -31,7 +27,7 @@ const paletteSchema = z.object({
   })
 })
 
-const activeTab = ref<'paste' | 'file'>('paste')
+const activeTab = ref<ImportTab>('paste')
 const rawJson = ref('')
 const uploadedFileName = ref('')
 const uploadedFileContent = ref('')

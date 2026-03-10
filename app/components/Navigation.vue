@@ -1,19 +1,9 @@
 <script setup lang="ts">
-defineProps<{
-    currentEditablePalette: import('~/types/palette').PaletteDefinition
-    currentPalette: import('~/types/palette').PaletteDefinition | null
-    currentPaletteStatus: string
-    currentMode: string
-    disableInteractivePreviews: boolean
-}>()
+import type { AppNavigationEmits, AppNavigationProps } from '~/types/navigation'
 
-defineEmits<{
-    resetCurrentPalette: []
-    openPaletteImport: []
-    openTokensEditor: []
-    openExport: []
-    toggleInteractivePreviews: [value: boolean]
-}>()
+defineProps<AppNavigationProps>()
+
+defineEmits<AppNavigationEmits>()
 </script>
 
 <template>

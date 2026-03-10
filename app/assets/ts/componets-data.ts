@@ -1,5 +1,7 @@
-import type { AlertProps, ButtonProps, CardProps } from '@nuxt/ui'
 import type {
+  AlertVariant,
+  ButtonVariant,
+  CardVariant,
   ChoiceItem,
   ComponentMatrixItem,
   ContentItem,
@@ -10,10 +12,6 @@ import type {
   SurfaceModeItem,
   UtilityFamilyItem
 } from '~/types/theme-showcase'
-
-type ButtonVariant = NonNullable<ButtonProps['variant']>
-type AlertVariant = NonNullable<AlertProps['variant']>
-type CardVariant = NonNullable<CardProps['variant']>
 
 export const semanticColors: SemanticColorItem[] = [
   {

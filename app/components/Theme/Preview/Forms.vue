@@ -1,7 +1,7 @@
 <script setup lang="ts">
-const props = defineProps<{
-  disableInteractive: boolean
-}>()
+import type { PreviewInteractiveProps } from '~/types/theme-preview'
+
+const props = defineProps<PreviewInteractiveProps>()
 
 const inputValue = ref('Oceanic neutral')
 const notesValue = ref('Check focus rings, placeholder contrast and muted text inside filled fields.')

@@ -1,17 +1,11 @@
 <script setup lang="ts">
 import { defaultPalette } from '~/utils/paletteRegistry'
-import type { PaletteOptionId, PaletteOption } from '~/types/palette'
+import type { PaletteOption } from '~/types/palette'
+import type { PalettePresetSidebarEmits, PalettePresetSidebarProps } from '~/types/palette-components'
 
-const props = defineProps<{
-  options: readonly PaletteOption[]
-  currentPaletteId: PaletteOptionId
-  search: string
-}>()
+const props = defineProps<PalettePresetSidebarProps>()
 
-const emit = defineEmits<{
-  select: [id: PaletteOptionId]
-  'update:search': [value: string]
-}>()
+const emit = defineEmits<PalettePresetSidebarEmits>()
 
 const searchModel = computed({
   get: () => props.search,

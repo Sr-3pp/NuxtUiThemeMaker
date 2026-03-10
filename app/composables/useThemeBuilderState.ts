@@ -1,8 +1,7 @@
 import type { TabsItem } from '@nuxt/ui'
+import type { CurrentThemeMode } from '~/types/composables'
+import type { EditorTab, PreviewTab } from '~/types/theme-builder'
 import { paletteOptions } from '~/utils/paletteRegistry'
-
-export type PreviewTab = 'components' | 'forms' | 'surfaces' | 'typography'
-export type EditorTab = 'tokens' | 'export'
 
 const previewTabs: TabsItem[] = [
   { label: 'Components', value: 'components', slot: 'components' },
@@ -18,7 +17,7 @@ export function useThemeBuilderState() {
   const previewTab = ref<PreviewTab>('components')
   const editorTab = ref<EditorTab>('tokens')
 
-  const currentMode = computed<'light' | 'dark'>(() => {
+  const currentMode = computed<CurrentThemeMode>(() => {
     const resolvedMode = colorMode.unknown ? colorMode.preference : colorMode.value
 
     return resolvedMode === 'dark' ? 'dark' : 'light'

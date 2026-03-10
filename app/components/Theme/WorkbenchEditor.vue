@@ -1,29 +1,19 @@
 <script setup lang="ts">
-import type { PaletteDefinition, PaletteModeKey, PaletteTokenGroup } from '~/types/palette'
+import type { PaletteModeKey, PaletteTokenGroup } from '~/types/palette'
+import type {
+  ExportItemValue,
+  ThemeWorkbenchEditorEmits,
+  ThemeWorkbenchEditorProps
+} from '~/types/theme-builder'
 import {
   exportPaletteAppConfig,
   exportPaletteCss,
   exportPaletteTs
 } from '~/utils/paletteExport'
 
-type EditorTab = 'tokens' | 'export'
-type ExportItemValue = 'css' | 'appConfig' | 'ts'
+const props = defineProps<ThemeWorkbenchEditorProps>()
 
-const props = defineProps<{
-  palette: PaletteDefinition
-  defaultMode?: PaletteModeKey
-  tab: EditorTab
-}>()
-
-const emit = defineEmits<{
-  'update-token': [payload: {
-    mode: PaletteModeKey
-    section: string
-    token: string
-    value: string | null
-  }]
-  'update:tab': [value: EditorTab]
-}>()
+const emit = defineEmits<ThemeWorkbenchEditorEmits>()
 
 const activeMode = computed<PaletteModeKey>(() => props.defaultMode ?? 'light')
 const selectedExport = ref<ExportItemValue>('css')

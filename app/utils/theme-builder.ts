@@ -1,6 +1,4 @@
-type ThemeValue = string | null
-type ThemeSection = Record<string, ThemeValue>
-type ThemeSchema = Record<string, ThemeValue | ThemeSection>
+import type { ThemeSchema } from '~/types/theme-builder'
 
 function buildTokenName(section: string, key: string) {
   if (section === 'ui') {

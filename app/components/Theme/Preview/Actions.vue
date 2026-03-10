@@ -1,12 +1,7 @@
 <script setup lang="ts">
-import type { ButtonProps } from '@nuxt/ui'
+import type { ButtonColor, ButtonVariant, PreviewInteractiveProps } from '~/types/theme-preview'
 
-const props = defineProps<{
-  disableInteractive: boolean
-}>()
-
-type ButtonColor = NonNullable<ButtonProps['color']>
-type ButtonVariant = NonNullable<ButtonProps['variant']>
+const props = defineProps<PreviewInteractiveProps>()
 
 const buttonColors: ButtonColor[] = ['primary', 'secondary', 'success', 'info', 'warning', 'error', 'neutral']
 const buttonVariants: ButtonVariant[] = ['solid', 'outline', 'soft', 'subtle', 'ghost', 'link']

@@ -1,3 +1,5 @@
+import type { AlertProps, ButtonProps, CardProps } from '@nuxt/ui'
+
 export type SemanticColorName =
   | 'primary'
   | 'secondary'
@@ -57,3 +59,7 @@ export interface SurfaceModeItem {
   label: string
   token: string
 }
+
+export type ButtonVariant = NonNullable<ButtonProps['variant']>
+export type AlertVariant = NonNullable<AlertProps['variant']>
+export type CardVariant = NonNullable<CardProps['variant']>

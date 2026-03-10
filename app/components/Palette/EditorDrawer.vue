@@ -1,18 +1,12 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { PaletteDefinition, PaletteModeKey, PaletteTokenGroup } from '~/types/palette'
+import type { PaletteEditorDrawerEmits, PaletteEditorDrawerProps } from '~/types/palette-components'
 import { clonePalette } from '~/utils/palette'
 
-const props = defineProps<{
-  open: boolean
-  palette: PaletteDefinition
-  defaultMode?: PaletteModeKey
-}>()
+const props = defineProps<PaletteEditorDrawerProps>()
 
-const emit = defineEmits<{
-  save: [palette: PaletteDefinition]
-  'update:open': [value: boolean]
-}>()
+const emit = defineEmits<PaletteEditorDrawerEmits>()
 
 const isOpen = computed({
   get: () => props.open,
@@ -27,9 +21,7 @@ const paletteSchema = z.object({
   })
 })
 
-type PaletteFormState = z.infer<typeof paletteSchema>
-
-const formState = reactive<PaletteFormState>(clonePalette(props.palette))
+const formState = reactive<PaletteDefinition>(clonePalette(props.palette))
 let isSyncingFromProps = false
 
 const modeItems = [
