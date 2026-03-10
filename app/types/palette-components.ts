@@ -1,4 +1,5 @@
-import type { PaletteDefinition, PaletteModeKey, PaletteOption, PaletteOptionId } from '~/types/palette'
+import type { StoredPalette } from '~/types/palette-store'
+import type { PaletteDefinition, PaletteModeKey, PaletteOption } from '~/types/palette'
 
 export type ImportTab = 'paste' | 'file'
 
@@ -23,12 +24,16 @@ export interface PaletteEditorDrawerEmits {
 }
 
 export interface PalettePresetSidebarProps {
+  activeOwnedPaletteId: string | null
   options: readonly PaletteOption[]
-  currentPaletteId: PaletteOptionId
+  currentPaletteId: string
+  isAuthenticated: boolean
+  ownedPalettes: StoredPalette[]
   search: string
 }
 
 export interface PalettePresetSidebarEmits {
-  select: [id: PaletteOptionId]
+  select: [id: string]
+  selectOwnedPalette: [id: string]
   'update:search': [value: string]
 }

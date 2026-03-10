@@ -147,6 +147,7 @@ async function copyActiveExport() {
                     }"
                   >
                     <UButton
+                      type="button"
                       color="neutral"
                       variant="ghost"
                       class="shrink-0 rounded-xl border border-white/10 bg-white/5 px-2.5 py-2 hover:bg-white/10"
@@ -169,12 +170,13 @@ async function copyActiveExport() {
                     </template>
                   </UPopover>
                   <UButton
+                    type="button"
                     color="neutral"
                     variant="ghost"
                     icon="i-lucide-rotate-ccw"
                     class="shrink-0 text-white/60 hover:text-white"
                     aria-label="Reset token to Nuxt UI default"
-                    @click="updateTokenValue(sectionKey, tokenKey, undefined)"
+                    @click.prevent="updateTokenValue(sectionKey, tokenKey, undefined)"
                   />
                 </div>
               </div>
@@ -208,7 +210,7 @@ async function copyActiveExport() {
             readonly
             class="min-h-[520px] w-full rounded-xl border border-white/8 bg-black/70 px-4 py-3 font-mono text-xs leading-6 text-white/70 outline-none"
           />
-          <UButton color="primary" class="w-full bg-[#4cd964] text-black hover:bg-[#65e27c]" @click="copyActiveExport">
+          <UButton type="button" color="primary" class="w-full bg-[#4cd964] text-black hover:bg-[#65e27c]" @click.prevent="copyActiveExport">
             {{ copyState === 'copied' ? 'Copied' : copyState === 'error' ? 'Copy failed' : 'Copy export' }}
           </UButton>
         </div>

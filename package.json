@@ -17,11 +17,14 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@better-auth/mongo-adapter": "^1.5.4",
     "@nuxt/eslint": "1.15.2",
     "@nuxt/image": "2.0.0",
     "@nuxt/test-utils": "4.0.0",
     "@nuxt/ui": "4.5.1",
     "@nuxtjs/i18n": "10.2.3",
+    "better-auth": "^1.5.4",
+    "mongodb": "^7.1.0",
     "nuxt": "^4.3.1",
     "tailwindcss": "^4.2.1",
     "vue": "^3.5.29",

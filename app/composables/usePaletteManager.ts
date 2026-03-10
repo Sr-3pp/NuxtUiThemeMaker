@@ -1,4 +1,4 @@
-import type { PaletteDefinition, PaletteMode, PaletteOptionId, PaletteTokenGroup } from '~/types/palette'
+import type { PaletteDefinition, PaletteMode, PaletteTokenGroup } from '~/types/palette'
 import type { PaletteDraftMap } from '~/types/composables'
 import type { UpdatePaletteTokenPayload } from '~/types/theme-builder'
 import { clonePalette } from '~/utils/palette'
@@ -75,23 +75,21 @@ function applyMirroredTokenUpdate(
 }
 
 export function usePaletteManager() {
-  const currentPaletteId = ref<PaletteOptionId>('default')
+  const currentPaletteId = ref<string>('default')
   const initialDrafts = Object.fromEntries(
     paletteOptions.map(option => [
       option.id,
       clonePalette(option.type === 'preset' ? option.palette : defaultPalette)
     ])
   ) as PaletteDraftMap
+  const paletteSources = ref<PaletteDraftMap>({ ...initialDrafts })
   const paletteDrafts = ref<PaletteDraftMap>(initialDrafts)
   const fallbackDraft = clonePalette(defaultPalette)
-  const defaultPaletteOption = paletteOptions.find(option => option.id === 'default')!
-
-  const currentEditablePalette = computed<PaletteDefinition>(() => {
-    return paletteDrafts.value[currentPaletteId.value] ?? fallbackDraft
-  })
-  const currentPaletteOption = computed(() =>
-    paletteOptions.find(option => option.id === currentPaletteId.value) ?? defaultPaletteOption
+  const currentEditablePalette = ref<PaletteDefinition>(clonePalette(initialDrafts.default ?? defaultPalette))
+  const currentSourcePalette = computed<PaletteDefinition>(() =>
+    paletteSources.value[currentPaletteId.value] ?? defaultPalette
   )
+
   const currentPalette = computed<PaletteDefinition | null>(() =>
     currentPaletteId.value === 'default' && !hasPaletteOverrides(currentEditablePalette.value)
       ? null
@@ -101,8 +99,22 @@ export function usePaletteManager() {
     currentPalette.value ? 'Custom palette' : 'Nuxt UI defaults'
   )
 
+  function syncCurrentEditablePalette() {
+    currentEditablePalette.value = clonePalette(
+      paletteDrafts.value[currentPaletteId.value]
+      ?? paletteSources.value[currentPaletteId.value]
+      ?? fallbackDraft
+    )
+  }
+
   function updateCurrentPalette(palette: PaletteDefinition) {
-    paletteDrafts.value[currentPaletteId.value] = clonePalette(palette)
+    const nextPalette = clonePalette(palette)
+
+    currentEditablePalette.value = nextPalette
+    paletteDrafts.value = {
+      ...paletteDrafts.value,
+      [currentPaletteId.value]: clonePalette(nextPalette)
+    }
   }
 
   function updatePaletteToken(payload: UpdatePaletteTokenPayload) {
@@ -113,29 +125,53 @@ export function usePaletteManager() {
     targetGroup[payload.token] = payload.value
     applyMirroredTokenUpdate(modeDraft, payload.section, payload.token, payload.value)
 
-    paletteDrafts.value[currentPaletteId.value] = nextDraft
+    currentEditablePalette.value = nextDraft
+    paletteDrafts.value = {
+      ...paletteDrafts.value,
+      [currentPaletteId.value]: nextDraft
+    }
   }
 
   function importPalette(palette: PaletteDefinition) {
     updateCurrentPalette(palette)
   }
 
-  function selectPalette(id: PaletteOptionId) {
+  function selectPalette(id: string) {
     currentPaletteId.value = id
+    syncCurrentEditablePalette()
   }
 
   function handleSelectPalette(id: string) {
-    if (paletteOptions.some(option => option.id === id)) {
-      selectPalette(id as PaletteOptionId)
-    }
+    selectPalette(id)
   }
 
   function resetCurrentPalette() {
-    const sourcePalette = currentPaletteOption.value.type === 'preset'
-      ? currentPaletteOption.value.palette
-      : defaultPalette
+    updateCurrentPalette(currentSourcePalette.value)
+  }
 
-    updateCurrentPalette(sourcePalette)
+  function upsertPaletteSource(id: string, palette: PaletteDefinition) {
+    const nextPalette = clonePalette(palette)
+
+    paletteSources.value = {
+      ...paletteSources.value,
+      [id]: nextPalette
+    }
+    paletteDrafts.value = {
+      ...paletteDrafts.value,
+      [id]: clonePalette(nextPalette)
+    }
+  }
+
+  function removePaletteSource(id: string) {
+    const { [id]: _removedSource, ...nextSources } = paletteSources.value
+    const { [id]: _removedDraft, ...nextDrafts } = paletteDrafts.value
+
+    paletteSources.value = nextSources
+    paletteDrafts.value = nextDrafts
+
+    if (currentPaletteId.value === id) {
+      currentPaletteId.value = 'default'
+    }
   }
 
   return {
@@ -145,7 +181,10 @@ export function usePaletteManager() {
     currentPaletteStatus,
     handleSelectPalette,
     importPalette,
+    removePaletteSource,
     resetCurrentPalette,
+    selectPalette,
+    upsertPaletteSource,
     updateCurrentPalette,
     updatePaletteToken,
   }
