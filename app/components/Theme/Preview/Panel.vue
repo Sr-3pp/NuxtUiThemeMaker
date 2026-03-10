@@ -33,7 +33,12 @@ const previewTheme = computed(() => {
 </script>
 
 <template>
-  <div :style="previewTheme" class="h-full">
+  <UDashboardPanel 
+    :style="previewTheme"
+    :ui="{
+      root: 'h-screen overflow-auto px-4 pb-8 pt-22'
+    }"
+  >
     <UTabs
       v-model="previewTab"
       :items="previewTabs"
@@ -57,6 +62,7 @@ const previewTheme = computed(() => {
       </template>
 
       <template #surfaces>
+        <ThemePreviewDataDisplay class="mb-10" :disable-interactive="props.disableInteractive" />
         <ThemePreviewFeedback :disable-interactive="props.disableInteractive" />
       </template>
 
@@ -64,5 +70,5 @@ const previewTheme = computed(() => {
         <ThemePreviewSurfaces />
       </template>
     </UTabs>
-  </div>
+  </UDashboardPanel>
 </template>

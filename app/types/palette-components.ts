@@ -12,17 +12,6 @@ export interface PaletteImportModalEmits {
   'update:open': [value: boolean]
 }
 
-export interface PaletteEditorDrawerProps {
-  open: boolean
-  palette: PaletteDefinition
-  defaultMode?: PaletteModeKey
-}
-
-export interface PaletteEditorDrawerEmits {
-  save: [palette: PaletteDefinition]
-  'update:open': [value: boolean]
-}
-
 export interface PalettePresetSidebarProps {
   activeOwnedPaletteId: string | null
   options: readonly PaletteOption[]

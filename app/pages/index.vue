@@ -55,7 +55,7 @@ const {
       @toggleInteractivePreviews="disableInteractivePreviews = $event"
     />
 
-    <div class="grid min-h-[calc(100vh-130px)] xl:grid-cols-[256px_minmax(0,1fr)_320px]">
+    <div class="grid min-h-[calc(100vh-130px)] xl:grid-cols-[280px_minmax(0,1fr)_380px]">
       <PalettePresetSidebar
         v-model:search="presetSearch"
         :active-owned-palette-id="activeOwnedPaletteId"
@@ -67,13 +67,7 @@ const {
         @select-owned-palette="handleOwnedPaletteSelection"
       />
 
-      <UDashboardPanel 
-        :ui="{
-          root: 'h-screen overflow-auto px-4 pb-8 pt-20'
-        }"
-      >
-        <ThemePreviewPanel :palette="currentPalette" :disable-interactive="disableInteractivePreviews" />
-      </UDashboardPanel>
+      <ThemePreviewPanel :palette="currentPalette" :disable-interactive="disableInteractivePreviews" />
 
       <ThemeWorkbenchEditor
         v-model:tab="editorTab"

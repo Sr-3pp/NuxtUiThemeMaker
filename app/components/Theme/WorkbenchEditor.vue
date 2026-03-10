@@ -27,6 +27,20 @@ const emit = defineEmits<ThemeWorkbenchEditorEmits>()
 const activeMode = computed<PaletteModeKey>(() => props.defaultMode ?? 'light')
 const selectedExport = ref<ExportItemValue>('css')
 const copyState = ref<'idle' | 'copied' | 'error'>('idle')
+const saveItems = computed(() => [[
+  {
+    label: 'Save',
+    icon: 'i-lucide-save',
+    disabled: props.isWorking,
+    onSelect: () => emit('save')
+  },
+  {
+    label: 'Save As New',
+    icon: 'i-lucide-save-all',
+    disabled: props.isWorking,
+    onSelect: () => emit('saveAsNew')
+  }
+]])
 
 const exportItems: Array<{ label: string, value: ExportItemValue }> = [
   { label: 'theme.css', value: 'css' },
@@ -89,34 +103,30 @@ async function copyActiveExport() {
     }"
   >
     <template #header>
-      <UDashboardNavbar :title="props.tab === 'export' ? 'Export Palette' : 'Theme Editor'">
+      <UDashboardNavbar 
+        :title="props.tab === 'export' ? 'Export Palette' : 'Theme Editor'"
+        :ui="{
+          left: 'justify-between w-full',
+        }"
+      >
         <template #trailing>
-          <UDashboardSidebarCollapse />
+          <UDropdownMenu :items="saveItems">
+            <UButton
+              type="button"
+              color="primary"
+              class="bg-[#4cd964] text-black hover:bg-[#65e27c]"
+              :loading="props.isWorking"
+              trailing-icon="i-lucide-chevron-down"
+            >
+              <UIcon name="i-lucide-save" class="h-4 w-4" />
+              Save
+            </UButton>
+          </UDropdownMenu>
         </template>
       </UDashboardNavbar>
     </template>
 
     <template #body>
-      <div class="flex justify-between mb-4">
-        <UButton
-          type="button"
-          color="primary"
-          class="bg-[#4cd964] text-black hover:bg-[#65e27c]"
-          :loading="props.isWorking"
-          @click.prevent="emit('save')"
-        >
-          Save
-        </UButton>
-        <UButton
-          type="button"
-          color="neutral"
-          variant="outline"
-          :loading="props.isWorking"
-          @click.prevent="emit('saveAsNew')"
-        >
-          Save As New
-        </UButton>
-      </div>
       <template v-if="props.tab === 'tokens'">
         <div class="mb-4 flex flex-col items-center justify-between rounded-2xl border dark:border-white/10 bg-white/5 px-4 py-3 gap-2">
           <p class="text-xs uppercase tracking-[0.16em] w-full">
@@ -131,10 +141,10 @@ async function copyActiveExport() {
           v-for="group in sectionGroups"
           :key="group.label"
           variant="outline"
-          class="rounded-2xl border-white/10 bg-black/40 shadow-none overflow-auto mb-4"
+          class="rounded-2xl dark:border-white/10 dark:bg-black/40 shadow-none overflow-auto mb-4"
         >
           <template #header>
-            <p class="text-sm font-medium text-white">
+            <p class="text-sm font-medium dark:text-white">
               {{ group.label }}
             </p>
           </template>
@@ -145,7 +155,7 @@ async function copyActiveExport() {
               :key="`${activeMode}-${group.label}-${sectionKey}`"
               class="space-y-3"
             >
-              <p class="text-xs font-medium uppercase tracking-[0.16em] text-white/40">
+              <p class="text-xs font-medium uppercase tracking-[0.16em] dark:text-white/40">
                 {{ formatPaletteLabel(sectionKey) }}
               </p>
 
@@ -153,7 +163,7 @@ async function copyActiveExport() {
                 <div
                   v-for="tokenKey in paletteTokenKeys(tokens)"
                   :key="`${sectionKey}-${tokenKey}`"
-                  class="flex items-center gap-3 rounded-xl border border-white/8 bg-white/3 px-3 py-2"
+                  class="flex items-center gap-3 rounded-xl border dark:border-white/8 bg-white/3 dark:bg-black/5 px-3 py-2"
                 >
                   <UPopover
                     :content="{
@@ -166,10 +176,10 @@ async function copyActiveExport() {
                       type="button"
                       color="neutral"
                       variant="ghost"
-                      class="shrink-0 rounded-xl border border-white/10 bg-white/5 px-2.5 py-2 hover:bg-white/10"
+                      class="shrink-0 rounded-xl border dark:border-white/10 bg-white/5 dark:bg-black/5 px-2.5 py-2 hover:bg-white/10 dark:hover:bg-black/10"
                     >
                       <span
-                        class="h-5 w-5 rounded-md border border-black/40"
+                        class="h-5 w-5 rounded-md border border-black/40 dark:border-white/40 "
                         :style="paletteTokenStyle(tokens[tokenKey])"
                       />
                     </UButton>
@@ -186,10 +196,10 @@ async function copyActiveExport() {
                     </template>
                   </UPopover>
                   <div class="min-w-0 flex-1">
-                    <p class="truncate text-sm text-white/75">
+                    <p class="truncate text-sm dark:text-white/75">
                       {{ formatPaletteLabel(tokenKey) }}
                     </p>
-                    <p class="truncate text-xs text-white/35">
+                    <p class="truncate text-xs dark:text-white/35">
                       {{ getPaletteDisplayValue(tokens, tokenKey) ?? 'Nuxt UI default' }}
                     </p>
                   </div>
@@ -198,7 +208,7 @@ async function copyActiveExport() {
                     color="neutral"
                     variant="ghost"
                     icon="i-lucide-rotate-ccw"
-                    class="shrink-0 text-white/60 hover:text-white"
+                    class="shrink-0 dark:text-white/60 hover:dark:text-white"
                     aria-label="Reset token to Nuxt UI default"
                     @click.prevent="resetTokenValue(sectionKey, tokenKey)"
                   />
@@ -209,10 +219,10 @@ async function copyActiveExport() {
         </UCard>
       </template>
 
-      <UCard v-else variant="outline" class="rounded-2xl border-white/10 bg-black/40 shadow-none">
+      <UCard v-else variant="outline" class="rounded-2xl dark:border-white/10 dark:bg-black/40 shadow-none">
         <template #header>
           <div class="flex items-center justify-between gap-3">
-            <p class="text-sm font-medium text-white">
+            <p class="text-sm font-medium dark:text-white">
               Export palette
             </p>
             <USelect

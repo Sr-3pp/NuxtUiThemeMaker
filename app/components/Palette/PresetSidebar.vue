@@ -57,9 +57,9 @@ function swatchesFor(option: PaletteOption) {
           class="[&_input]:border-white/10 [&_input]:bg-white/5 [&_input]:text-white/90 [&_input]:shadow-none [&_input::placeholder]:text-white/35"
         />
 
-        <div class="rounded-2xl border border-white/10 bg-white/5 p-3 flex flex-col gap-4">
+        <div class="rounded-2xl border dark:border-white/10 dark:bg-white/5 p-3 flex flex-col gap-4">
           <div class="flex items-center justify-between gap-3">
-            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] dark:text-white/45">
               My Palettes
             </p>
             <UBadge
@@ -88,17 +88,17 @@ function swatchesFor(option: PaletteOption) {
           block
             class="h-auto rounded-2xl border p-3 text-left transition"
             :class="props.activeOwnedPaletteId === ownedPalette._id
-              ? 'border-[#4cd964] bg-[rgba(24,72,25,0.55)] shadow-[inset_0_0_0_1px_rgba(76,217,100,0.28)]'
-              : 'border-white/10 bg-black hover:border-white/20 hover:bg-white/5'"
+              ? 'border-[#4cd964] dark:bg-[rgba(24,72,25,0.55)] shadow-[inset_0_0_0_1px_rgba(76,217,100,0.28)]'
+              : 'border-white/10 dark:border-white/10 bg-black/10 dark:bg-black dark:bg-white/5 hover:border-white/20 hover:dark:bg-white/5'"
           @click.prevent="emit('selectOwnedPalette', ownedPalette._id)"
         >
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0 space-y-2">
-                <p class="truncate text-sm font-medium text-white">
+                <p class="truncate text-sm font-medium dark:text-white">
                   {{ ownedPalette.name }}
                 </p>
 
-                <div class="flex items-center gap-2 text-xs text-white/45">
+                <div class="flex items-center gap-2 text-xs dark:text-white/45">
                   <span>{{ ownedPalette.slug }}</span>
                   <UBadge :color="ownedPalette.isPublic ? 'primary' : 'neutral'" variant="subtle">
                     {{ ownedPalette.isPublic ? 'Public' : 'Private' }}
@@ -109,7 +109,7 @@ function swatchesFor(option: PaletteOption) {
           </UButton>
         </div>
 
-        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] dark:text-white/45">
           Presets
         </p>
 
@@ -123,12 +123,12 @@ function swatchesFor(option: PaletteOption) {
           class="h-auto rounded-2xl border p-3 text-left transition"
           :class="option.id === props.currentPaletteId
             ? 'border-[#4cd964] bg-[rgba(24,72,25,0.55)] shadow-[inset_0_0_0_1px_rgba(76,217,100,0.28)]'
-            : 'border-white/10 bg-black hover:border-white/20 hover:bg-white/5'"
+            : 'border-white/10 dark:border-white/10 bg-black/10 dark:bg-white/5 hover:border-white/20 hover:bg-white/5'"
           @click.prevent="emit('select', option.id)"
         >
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0 space-y-2">
-              <p class="truncate text-sm font-medium text-white">
+              <p class="truncate text-sm font-medium dark:text-white">
                 {{ option.name }}
               </p>
 
@@ -136,7 +136,7 @@ function swatchesFor(option: PaletteOption) {
                 <span
                   v-for="(swatch, index) in swatchesFor(option)"
                   :key="`${option.id}-${index}`"
-                  class="h-4 w-4 rounded-md border border-black/40"
+                  class="h-4 w-4 rounded-md border border-black/40 dark:border-white/40"
                   :style="{ backgroundColor: swatch }"
                 />
               </div>
