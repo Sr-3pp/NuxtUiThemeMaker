@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PaletteModeKey, PaletteTokenGroup } from '~/types/palette'
+import type { PaletteModeKey } from '~/types/palette'
 import type {
   ExportItemValue,
   ThemeWorkbenchEditorEmits,
@@ -10,6 +10,15 @@ import {
   exportPaletteCss,
   exportPaletteTs
 } from '~/utils/paletteExport'
+import {
+  formatPaletteLabel,
+  getPaletteDisplayValue,
+  getPalettePickerValue,
+  normalizePaletteTokenValue,
+  paletteSectionEntries,
+  paletteTokenKeys,
+  paletteTokenStyle
+} from '~/utils/paletteEditor'
 
 const props = defineProps<ThemeWorkbenchEditorProps>()
 
@@ -40,34 +49,12 @@ const exportsByType = computed<Record<ExportItemValue, string>>(() => ({
 
 const activeExport = computed(() => exportsByType.value[selectedExport.value])
 
-function sectionEntries(mode: PaletteModeKey, sectionKeys: readonly string[]) {
-  return sectionKeys
-    .filter(sectionKey => props.palette.modes[mode]?.[sectionKey])
-    .map(sectionKey => [sectionKey, props.palette.modes[mode][sectionKey]] as [string, PaletteTokenGroup])
-}
-
-function formatLabel(value: string) {
-  return value.replace(/-/g, ' ')
-}
-
-function getTokenValue(tokens: PaletteTokenGroup, tokenKey: string) {
-  return tokens[tokenKey] ?? null
-}
-
-function getPickerValue(tokens: PaletteTokenGroup, tokenKey: string) {
-  return tokens[tokenKey] ?? undefined
-}
-
 function updateTokenValue(sectionKey: string, tokenKey: string, value: string | number | undefined) {
-  const nextValue = typeof value === 'string' || typeof value === 'number'
-    ? String(value).trim()
-    : ''
-
   emit('update-token', {
     mode: activeMode.value,
     section: sectionKey,
     token: tokenKey,
-    value: nextValue.length > 0 ? nextValue : null
+    value: normalizePaletteTokenValue(value)
   })
 }
 
@@ -126,30 +113,30 @@ async function copyActiveExport() {
 
           <div class="space-y-4">
             <div
-              v-for="[sectionKey, tokens] in sectionEntries(activeMode, group.sections)"
+              v-for="[sectionKey, tokens] in paletteSectionEntries(props.palette.modes[activeMode], group.sections)"
               :key="`${activeMode}-${group.label}-${sectionKey}`"
               class="space-y-3"
             >
               <p class="text-xs font-medium uppercase tracking-[0.16em] text-white/40">
-                {{ formatLabel(sectionKey) }}
+                {{ formatPaletteLabel(sectionKey) }}
               </p>
 
               <div class="space-y-2">
                 <div
-                  v-for="tokenKey in Object.keys(tokens)"
+                  v-for="tokenKey in paletteTokenKeys(tokens)"
                   :key="`${sectionKey}-${tokenKey}`"
                   class="flex items-center gap-3 rounded-xl border border-white/8 bg-white/3 px-3 py-2"
                 >
                   <div
                     class="h-7 w-7 shrink-0 rounded-lg border border-black/50"
-                    :style="{ backgroundColor: tokens[tokenKey] ?? 'transparent' }"
+                    :style="paletteTokenStyle(tokens[tokenKey])"
                   />
                   <div class="min-w-0 flex-1">
                     <p class="truncate text-sm text-white/75">
-                      {{ formatLabel(tokenKey) }}
+                      {{ formatPaletteLabel(tokenKey) }}
                     </p>
                     <p class="truncate text-xs text-white/35">
-                      {{ getTokenValue(tokens, tokenKey) ?? 'Nuxt UI default' }}
+                      {{ getPaletteDisplayValue(tokens, tokenKey) ?? 'Nuxt UI default' }}
                     </p>
                   </div>
                   <UPopover
@@ -166,14 +153,14 @@ async function copyActiveExport() {
                     >
                       <span
                         class="h-5 w-5 rounded-md border border-black/40"
-                        :style="{ backgroundColor: tokens[tokenKey] ?? 'transparent' }"
+                        :style="paletteTokenStyle(tokens[tokenKey])"
                       />
                     </UButton>
 
                     <template #content>
                       <div class="rounded-2xl border border-white/10 bg-black/95 p-3 shadow-2xl backdrop-blur">
                         <UColorPicker
-                          :model-value="getPickerValue(tokens, tokenKey)"
+                          :model-value="getPalettePickerValue(tokens, tokenKey)"
                           format="hex"
                           size="sm"
                           @update:model-value="updateTokenValue(sectionKey, tokenKey, $event)"

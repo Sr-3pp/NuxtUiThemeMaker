@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import { z } from 'zod'
-import type { TabsItem } from '@nuxt/ui'
-import type { PaletteDefinition } from '~/types/palette'
-import type { ImportTab, PaletteImportModalEmits, PaletteImportModalProps } from '~/types/palette-components'
-import { clonePalette } from '~/utils/palette'
+import type { PaletteImportModalEmits, PaletteImportModalProps } from '~/types/palette-components'
+import { usePaletteImport } from '~/composables/usePaletteImport'
 
 const props = defineProps<PaletteImportModalProps>()
 
@@ -14,97 +11,26 @@ const isOpen = computed({
   set: (value: boolean) => emit('update:open', value)
 })
 
-const importTabs: TabsItem[] = [
-  { label: 'Paste JSON', value: 'paste', slot: 'paste' },
-  { label: 'Upload file', value: 'file', slot: 'file' }
-]
-
-const paletteSchema = z.object({
-  name: z.string().trim().min(1, 'Palette name is required'),
-  modes: z.object({
-    light: z.record(z.string(), z.record(z.string(), z.union([z.string().trim().min(1), z.null()]))),
-    dark: z.record(z.string(), z.record(z.string(), z.union([z.string().trim().min(1), z.null()])))
-  })
-})
-
-const activeTab = ref<ImportTab>('paste')
-const rawJson = ref('')
-const uploadedFileName = ref('')
-const uploadedFileContent = ref('')
-const errorMessage = ref('')
-const isImporting = ref(false)
+const {
+  activeTab,
+  errorMessage,
+  handleFileChange,
+  importFromSource: submitImport,
+  importTabs,
+  isImporting,
+  rawJson,
+  resetState,
+  uploadedFileName,
+} = usePaletteImport()
 
 watch(() => props.open, (open) => {
-  if (open) {
-    return
+  if (!open) {
+    resetState()
   }
-
-  activeTab.value = 'paste'
-  rawJson.value = ''
-  uploadedFileName.value = ''
-  uploadedFileContent.value = ''
-  errorMessage.value = ''
-  isImporting.value = false
 })
 
-function parsePalette(input: string) {
-  const parsedJson = JSON.parse(input) as unknown
-  return clonePalette(paletteSchema.parse(parsedJson) as PaletteDefinition)
-}
-
-async function handleFileChange(event: Event) {
-  const input = event.target as HTMLInputElement | null
-  const file = input?.files?.[0]
-
-  uploadedFileName.value = ''
-  uploadedFileContent.value = ''
-  errorMessage.value = ''
-
-  if (!file) {
-    return
-  }
-
-  try {
-    uploadedFileContent.value = await file.text()
-    uploadedFileName.value = file.name
-  }
-  catch {
-    errorMessage.value = 'Unable to read the selected file.'
-  }
-}
-
 function importFromSource() {
-  errorMessage.value = ''
-  isImporting.value = true
-
-  try {
-    const source = activeTab.value === 'paste' ? rawJson.value : uploadedFileContent.value
-
-    if (!source.trim()) {
-      throw new Error(activeTab.value === 'paste'
-        ? 'Paste a palette JSON payload first.'
-        : 'Choose a JSON file first.')
-    }
-
-    emit('import', parsePalette(source))
-  }
-  catch (error) {
-    if (error instanceof z.ZodError) {
-      errorMessage.value = error.issues[0]?.message ?? 'The JSON does not match the palette schema.'
-    }
-    else if (error instanceof SyntaxError) {
-      errorMessage.value = 'The JSON could not be parsed.'
-    }
-    else if (error instanceof Error) {
-      errorMessage.value = error.message
-    }
-    else {
-      errorMessage.value = 'Unable to import this palette.'
-    }
-  }
-  finally {
-    isImporting.value = false
-  }
+  submitImport((palette) => emit('import', palette))
 }
 </script>
 
