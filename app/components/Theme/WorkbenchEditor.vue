@@ -58,6 +58,14 @@ function updateTokenValue(sectionKey: string, tokenKey: string, value: string | 
   })
 }
 
+function resetTokenValue(sectionKey: string, tokenKey: string) {
+  updateTokenValue(
+    sectionKey,
+    tokenKey,
+    props.sourcePalette.modes[activeMode.value]?.[sectionKey]?.[tokenKey] ?? undefined
+  )
+}
+
 async function copyActiveExport() {
   try {
     await navigator.clipboard.writeText(activeExport.value)
@@ -127,18 +135,6 @@ async function copyActiveExport() {
                   :key="`${sectionKey}-${tokenKey}`"
                   class="flex items-center gap-3 rounded-xl border border-white/8 bg-white/3 px-3 py-2"
                 >
-                  <div
-                    class="h-7 w-7 shrink-0 rounded-lg border border-black/50"
-                    :style="paletteTokenStyle(tokens[tokenKey])"
-                  />
-                  <div class="min-w-0 flex-1">
-                    <p class="truncate text-sm text-white/75">
-                      {{ formatPaletteLabel(tokenKey) }}
-                    </p>
-                    <p class="truncate text-xs text-white/35">
-                      {{ getPaletteDisplayValue(tokens, tokenKey) ?? 'Nuxt UI default' }}
-                    </p>
-                  </div>
                   <UPopover
                     :content="{
                       align: 'end',
@@ -169,6 +165,14 @@ async function copyActiveExport() {
                       </div>
                     </template>
                   </UPopover>
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm text-white/75">
+                      {{ formatPaletteLabel(tokenKey) }}
+                    </p>
+                    <p class="truncate text-xs text-white/35">
+                      {{ getPaletteDisplayValue(tokens, tokenKey) ?? 'Nuxt UI default' }}
+                    </p>
+                  </div>
                   <UButton
                     type="button"
                     color="neutral"
@@ -176,7 +180,7 @@ async function copyActiveExport() {
                     icon="i-lucide-rotate-ccw"
                     class="shrink-0 text-white/60 hover:text-white"
                     aria-label="Reset token to Nuxt UI default"
-                    @click.prevent="updateTokenValue(sectionKey, tokenKey, undefined)"
+                    @click.prevent="resetTokenValue(sectionKey, tokenKey)"
                   />
                 </div>
               </div>

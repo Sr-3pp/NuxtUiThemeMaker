@@ -4,6 +4,7 @@ const {
   currentPalette,
   currentPaletteId,
   currentPaletteStatus,
+  currentSourcePalette,
   currentMode,
   editorTab,
   filteredPaletteOptions,
@@ -126,6 +127,7 @@ const {
       <ThemeWorkbenchEditor
         v-model:tab="editorTab"
         :palette="currentEditablePalette"
+        :source-palette="currentSourcePalette"
         :default-mode="currentMode"
         @update-token="updatePaletteToken"
       />

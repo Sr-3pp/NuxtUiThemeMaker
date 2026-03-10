@@ -13,6 +13,7 @@ export interface UpdatePaletteTokenPayload {
 
 export interface ThemeWorkbenchEditorProps {
   palette: PaletteDefinition
+  sourcePalette: PaletteDefinition
   defaultMode?: PaletteModeKey
   tab: EditorTab
 }

@@ -179,6 +179,7 @@ export function usePaletteManager() {
     currentPalette,
     currentPaletteId,
     currentPaletteStatus,
+    currentSourcePalette,
     handleSelectPalette,
     importPalette,
     removePaletteSource,
