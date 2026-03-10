@@ -76,7 +76,7 @@ function resetCurrentPalette() {
         />
 
         <UDashboardPanel>
-          <div :style="previewTheme" class="h-full">
+          <div :style="previewTheme" class="h-full px-4">
             <UTabs
               v-model="previewTab"
               :items="previewTabs"
