@@ -37,7 +37,7 @@ export function usePageSeo(options: PageSeoOptions) {
       ? [
           {
             type: 'application/ld+json',
-            children: JSON.stringify(options.jsonLd),
+            innerHTML: JSON.stringify(options.jsonLd),
           },
         ]
       : [],
