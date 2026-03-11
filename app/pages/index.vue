@@ -81,7 +81,7 @@ const {
       @toggleInteractivePreviews="disableInteractivePreviews = $event"
     />
 
-    <div class="grid min-h-[calc(100vh-130px)] xl:grid-cols-[280px_minmax(0,1fr)_380px]">
+    <UDashboardGroup class="grid min-h-[calc(100vh-130px)] xl:grid-cols-[280px_minmax(0,1fr)_380px]">
       <PalettePresetSidebar
         v-model:search="presetSearch"
         :active-owned-palette-id="activeOwnedPaletteId"
@@ -105,7 +105,7 @@ const {
         @save-as-new="handleAction(() => savePalette(true))"
         @update-token="updatePaletteToken"
       />
-    </div>
+    </UDashboardGroup>
 
     <PaletteImportModal v-model:open="isPaletteImportOpen" @import="importPalette" />
   </UMain>

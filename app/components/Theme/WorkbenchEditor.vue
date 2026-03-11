@@ -49,11 +49,13 @@ const exportItems: Array<{ label: string, value: ExportItemValue }> = [
 ]
 
 const sectionGroups = [
-  { label: 'Brand Colors', sections: ['color'] },
-  { label: 'Semantic Colors', sections: ['ui'] },
-  { label: 'Background & Surface', sections: ['bg', 'text'] },
-  { label: 'Muted & Border', sections: ['border', 'ring', 'divide', 'outline', 'fill', 'stroke'] }
-] as const
+  { label: 'Brand Colors', value: 'brand-colors', sections: ['color'] },
+  { label: 'Semantic Colors', value: 'semantic-colors', sections: ['ui'] },
+  { label: 'Background & Surface', value: 'background-surface', sections: ['bg', 'text'] },
+  { label: 'Muted & Border', value: 'muted-border', sections: ['border', 'ring', 'divide', 'outline', 'fill', 'stroke'] }
+]
+
+const defaultOpenSectionGroups = [sectionGroups[0]?.value ?? 'brand-colors']
 
 const exportsByType = computed<Record<ExportItemValue, string>>(() => ({
   css: exportPaletteCss(props.palette),
@@ -137,22 +139,22 @@ async function copyActiveExport() {
           </p>
         </div>
   
-        <UCard
-          v-for="group in sectionGroups"
-          :key="group.label"
-          variant="outline"
-          class="rounded-2xl dark:border-white/10 dark:bg-black/40 shadow-none overflow-auto mb-4"
+        <UAccordion
+          :items="sectionGroups"
+          type="multiple"
+          :default-value="defaultOpenSectionGroups"
+          :ui="{
+            item: 'mb-4 overflow-hidden rounded-2xl border dark:border-white/10 dark:bg-black/40 shadow-none',
+            header: 'flex',
+            trigger: 'w-full px-4 py-4 text-sm font-medium dark:text-white hover:bg-white/5 dark:hover:bg-white/5',
+            content: 'px-4 pb-4',
+            body: 'space-y-4'
+          }"
         >
-          <template #header>
-            <p class="text-sm font-medium dark:text-white">
-              {{ group.label }}
-            </p>
-          </template>
-
-          <div class="space-y-4">
+          <template #body="{ item }">
             <div
-              v-for="[sectionKey, tokens] in paletteSectionEntries(props.palette.modes[activeMode], group.sections)"
-              :key="`${activeMode}-${group.label}-${sectionKey}`"
+              v-for="[sectionKey, tokens] in paletteSectionEntries(props.palette.modes[activeMode], item.sections)"
+              :key="`${activeMode}-${item.value}-${sectionKey}`"
               class="space-y-3"
             >
               <p class="text-xs font-medium uppercase tracking-[0.16em] dark:text-white/40">
@@ -215,8 +217,8 @@ async function copyActiveExport() {
                 </div>
               </div>
             </div>
-          </div>
-        </UCard>
+          </template>
+        </UAccordion>
       </template>
 
       <UCard v-else variant="outline" class="rounded-2xl dark:border-white/10 dark:bg-black/40 shadow-none">
