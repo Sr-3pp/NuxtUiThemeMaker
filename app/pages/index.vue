@@ -81,31 +81,26 @@ const {
       @toggleInteractivePreviews="disableInteractivePreviews = $event"
     />
 
-    <UDashboardGroup class="grid min-h-[calc(100vh-130px)] xl:grid-cols-[280px_minmax(0,1fr)_380px]">
-      <PalettePresetSidebar
-        v-model:search="presetSearch"
-        :active-owned-palette-id="activeOwnedPaletteId"
-        :options="filteredPaletteOptions"
-        :current-palette-id="currentPaletteId"
-        :is-authenticated="isAuthenticated"
-        :owned-palettes="ownedPalettes"
-        @select="handlePaletteSelection"
-        @select-owned-palette="handleOwnedPaletteSelection"
-      />
-
-      <ThemePreviewPanel :palette="currentPalette" :disable-interactive="disableInteractivePreviews" />
-
-      <ThemeWorkbenchEditor
-        v-model:tab="editorTab"
-        :palette="currentEditablePalette"
-        :source-palette="currentSourcePalette"
-        :is-working="isWorking"
-        :default-mode="currentMode"
-        @save="handleAction(() => savePalette(false))"
-        @save-as-new="handleAction(() => savePalette(true))"
-        @update-token="updatePaletteToken"
-      />
-    </UDashboardGroup>
+    <ThemeWorkspace
+      v-model:search="presetSearch"
+      v-model:tab="editorTab"
+      :active-owned-palette-id="activeOwnedPaletteId"
+      :options="filteredPaletteOptions"
+      :current-palette-id="currentPaletteId"
+      :is-authenticated="isAuthenticated"
+      :owned-palettes="ownedPalettes"
+      :palette="currentPalette"
+      :editable-palette="currentEditablePalette"
+      :source-palette="currentSourcePalette"
+      :is-working="isWorking"
+      :default-mode="currentMode"
+      :disable-interactive="disableInteractivePreviews"
+      @select="handlePaletteSelection"
+      @select-owned-palette="handleOwnedPaletteSelection"
+      @save="handleAction(() => savePalette(false))"
+      @save-as-new="handleAction(() => savePalette(true))"
+      @update-token="updatePaletteToken"
+    />
 
     <PaletteImportModal v-model:open="isPaletteImportOpen" @import="importPalette" />
   </UMain>
