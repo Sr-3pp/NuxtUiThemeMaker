@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { z } from 'zod'
 
+usePageSeo({
+  title: 'Register',
+  description: 'Create an account to save, manage, and share Nuxt UI palettes.',
+  path: '/register',
+  robots: 'noindex, nofollow',
+})
+
 const route = useRoute()
 const { normalizeRedirectTarget, refetchSession, session, signUpWithEmail } = useAuth()
 const isSubmitting = ref(false)

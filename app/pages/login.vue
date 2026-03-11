@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { z } from 'zod'
 
+usePageSeo({
+  title: 'Sign In',
+  description: 'Sign in to manage saved Nuxt UI palettes and sharing settings.',
+  path: '/login',
+  robots: 'noindex, nofollow',
+})
+
 const route = useRoute()
 const { normalizeRedirectTarget, refetchSession, session, signInWithEmail } = useAuth()
 const isSubmitting = ref(false)

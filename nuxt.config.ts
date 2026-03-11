@@ -9,6 +9,23 @@ export default defineNuxtConfig({
     betterAuthUrl: process.env.NUXT_BETTER_AUTH_URL || 'http://localhost:3000',
     mongodbDbName: process.env.NUXT_MONGODB_DB_NAME || '',
     mongodbUri: process.env.NUXT_MONGODB_URI || '',
+    public: {
+      siteDescription: process.env.NUXT_PUBLIC_SITE_DESCRIPTION || 'Build, preview, save, and share Nuxt UI color palettes with a live component workbench.',
+      siteName: process.env.NUXT_PUBLIC_SITE_NAME || 'Nuxt UI Theme Builder',
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || process.env.NUXT_BETTER_AUTH_URL || 'http://localhost:3000',
+    },
+  },
+  app: {
+    head: {
+      htmlAttrs: {
+        lang: 'en',
+      },
+      meta: [
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'theme-color', content: '#0a0a0a' },
+        { name: 'format-detection', content: 'telephone=no' },
+      ],
+    },
   },
 
   modules: [
@@ -18,6 +35,15 @@ export default defineNuxtConfig({
     '@nuxt/test-utils',
     '@nuxtjs/i18n'
   ],
+  i18n: {
+    defaultLocale: 'en-US',
+    locales: [
+      {
+        code: 'en-US',
+        language: 'en-US',
+      },
+    ],
+  },
   css: [
     '@/assets/css/main.css' 
   ]

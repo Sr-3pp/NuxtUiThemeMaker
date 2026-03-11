@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { StoredPalette } from '~/types/palette-store'
+import { buildPaletteDescription, buildPaletteJsonLd } from '~/utils/seo'
 
 const route = useRoute()
 const slug = computed(() => String(route.params.slug))
@@ -18,6 +19,30 @@ if (error.value) {
     statusMessage: error.value.statusMessage ?? 'Palette not found',
   })
 }
+
+const paletteValue = computed(() => palette.value)
+const siteConfig = useRuntimeConfig()
+
+usePageSeo({
+  title: computed(() => paletteValue.value?.name ? `${paletteValue.value.name} Palette` : 'Shared Palette').value,
+  description: computed(() => paletteValue.value ? buildPaletteDescription(paletteValue.value) : 'Shared Nuxt UI palette preview.').value,
+  path: `/palette/${slug.value}`,
+  type: 'article',
+  robots: computed(() => {
+    if (!paletteValue.value?.isPublic) {
+      return 'noindex, nofollow'
+    }
+
+    return 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
+  }).value,
+  jsonLd: computed(() => {
+    if (!paletteValue.value?.isPublic) {
+      return undefined
+    }
+
+    return buildPaletteJsonLd(siteConfig.public.siteUrl, paletteValue.value)
+  }).value,
+})
 </script>
 
 <template>

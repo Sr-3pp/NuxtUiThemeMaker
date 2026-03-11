@@ -1,0 +1,57 @@
+import { getPaletteCollection } from '~~/server/models/palette'
+
+function escapeXml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll('\'', '&apos;')
+}
+
+export default defineEventHandler(async (event) => {
+  const config = useRuntimeConfig(event)
+  const siteUrl = config.public.siteUrl.endsWith('/')
+    ? config.public.siteUrl
+    : `${config.public.siteUrl}/`
+  const collection = await getPaletteCollection()
+  const publicPalettes = await collection.find(
+    { isPublic: true },
+    {
+      projection: {
+        slug: 1,
+        updatedAt: 1,
+      },
+      sort: { updatedAt: -1 },
+    }
+  ).toArray()
+
+  const urls = [
+    {
+      loc: new URL('/', siteUrl).toString(),
+      lastmod: new Date().toISOString(),
+      changefreq: 'weekly',
+      priority: '1.0',
+    },
+    ...publicPalettes.map((palette) => ({
+      loc: new URL(`/palette/${palette.slug}`, siteUrl).toString(),
+      lastmod: palette.updatedAt.toISOString(),
+      changefreq: 'weekly',
+      priority: '0.7',
+    })),
+  ]
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(url => `  <url>
+    <loc>${escapeXml(url.loc)}</loc>
+    <lastmod>${escapeXml(url.lastmod)}</lastmod>
+    <changefreq>${url.changefreq}</changefreq>
+    <priority>${url.priority}</priority>
+  </url>`).join('\n')}
+</urlset>`
+
+  setHeader(event, 'content-type', 'application/xml; charset=utf-8')
+
+  return xml
+})
