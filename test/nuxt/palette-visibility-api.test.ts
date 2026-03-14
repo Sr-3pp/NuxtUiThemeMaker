@@ -2,8 +2,9 @@ import { createEvent, type H3Event } from 'h3'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const requireAuthSessionMock = vi.fn()
-const getPaletteCollectionMock = vi.fn()
+const findPaletteByIdMock = vi.fn()
 const parsePaletteObjectIdMock = vi.fn((id: string) => `object:${id}`)
+const updatePaletteByIdMock = vi.fn()
 const toStoredPaletteMock = vi.fn((palette: {
   _id: string
   userId: string
@@ -28,9 +29,13 @@ vi.mock('~~/server/utils/auth-session', () => ({
   requireAuthSession: requireAuthSessionMock,
 }))
 
-vi.mock('~~/server/models/palette', () => ({
-  getPaletteCollection: getPaletteCollectionMock,
+vi.mock('~~/server/db/repositories/palette-repository', () => ({
+  findPaletteById: findPaletteByIdMock,
   parsePaletteObjectId: parsePaletteObjectIdMock,
+  updatePaletteById: updatePaletteByIdMock,
+}))
+
+vi.mock('~~/server/domain/palette', () => ({
   toStoredPalette: toStoredPaletteMock,
 }))
 
@@ -58,6 +63,9 @@ describe('palette visibility api handler', () => {
   beforeEach(() => {
     vi.resetModules()
     vi.clearAllMocks()
+    requireAuthSessionMock.mockReset()
+    findPaletteByIdMock.mockReset()
+    updatePaletteByIdMock.mockReset()
   })
 
   it('returns the existing auth error when the request is unauthenticated', async () => {
@@ -68,7 +76,7 @@ describe('palette visibility api handler', () => {
 
     requireAuthSessionMock.mockRejectedValueOnce(authError)
 
-    const { default: handler } = await import('~~/server/api/palettes/[id]/visibility/index.patch')
+    const { default: handler } = await import('~~/server/api/palettes/[id]/visibility.patch')
 
     await expect(handler(createPatchEvent('69af8b6940280b9bc83c3c07', { isPublic: true }) as H3Event))
       .rejects
@@ -100,36 +108,34 @@ describe('palette visibility api handler', () => {
       isPublic: true,
       updatedAt: new Date('2026-03-10T10:00:00.000Z'),
     }
-    const findOneMock = vi
-      .fn()
-      .mockResolvedValueOnce(originalPalette)
-      .mockResolvedValueOnce(updatedPalette)
     const updateOneMock = vi.fn().mockResolvedValueOnce({ acknowledged: true })
 
     requireAuthSessionMock.mockResolvedValueOnce({
       user: { id: 'user-1' },
     })
-    getPaletteCollectionMock.mockResolvedValueOnce({
-      findOne: findOneMock,
-      updateOne: updateOneMock,
+    findPaletteByIdMock
+      .mockResolvedValueOnce(originalPalette)
+      .mockResolvedValueOnce(updatedPalette)
+    updatePaletteByIdMock.mockImplementationOnce(async (_id, _update) => {
+      updateOneMock({ acknowledged: true })
+
+      return updatedPalette
     })
 
-    const { default: handler } = await import('~~/server/api/palettes/[id]/visibility/index.patch')
+    const { default: handler } = await import('~~/server/api/palettes/[id]/visibility.patch')
 
     const result = await handler(createPatchEvent('69af8b6940280b9bc83c3c07', { isPublic: true }) as H3Event)
 
     expect(parsePaletteObjectIdMock).toHaveBeenCalledWith('69af8b6940280b9bc83c3c07')
-    expect(findOneMock).toHaveBeenNthCalledWith(1, { _id: 'object:69af8b6940280b9bc83c3c07' })
-    expect(updateOneMock).toHaveBeenCalledWith(
-      { _id: 'palette-id' },
+    expect(findPaletteByIdMock).toHaveBeenNthCalledWith(1, 'object:69af8b6940280b9bc83c3c07')
+    expect(updatePaletteByIdMock).toHaveBeenCalledWith(
+      'palette-id',
       {
-        $set: {
-          isPublic: true,
-          updatedAt: expect.any(Date),
-        },
+        isPublic: true,
+        updatedAt: expect.any(Date),
       }
     )
-    expect(findOneMock).toHaveBeenNthCalledWith(2, { _id: 'palette-id' })
+    expect(updateOneMock).toHaveBeenCalledWith({ acknowledged: true })
     expect(result).toMatchObject({
       _id: 'palette-id',
       userId: 'user-1',
@@ -143,12 +149,9 @@ describe('palette visibility api handler', () => {
     requireAuthSessionMock.mockResolvedValueOnce({
       user: { id: 'user-1' },
     })
-    getPaletteCollectionMock.mockResolvedValueOnce({
-      findOne: vi.fn().mockResolvedValueOnce(null),
-      updateOne: vi.fn(),
-    })
+    findPaletteByIdMock.mockResolvedValueOnce(null)
 
-    const { default: handler } = await import('~~/server/api/palettes/[id]/visibility/index.patch')
+    const { default: handler } = await import('~~/server/api/palettes/[id]/visibility.patch')
 
     await expect(handler(createPatchEvent('69af8b6940280b9bc83c3c07', { isPublic: false }) as H3Event))
       .rejects

@@ -1,6 +1,7 @@
 import { createError, defineEventHandler, getRouterParam } from 'h3'
+import { toStoredPalette } from '~~/server/domain/palette'
+import { findPaletteBySlug } from '~~/server/db/repositories/palette-repository'
 import { getOptionalAuthSession } from '~~/server/utils/auth-session'
-import { getPaletteCollection, toStoredPalette } from '~~/server/models/palette'
 
 export default defineEventHandler(async (event) => {
   const session = await getOptionalAuthSession(event)
@@ -13,8 +14,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const collection = await getPaletteCollection()
-  const palette = await collection.findOne({ slug })
+  const palette = await findPaletteBySlug(slug)
 
   if (!palette) {
     throw createError({

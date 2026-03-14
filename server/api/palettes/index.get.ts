@@ -1,13 +1,8 @@
-import { requireAuthSession } from '~~/server/utils/auth-session'
-import { getPaletteCollection, toStoredPalette } from '~~/server/models/palette'
+import { toStoredPalette } from '~~/server/domain/palette'
+import { listPublicPalettes } from '~~/server/db/repositories/palette-repository'
 
-export default defineEventHandler(async (event) => {
-  const { user } = await requireAuthSession(event)
-  const collection = await getPaletteCollection()
-  const palettes = await collection
-    .find({ userId: user.id })
-    .sort({ updatedAt: -1 })
-    .toArray()
+export default defineEventHandler(async () => {
+  const palettes = await listPublicPalettes()
 
   return palettes.map(toStoredPalette)
 })

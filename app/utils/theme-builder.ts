@@ -5,6 +5,11 @@ function buildTokenName(section: string, key: string) {
     return `--ui-${key}`
   }
 
+  // Nuxt UI semantic color tokens are --ui-primary/secondary/... (not --ui-color-*).
+  if (section === 'color') {
+    return `--ui-${key}`
+  }
+
   if (key === 'default') {
     return `--ui-${section}`
   }

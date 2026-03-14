@@ -3,13 +3,6 @@
   "modes": {
     "light": {
       "ui": {
-        "primary": "#E14D00", 
-        "secondary": "#007A8A",
-        "neutral": "#1E293B",
-        "success": "#15803D",
-        "info": "#0369A1",
-        "warning": "#854D0E",
-        "error": "#B91C1C",
         "text": "#0F172A",
         "text-dimmed": "#64748B",
         "text-muted": "#475569",
@@ -29,13 +22,6 @@
     },
     "dark": {
       "ui": {
-        "primary": "#DFFF00",
-        "secondary": "#00E5FF",
-        "neutral": "#0F172A",
-        "success": "#22C55E",
-        "info": "#38BDF8",
-        "warning": "#FACC15",
-        "error": "#EF4444",
         "text": "#F1F5F9",
         "text-dimmed": "#94A3B8",
         "text-muted": "#64748B",

@@ -1,10 +1,9 @@
 import type { PaletteDefinition, PaletteModeKey } from '~/types/palette'
 
-export type PreviewTab = 'components' | 'forms' | 'surfaces' | 'typography'
 export type EditorTab = 'tokens' | 'export'
 export type ExportItemValue = 'css' | 'appConfig' | 'ts'
 
-export interface UpdatePaletteTokenPayload {
+interface UpdatePaletteTokenPayload {
   mode: PaletteModeKey
   section: string
   token: string
@@ -26,6 +25,7 @@ export interface ThemeWorkbenchEditorEmits {
   'update:tab': [value: EditorTab]
 }
 
-export type ThemeValue = string | null
-export type ThemeSection = Record<string, ThemeValue>
+type ThemeValue = string | null
+type ThemeSection = Record<string, ThemeValue>
+
 export type ThemeSchema = Record<string, ThemeValue | ThemeSection>

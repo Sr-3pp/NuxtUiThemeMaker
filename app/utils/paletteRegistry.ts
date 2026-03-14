@@ -1,5 +1,6 @@
 import carbonAndSulfur from '~/data/palettes/carbon-and-sulfur.json'
 import extremeSportLanding from '~/data/palettes/extreme-sport-landing.json'
+import extremeSportLandingClean from '~/data/palettes/extreme-sport-landing-clean.json'
 import type { PaletteDefinition, PaletteOption } from '~/types/palette'
 
 function createNullPalette(source: PaletteDefinition): PaletteDefinition {
@@ -27,5 +28,6 @@ export const defaultPalette = createNullPalette(extremeSportLanding as PaletteDe
 export const paletteOptions = [
   { id: 'default', name: 'Nuxt UI Default', type: 'default' },
   { id: 'extremeSportLanding', name: extremeSportLanding.name, type: 'preset', palette: extremeSportLanding },
+  { id: 'extremeSportLandingClean', name: extremeSportLandingClean.name, type: 'preset', palette: extremeSportLandingClean },
   { id: 'carbonAndSulfur', name: carbonAndSulfur.name, type: 'preset', palette: carbonAndSulfur }
 ] as const satisfies readonly PaletteOption[]

@@ -1,10 +1,5 @@
-import { getPaletteCollection } from '../models/palette'
+import { ensurePaletteIndexes } from '~~/server/db/collections/palettes'
 
 export default defineNitroPlugin(async () => {
-  const collection = await getPaletteCollection()
-
-  await Promise.all([
-    collection.createIndex({ slug: 1 }, { unique: true }),
-    collection.createIndex({ userId: 1, updatedAt: -1 }),
-  ])
+  await ensurePaletteIndexes()
 })

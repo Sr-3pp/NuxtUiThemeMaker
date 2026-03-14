@@ -14,15 +14,13 @@ export interface PaletteDefinition {
 
 export type PaletteModeKey = keyof PaletteDefinition['modes']
 
-export type PaletteOptionType = 'default' | 'preset'
-
-export interface DefaultPaletteOption {
+interface DefaultPaletteOption {
   id: 'default'
   name: 'Nuxt UI Default'
   type: 'default'
 }
 
-export interface PresetPaletteOption {
+interface PresetPaletteOption {
   id: string
   name: string
   type: 'preset'
@@ -30,4 +28,3 @@ export interface PresetPaletteOption {
 }
 
 export type PaletteOption = DefaultPaletteOption | PresetPaletteOption
-export type PaletteOptionId = PaletteOption['id']

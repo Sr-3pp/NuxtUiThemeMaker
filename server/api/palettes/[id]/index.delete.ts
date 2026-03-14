@@ -1,5 +1,9 @@
 import { requireAuthSession } from '~~/server/utils/auth-session'
-import { getPaletteCollection, parsePaletteObjectId } from '~~/server/models/palette'
+import {
+  deletePaletteById,
+  findPaletteById,
+  parsePaletteObjectId,
+} from '~~/server/db/repositories/palette-repository'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireAuthSession(event)
@@ -12,9 +16,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const collection = await getPaletteCollection()
   const objectId = parsePaletteObjectId(id)
-  const existing = await collection.findOne({ _id: objectId })
+  const existing = await findPaletteById(objectId)
 
   if (!existing) {
     throw createError({
@@ -30,7 +33,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  await collection.deleteOne({ _id: existing._id })
+  await deletePaletteById(existing._id)
 
   return { success: true }
 })

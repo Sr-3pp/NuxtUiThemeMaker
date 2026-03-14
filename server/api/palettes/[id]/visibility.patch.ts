@@ -4,13 +4,14 @@ import {
   getRouterParam,
   readValidatedBody,
 } from 'h3'
-import { paletteVisibilitySchema } from '~~/server/utils/palette-schema'
-import { requireAuthSession } from '~~/server/utils/auth-session'
+import { toStoredPalette } from '~~/server/domain/palette'
+import { paletteVisibilitySchema } from '~~/server/domain/palette-schema'
 import {
-  getPaletteCollection,
+  findPaletteById,
   parsePaletteObjectId,
-  toStoredPalette,
-} from '~~/server/models/palette'
+  updatePaletteById,
+} from '~~/server/db/repositories/palette-repository'
+import { requireAuthSession } from '~~/server/utils/auth-session'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireAuthSession(event)
@@ -24,9 +25,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readValidatedBody(event, paletteVisibilitySchema.parse)
-  const collection = await getPaletteCollection()
   const objectId = parsePaletteObjectId(id)
-  const existing = await collection.findOne({ _id: objectId })
+  const existing = await findPaletteById(objectId)
 
   if (!existing) {
     throw createError({
@@ -42,17 +42,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  await collection.updateOne(
-    { _id: existing._id },
-    {
-      $set: {
-        isPublic: body.isPublic,
-        updatedAt: new Date(),
-      },
-    }
-  )
-
-  const updated = await collection.findOne({ _id: existing._id })
+  const updated = await updatePaletteById(existing._id, {
+    isPublic: body.isPublic,
+    updatedAt: new Date(),
+  })
 
   if (!updated) {
     throw createError({

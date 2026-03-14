@@ -1,23 +1,21 @@
 import { readValidatedBody } from 'h3'
-import { paletteWriteSchema } from '~~/server/utils/palette-schema'
-import { requireAuthSession } from '~~/server/utils/auth-session'
+import { normalizePaletteForStorage, toStoredPalette } from '~~/server/domain/palette'
+import { paletteWriteSchema } from '~~/server/domain/palette-schema'
 import {
+  createPalette,
   generateUniquePaletteSlug,
-  getPaletteCollection,
-  normalizePaletteForStorage,
-  toStoredPalette,
-} from '../../models/palette'
+} from '~~/server/db/repositories/palette-repository'
+import { requireAuthSession } from '~~/server/utils/auth-session'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireAuthSession(event)
   const body = await readValidatedBody(event, paletteWriteSchema.parse)
-  const collection = await getPaletteCollection()
   const name = body.name.trim()
   const now = new Date()
   const slug = await generateUniquePaletteSlug(name)
   const palette = normalizePaletteForStorage(name, body.palette)
 
-  const result = await collection.insertOne({
+  const document = await createPalette({
     userId: user.id,
     slug,
     name,
@@ -26,8 +24,6 @@ export default defineEventHandler(async (event) => {
     createdAt: now,
     updatedAt: now,
   })
-
-  const document = await collection.findOne({ _id: result.insertedId })
 
   if (!document) {
     throw createError({

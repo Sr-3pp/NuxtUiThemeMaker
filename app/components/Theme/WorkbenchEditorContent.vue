@@ -12,11 +12,8 @@ import {
 } from '~/utils/paletteExport'
 import {
   formatPaletteLabel,
-  getPaletteDisplayValue,
   getPalettePickerValue,
   normalizePaletteTokenValue,
-  paletteSectionEntries,
-  paletteTokenKeys,
   paletteTokenStyle
 } from '~/utils/paletteEditor'
 
@@ -40,6 +37,24 @@ const sectionGroups = [
   { label: 'Background & Surface', value: 'background-surface', sections: ['bg', 'text'] },
   { label: 'Muted & Border', value: 'muted-border', sections: ['border', 'ring', 'divide', 'outline', 'fill', 'stroke'] }
 ]
+
+const paletteSections = computed(() => {
+  if (!props.palette) {
+    return []
+  }
+
+  const mode = props.palette.modes[activeMode.value]
+
+  if (!mode) {
+    return []
+  }
+
+  return Object.entries(props.palette.modes[activeMode.value]).map(([sectionKey, tokens]) => ({
+    label: formatPaletteLabel(sectionKey),
+    value: sectionKey,
+    tokens
+  }))
+})
 
 const defaultOpenSectionGroups = [sectionGroups[0]?.value ?? 'brand-colors']
 
@@ -95,34 +110,25 @@ async function copyActiveExport() {
     </div>
 
     <UAccordion
-      :items="sectionGroups"
+      :items="paletteSections"
       type="multiple"
       :default-value="defaultOpenSectionGroups"
       :ui="{
         item: 'mb-4 overflow-hidden rounded-2xl border dark:border-white/10 dark:bg-black/40 shadow-none',
         header: 'flex',
-        trigger: 'w-full px-4 py-4 text-sm font-medium dark:text-white hover:bg-white/5 dark:hover:bg-white/5',
+        trigger: 'w-full px-4 py-4 text-sm font-medium hover:bg-white/5 dark:hover:bg-white/5',
         content: 'px-4 pb-4',
         body: 'space-y-4'
       }"
     >
       <template #body="{ item }">
         <div
-          v-for="[sectionKey, tokens] in paletteSectionEntries(props.palette.modes[activeMode], item.sections)"
+          v-for="(token, sectionKey) in item.tokens"
           :key="`${activeMode}-${item.value}-${sectionKey}`"
           class="space-y-3"
         >
-          <p class="text-xs font-medium uppercase tracking-[0.16em] dark:text-white/40">
-            {{ formatPaletteLabel(sectionKey) }}
-          </p>
-
-          <div class="space-y-2">
-            <div
-              v-for="tokenKey in paletteTokenKeys(tokens)"
-              :key="`${sectionKey}-${tokenKey}`"
-              class="flex items-center gap-3 rounded-xl border dark:border-white/8 bg-white/3 dark:bg-black/5 px-3 py-2"
-            >
-              <UPopover
+          <div class="space-y-2 flex gap-2">
+            <UPopover
                 :content="{
                   align: 'end',
                   side: 'bottom',
@@ -137,27 +143,27 @@ async function copyActiveExport() {
                 >
                   <span
                     class="h-5 w-5 rounded-md border border-black/40 dark:border-white/40 "
-                    :style="paletteTokenStyle(tokens[tokenKey])"
+                    :style="paletteTokenStyle(token)"
                   />
                 </UButton>
 
                 <template #content>
                   <div class="rounded-2xl border border-white/10 bg-black/95 p-3 shadow-2xl backdrop-blur">
                     <UColorPicker
-                      :model-value="getPalettePickerValue(tokens, tokenKey)"
+                      :model-value="getPalettePickerValue(item.tokens, sectionKey)"
                       format="hex"
                       size="sm"
-                      @update:model-value="updateTokenValue(sectionKey, tokenKey, $event)"
+                      @update:model-value="updateTokenValue(item.value, sectionKey, $event)"
                     />
                   </div>
                 </template>
               </UPopover>
               <div class="min-w-0 flex-1">
-                <p class="truncate text-sm dark:text-white/75">
-                  {{ formatPaletteLabel(tokenKey) }}
+                <p class="truncate text-sm capitalize">
+                  {{ formatPaletteLabel(sectionKey) }}
                 </p>
-                <p class="truncate text-xs dark:text-white/35">
-                  {{ getPaletteDisplayValue(tokens, tokenKey) ?? 'Nuxt UI default' }}
+                <p class="truncate text-xs text-muted">
+                  {{ token }}
                 </p>
               </div>
               <UButton
@@ -167,9 +173,8 @@ async function copyActiveExport() {
                 icon="i-lucide-rotate-ccw"
                 class="shrink-0 dark:text-white/60 hover:dark:text-white"
                 aria-label="Reset token to Nuxt UI default"
-                @click.prevent="resetTokenValue(sectionKey, tokenKey)"
+                @click.prevent="resetTokenValue(sectionKey, token as string)"
               />
-            </div>
           </div>
         </div>
       </template>

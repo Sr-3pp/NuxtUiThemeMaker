@@ -1,4 +1,4 @@
-import { getPaletteCollection } from '~~/server/models/palette'
+import { listPublicPalettes } from '~~/server/db/repositories/palette-repository'
 
 function escapeXml(value: string) {
   return value
@@ -14,17 +14,7 @@ export default defineEventHandler(async (event) => {
   const siteUrl = config.public.siteUrl.endsWith('/')
     ? config.public.siteUrl
     : `${config.public.siteUrl}/`
-  const collection = await getPaletteCollection()
-  const publicPalettes = await collection.find(
-    { isPublic: true },
-    {
-      projection: {
-        slug: 1,
-        updatedAt: 1,
-      },
-      sort: { updatedAt: -1 },
-    }
-  ).toArray()
+  const publicPalettes = await listPublicPalettes()
 
   const urls = [
     {

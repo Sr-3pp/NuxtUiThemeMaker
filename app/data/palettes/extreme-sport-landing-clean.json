@@ -1,0 +1,67 @@
+{
+  "name": "Extreme Sport Landing Clean",
+  "modes": {
+    "light": {
+      "color": {
+        "primary": "#ff5a1f",
+        "secondary": "#00b8d9",
+        "success": "#00c97f",
+        "info": "#0ea5e9",
+        "warning": "#eab308",
+        "error": "#ef4444"
+      },
+      "text": {
+        "default": "#0f172a",
+        "dimmed": "#64748b",
+        "muted": "#475569",
+        "toned": "#334155",
+        "highlighted": "#020617",
+        "inverted": "#f8fafc"
+      },
+      "bg": {
+        "default": "#f8fafc",
+        "muted": "#f1f5f9",
+        "elevated": "#ffffff",
+        "accented": "#e2e8f0",
+        "inverted": "#020617"
+      },
+      "ui": {
+        "border": "#cbd5e1",
+        "border-muted": "#e2e8f0",
+        "border-accented": "#94a3b8",
+        "ring": "#cbd5e1"
+      }
+    },
+    "dark": {
+      "color": {
+        "primary": "#ff5a1f",
+        "secondary": "#00e5ff",
+        "success": "#00f5a0",
+        "info": "#38bdf8",
+        "warning": "#ffd400",
+        "error": "#ff3b3b"
+      },
+      "text": {
+        "default": "#e5eef7",
+        "dimmed": "#64748b",
+        "muted": "#94a3b8",
+        "toned": "#cbd5e1",
+        "highlighted": "#ffffff",
+        "inverted": "#020617"
+      },
+      "bg": {
+        "default": "#020617",
+        "muted": "#0b1220",
+        "elevated": "#111827",
+        "accented": "#172033",
+        "inverted": "#f8fafc"
+      },
+      "ui": {
+        "border": "#1e293b",
+        "border-muted": "#172033",
+        "border-accented": "#334155",
+        "ring": "#1e293b"
+      }
+    }
+  }
+}

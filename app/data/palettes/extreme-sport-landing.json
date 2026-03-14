@@ -2,14 +2,15 @@
   "name": "Extreme Sport Landing",
   "modes": {
     "light": {
-      "ui": {
+      "color": {
         "primary": "#ff5a1f",
         "secondary": "#00b8d9",
-        "neutral": "#e2e8f0",
         "success": "#00c97f",
         "info": "#0ea5e9",
         "warning": "#eab308",
-        "error": "#ef4444",
+        "error": "#ef4444"
+      },
+      "ui": {
         "text": "#0f172a",
         "text-dimmed": "#64748b",
         "text-muted": "#475569",
@@ -25,15 +26,6 @@
         "border-muted": "#e2e8f0",
         "border-accented": "#94a3b8",
         "border-inverted": "#0f172a"
-      },
-      "color": {
-        "primary": "#ff5a1f",
-        "secondary": "#00b8d9",
-        "neutral": "#e2e8f0",
-        "success": "#00c97f",
-        "info": "#0ea5e9",
-        "warning": "#eab308",
-        "error": "#ef4444"
       },
       "text": {
         "dimmed": "#64748b",
@@ -84,14 +76,15 @@
       }
     },
     "dark": {
-      "ui": {
+      "color": {
         "primary": "#ff5a1f",
         "secondary": "#00e5ff",
-        "neutral": "#0f172a",
         "success": "#00f5a0",
         "info": "#38bdf8",
         "warning": "#ffd400",
-        "error": "#ff3b3b",
+        "error": "#ff3b3b"
+      },
+      "ui": {
         "text": "#e5eef7",
         "text-dimmed": "#64748b",
         "text-muted": "#94a3b8",
@@ -107,15 +100,6 @@
         "border-muted": "#172033",
         "border-accented": "#334155",
         "border-inverted": "#e2e8f0"
-      },
-      "color": {
-        "primary": "#ff5a1f",
-        "secondary": "#00e5ff",
-        "neutral": "#0f172a",
-        "success": "#00f5a0",
-        "info": "#38bdf8",
-        "warning": "#ffd400",
-        "error": "#ff3b3b"
       },
       "text": {
         "dimmed": "#64748b",
