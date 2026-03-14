@@ -2,41 +2,65 @@
   "name": "Volt & Cobalt Accessible",
   "modes": {
     "light": {
+      "color": {
+        "primary": "#2563EB",
+        "secondary": "#D4A017",
+        "success": "#15803D",
+        "info": "#0EA5E9",
+        "warning": "#CA8A04",
+        "error": "#DC2626"
+      },
+      "text": {
+        "default": "#0F172A",
+        "dimmed": "#64748B",
+        "muted": "#475569",
+        "toned": "#334155",
+        "highlighted": "#020617",
+        "inverted": "#FFFFFF"
+      },
+      "bg": {
+        "default": "#F8FAFC",
+        "muted": "#F1F5F9",
+        "elevated": "#FFFFFF",
+        "accented": "#E2E8F0",
+        "inverted": "#020617"
+      },
       "ui": {
-        "text": "#0F172A",
-        "text-dimmed": "#64748B",
-        "text-muted": "#475569",
-        "text-toned": "#334155",
-        "text-highlighted": "#020617",
-        "text-inverted": "#FFFFFF",
-        "bg": "#F8FAFC",
-        "bg-muted": "#F1F5F9",
-        "bg-elevated": "#FFFFFF",
-        "bg-accented": "#E2E8F0",
-        "bg-inverted": "#020617",
         "border": "#CBD5E1",
         "border-muted": "#E2E8F0",
         "border-accented": "#94A3B8",
-        "border-inverted": "#0F172A"
+        "ring": "#0F172A"
       }
     },
     "dark": {
+      "color": {
+        "primary": "#60A5FA",
+        "secondary": "#FACC15",
+        "success": "#4ADE80",
+        "info": "#38BDF8",
+        "warning": "#FBBF24",
+        "error": "#F87171"
+      },
+      "text": {
+        "default": "#F1F5F9",
+        "dimmed": "#94A3B8",
+        "muted": "#64748B",
+        "toned": "#475569",
+        "highlighted": "#FFFFFF",
+        "inverted": "#020617"
+      },
+      "bg": {
+        "default": "#020617",
+        "muted": "#0B1220",
+        "elevated": "#111827",
+        "accented": "#1E293B",
+        "inverted": "#F8FAFC"
+      },
       "ui": {
-        "text": "#F1F5F9",
-        "text-dimmed": "#94A3B8",
-        "text-muted": "#64748B",
-        "text-toned": "#475569",
-        "text-highlighted": "#FFFFFF",
-        "text-inverted": "#020617",
-        "bg": "#020617",
-        "bg-muted": "#0B1220",
-        "bg-elevated": "#111827",
-        "bg-accented": "#1E293B",
-        "bg-inverted": "#F8FAFC",
         "border": "#1E293B",
         "border-muted": "#0B1220",
         "border-accented": "#334155",
-        "border-inverted": "#F1F5F9"
+        "ring": "#F1F5F9"
       }
     }
   }

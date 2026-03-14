@@ -1,5 +1,5 @@
 {
-  "name": "Extreme Sport Landing",
+  "name": "Extreme Sport Landing Clean",
   "modes": {
     "light": {
       "color": {
@@ -10,28 +10,11 @@
         "warning": "#eab308",
         "error": "#ef4444"
       },
-      "ui": {
-        "text": "#0f172a",
-        "text-dimmed": "#64748b",
-        "text-muted": "#475569",
-        "text-toned": "#334155",
-        "text-highlighted": "#020617",
-        "text-inverted": "#f8fafc",
-        "bg": "#f8fafc",
-        "bg-muted": "#f1f5f9",
-        "bg-elevated": "#ffffff",
-        "bg-accented": "#e2e8f0",
-        "bg-inverted": "#020617",
-        "border": "#cbd5e1",
-        "border-muted": "#e2e8f0",
-        "border-accented": "#94a3b8",
-        "border-inverted": "#0f172a"
-      },
       "text": {
+        "default": "#0f172a",
         "dimmed": "#64748b",
         "muted": "#475569",
         "toned": "#334155",
-        "default": "#0f172a",
         "highlighted": "#020617",
         "inverted": "#f8fafc"
       },
@@ -42,37 +25,11 @@
         "accented": "#e2e8f0",
         "inverted": "#020617"
       },
-      "border": {
-        "default": "#cbd5e1",
-        "muted": "#e2e8f0",
-        "accented": "#94a3b8",
-        "inverted": "#0f172a"
-      },
-      "ring": {
-        "default": "#cbd5e1",
-        "muted": "#e2e8f0",
-        "accented": "#94a3b8",
-        "inverted": "#0f172a"
-      },
-      "divide": {
-        "default": "#cbd5e1",
-        "muted": "#e2e8f0",
-        "accented": "#94a3b8",
-        "inverted": "#0f172a"
-      },
-      "outline": {
-        "default": "#cbd5e1",
-        "inverted": "#0f172a"
-      },
-      "stroke": {
-        "bg": "#f8fafc",
-        "default": "#cbd5e1",
-        "inverted": "#0f172a"
-      },
-      "fill": {
-        "bg": "#f8fafc",
-        "default": "#cbd5e1",
-        "inverted": "#0f172a"
+      "ui": {
+        "border": "#cbd5e1",
+        "border-muted": "#e2e8f0",
+        "border-accented": "#94a3b8",
+        "ring": "#cbd5e1"
       }
     },
     "dark": {
@@ -84,28 +41,11 @@
         "warning": "#ffd400",
         "error": "#ff3b3b"
       },
-      "ui": {
-        "text": "#e5eef7",
-        "text-dimmed": "#64748b",
-        "text-muted": "#94a3b8",
-        "text-toned": "#cbd5e1",
-        "text-highlighted": "#ffffff",
-        "text-inverted": "#020617",
-        "bg": "#020617",
-        "bg-muted": "#0b1220",
-        "bg-elevated": "#111827",
-        "bg-accented": "#172033",
-        "bg-inverted": "#f8fafc",
-        "border": "#1e293b",
-        "border-muted": "#172033",
-        "border-accented": "#334155",
-        "border-inverted": "#e2e8f0"
-      },
       "text": {
+        "default": "#e5eef7",
         "dimmed": "#64748b",
         "muted": "#94a3b8",
         "toned": "#cbd5e1",
-        "default": "#e5eef7",
         "highlighted": "#ffffff",
         "inverted": "#020617"
       },
@@ -116,37 +56,11 @@
         "accented": "#172033",
         "inverted": "#f8fafc"
       },
-      "border": {
-        "default": "#1e293b",
-        "muted": "#172033",
-        "accented": "#334155",
-        "inverted": "#e2e8f0"
-      },
-      "ring": {
-        "default": "#1e293b",
-        "muted": "#172033",
-        "accented": "#334155",
-        "inverted": "#e2e8f0"
-      },
-      "divide": {
-        "default": "#1e293b",
-        "muted": "#172033",
-        "accented": "#334155",
-        "inverted": "#e2e8f0"
-      },
-      "outline": {
-        "default": "#1e293b",
-        "inverted": "#e2e8f0"
-      },
-      "stroke": {
-        "bg": "#020617",
-        "default": "#1e293b",
-        "inverted": "#e2e8f0"
-      },
-      "fill": {
-        "bg": "#020617",
-        "default": "#1e293b",
-        "inverted": "#e2e8f0"
+      "ui": {
+        "border": "#1e293b",
+        "border-muted": "#172033",
+        "border-accented": "#334155",
+        "ring": "#1e293b"
       }
     }
   }
