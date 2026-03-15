@@ -184,7 +184,7 @@ async function copyActiveExport() {
                 icon="i-lucide-rotate-ccw"
                 class="shrink-0 dark:text-white/60 hover:dark:text-white"
                 aria-label="Reset token to Nuxt UI default"
-                @click.prevent="resetTokenValue(sectionKey, token as string)"
+                @click.prevent="resetTokenValue(item.value, sectionKey)"
               />
           </div>
         </div>

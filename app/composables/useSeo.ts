@@ -8,6 +8,18 @@ interface PageSeoOptions {
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>
 }
 
+function normalizeJsonLd(input: PageSeoOptions['jsonLd']) {
+  if (!input) {
+    return []
+  }
+
+  const items = Array.isArray(input) ? input : [input]
+
+  return items.filter((item): item is Record<string, unknown> => {
+    return Boolean(item && typeof item === 'object' && typeof item['@context'] === 'string')
+  })
+}
+
 function joinUrl(base: string, path: string) {
   return new URL(path, base.endsWith('/') ? base : `${base}/`).toString()
 }
@@ -23,6 +35,7 @@ export function usePageSeo(options: PageSeoOptions) {
   const socialImage = joinUrl(siteUrl, options.image ?? '/og-image.svg')
   const robots = options.robots ?? 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
   const title = options.title
+  const jsonLdEntries = normalizeJsonLd(options.jsonLd)
 
   useHead({
     title,
@@ -33,14 +46,10 @@ export function usePageSeo(options: PageSeoOptions) {
         href: canonical,
       },
     ],
-    script: options.jsonLd
-      ? [
-          {
-            type: 'application/ld+json',
-            innerHTML: JSON.stringify(options.jsonLd),
-          },
-        ]
-      : [],
+    script: jsonLdEntries.map((entry) => ({
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify(entry),
+    })),
   })
 
   useSeoMeta({

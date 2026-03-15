@@ -1,5 +1,9 @@
 import type { PaletteDefinition, PaletteModeKey, PaletteTokenValue } from '~/types/palette'
-import type { StoredPalette, UpdatePalettePayload as StoredPaletteUpdatePayload } from '~/types/palette-store'
+import type {
+  StoredPalette,
+  UpdatePalettePayload as StoredPaletteUpdatePayload,
+  UpdatePaletteVisibilityPayload
+} from '~/types/palette-store'
 import { emptyPalette, paletteOptions } from '~/utils/paletteRegistry'
 
 type EditablePalette = PaletteDefinition & Partial<Omit<StoredPalette, 'name' | 'palette'>>
@@ -81,16 +85,37 @@ export function usePalette() {
 
     return editablePalette
   })
+  const sourcePalette = useState<EditablePalette | null>('source-palette', () => {
+    const editablePalette = toEditablePalette(emptyPalette)
+
+    hydratePalette(editablePalette)
+
+    return editablePalette
+  })
 
   const setCurrentPalette = (palette: PaletteDefinition | StoredPalette) => {
     const editablePalette = toEditablePalette(palette)
+    const editableSourcePalette = toEditablePalette(palette)
 
     hydratePalette(editablePalette)
+    hydratePalette(editableSourcePalette)
     currentPalette.value = editablePalette
+    sourcePalette.value = editableSourcePalette
   }
 
   const createEmptyPalette = () => {
     setCurrentPalette(emptyPalette)
+  }
+
+  const resetCurrentPalette = () => {
+    if (!sourcePalette.value) {
+      createEmptyPalette()
+      return
+    }
+
+    const editablePalette = toEditablePalette(sourcePalette.value)
+    hydratePalette(editablePalette)
+    currentPalette.value = editablePalette
   }
 
   const updatePaletteName = (name: string) => {
@@ -187,6 +212,24 @@ export function usePalette() {
     await refreshNuxtData('user-palettes')
   }
 
+  const updatePaletteVisibility = async (id: string, isPublic: boolean) => {
+    const payload: UpdatePaletteVisibilityPayload = { isPublic }
+
+    const updatedPalette = await $fetch<StoredPalette>(`/api/palettes/${id}/visibility`, {
+      method: 'PATCH',
+      credentials: 'include',
+      body: payload,
+    })
+
+    if (currentPalette.value?._id === id) {
+      setCurrentPalette(updatedPalette)
+    }
+
+    await refreshNuxtData('user-palettes')
+
+    return updatedPalette
+  }
+
   const getUserPalettes = () => useFetch<StoredPalette[]>('/api/palettes/user', {
     key: 'user-palettes',
     credentials: 'include',
@@ -199,13 +242,16 @@ export function usePalette() {
 
   return {
     currentPalette,
+    sourcePalette,
     createEmptyPalette,
+    resetCurrentPalette,
     setCurrentPalette,
     updatePaletteName,
     updatePalette,
     savePalette,
     saveNewPalette,
     deletePalette,
+    updatePaletteVisibility,
     defaultPalettes: paletteOptions.reduce<PaletteDefinition[]>((palettes, option) => {
       if (option.type === 'preset') {
         palettes.push(option.palette as PaletteDefinition)

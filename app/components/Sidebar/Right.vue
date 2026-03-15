@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
 
-const { currentPalette, updatePalette, updatePaletteName, savePalette, saveNewPalette } = usePalette()
+const { currentPalette, sourcePalette, updatePalette, updatePaletteName, savePalette, saveNewPalette } = usePalette()
 const { editorSidebarSw } = useSidebar()
 
 const saveItems = computed<DropdownMenuItem[][]>(() => [[
@@ -49,7 +49,7 @@ const handlePaletteNameInput = (event: Event) => {
           />
         </UFormField>
 
-        <WorkbenchEditorContent :palette="currentPalette" :sourcePalette="currentPalette" defaultMode="dark" tab="tokens" @update-token="handleUpdateToken"/>
+        <WorkbenchEditorContent :palette="currentPalette" :sourcePalette="sourcePalette ?? currentPalette" defaultMode="dark" tab="tokens" @update-token="handleUpdateToken"/>
       </div>
 
       <template #footer>

@@ -10,7 +10,7 @@ const {
   closeAllDrawers
 } = useDrawers()
 
-const { createEmptyPalette, deletePalette, setCurrentPalette, getUserPalettes, getPublicPalettes, defaultPalettes } = usePalette()
+const { createEmptyPalette, deletePalette, updatePaletteVisibility, setCurrentPalette, getUserPalettes, getPublicPalettes, defaultPalettes } = usePalette()
 const { user } = useAuth()
 
 const { togglePalettesSidebar } = useSidebar()
@@ -35,6 +35,11 @@ const handlePaletteDelete = async (palette: StoredPalette) => {
   await refreshUserPalettes()
 }
 
+const handlePaletteVisibilityToggle = async (palette: StoredPalette) => {
+  await updatePaletteVisibility(palette._id, !palette.isPublic)
+  await refreshUserPalettes()
+}
+
 watch(user, async (currentUser) => {
   if (currentUser) {
     await refreshUserPalettes()
@@ -54,13 +59,11 @@ watch(user, async (currentUser) => {
 
     <UDrawer
       v-model:open="ownPalettesOpen"
+      title="My Palettes"
+      description="Your saved palettes. Click to load a palette into the editor, or delete palettes you no longer need."
     >
       <template #body>
         <div class="space-y-4 p-4">
-          <p class="text-sm font-medium">
-            My palettes
-          </p>
-
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <PaletteCard
               v-for="palette in userPalettes"
@@ -68,8 +71,10 @@ watch(user, async (currentUser) => {
               :palette="palette"
               badge-label="Saved"
               action-label="Open palette"
+              show-visibility-toggle
               show-delete
               @select="handlePaletteSelect(palette)"
+              @toggle-visibility="handlePaletteVisibilityToggle(palette)"
               @delete="handlePaletteDelete(palette)"
             />
           </div>
@@ -78,13 +83,11 @@ watch(user, async (currentUser) => {
     </UDrawer>
     <UDrawer
       v-model:open="defaultPresetsOpen"
+      title="Starter Presets"
+      description="Predefined palettes to get you started. Click to load a palette into the editor."
     >
       <template #body>
         <div class="space-y-4 p-4">
-          <p class="text-sm font-medium">
-            Starter palettes
-          </p>
-
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <PaletteCard
               :palette="emptyPalette"
@@ -107,13 +110,11 @@ watch(user, async (currentUser) => {
     </UDrawer>
     <UDrawer
       v-model:open="communityPalettesOpen"
+      title="Community Palettes"
+      description="Palettes shared by the community. Click to load a palette into the editor."
     >
       <template #body>
         <div class="space-y-4 p-4">
-          <p class="text-sm font-medium">
-            Community palettes
-          </p>
-
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <PaletteCard
               v-for="palette in publicPalettes"

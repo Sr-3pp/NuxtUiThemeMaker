@@ -7,6 +7,8 @@ const {
   openCommunityPalettes
 } = useDrawers()
 
+const { resetCurrentPalette } = usePalette()
+
 
 const authItems = ref<DropdownMenuItem[][]>([
   [
@@ -138,7 +140,7 @@ const palettesItems = computed<NavigationMenuItem[][]>(() => [[
   {
     label: 'Reset',
     icon: 'i-lucide-rotate-ccw',
-    onSelect: () => console.log('open Reset modal')
+    onSelect: () => resetCurrentPalette()
   },
   {
     label: 'Import',

@@ -7,19 +7,42 @@ const props = withDefaults(defineProps<{
   actionLabel?: string
   badgeLabel?: string
   showDelete?: boolean
+  showVisibilityToggle?: boolean
 }>(), {
   actionLabel: 'Use palette',
   badgeLabel: 'Palette',
   showDelete: false,
+  showVisibilityToggle: false,
 })
 
 const emit = defineEmits<{
   select: []
   delete: []
+  toggleVisibility: []
 }>()
 
 const paletteDefinition = computed<PaletteDefinition>(() => {
   return '_id' in props.palette ? props.palette.palette : props.palette
+})
+
+function getStoredPalette(palette: PaletteDefinition | StoredPalette): StoredPalette | null {
+  return '_id' in palette ? palette : null
+}
+
+const storedPalette = computed(() => {
+  return getStoredPalette(props.palette)
+})
+
+const isPublicPalette = computed(() => {
+  return storedPalette.value?.isPublic ?? false
+})
+
+const visibilityLabel = computed(() => {
+  if (!storedPalette.value) {
+    return null
+  }
+
+  return isPublicPalette.value ? 'Public' : 'Private'
 })
 
 const swatches = computed(() => {
@@ -50,9 +73,14 @@ const swatches = computed(() => {
           </p>
         </div>
 
-        <UBadge color="neutral" variant="soft" class="shrink-0">
-          {{ swatches.filter(swatch => swatch.value).length }}/{{ swatches.length }}
-        </UBadge>
+        <div class="flex shrink-0 gap-2">
+          <UBadge v-if="visibilityLabel" :color="isPublicPalette ? 'primary' : 'neutral'" variant="soft">
+            {{ visibilityLabel }}
+          </UBadge>
+          <UBadge color="neutral" variant="soft">
+            {{ swatches.filter(swatch => swatch.value).length }}/{{ swatches.length }}
+          </UBadge>
+        </div>
       </div>
 
       <div class="space-y-2">
@@ -85,6 +113,14 @@ const swatches = computed(() => {
         <UButton block color="neutral" variant="outline" @click="emit('select')">
           {{ actionLabel }}
         </UButton>
+        <UButton
+          v-if="showVisibilityToggle"
+          :color="isPublicPalette ? 'primary' : 'neutral'"
+          variant="soft"
+          :icon="isPublicPalette ? 'i-lucide-globe' : 'i-lucide-lock'"
+          :aria-label="isPublicPalette ? 'Make palette private' : 'Make palette public'"
+          @click="emit('toggleVisibility')"
+        />
         <UButton
           v-if="showDelete"
           color="error"
