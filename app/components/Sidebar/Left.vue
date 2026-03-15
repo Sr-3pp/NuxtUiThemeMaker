@@ -7,8 +7,24 @@ const {
   openCommunityPalettes
 } = useDrawers()
 
-const { resetCurrentPalette } = usePalette()
+const { currentPalette, resetCurrentPalette, setCurrentPalette } = usePalette()
+const importModalOpen = ref(false)
+const exportModalOpen = ref(false)
 
+function openExportModal() {
+  if (!currentPalette.value) {
+    return
+  }
+
+  exportModalOpen.value = true
+}
+
+function openImportModal() {
+  importModalOpen.value = true
+}
+function handlePaletteImport(palette: Parameters<typeof setCurrentPalette>[0]) {
+  setCurrentPalette(palette)
+}
 
 const authItems = ref<DropdownMenuItem[][]>([
   [
@@ -145,12 +161,12 @@ const palettesItems = computed<NavigationMenuItem[][]>(() => [[
   {
     label: 'Import',
     icon: 'i-lucide-file-input',
-    onSelect: () => console.log('open Import modal')
+    onSelect: () => openImportModal()
   }, 
   {
     label: 'Export',
     icon: 'i-lucide-file-output',
-    onSelect: () => console.log('open Export modal')
+    onSelect: () => openExportModal()
   }
 ]])
 </script>
@@ -158,6 +174,8 @@ const palettesItems = computed<NavigationMenuItem[][]>(() => [[
 
 <template>
 <UDashboardSidebar v-model:open="palettesSidebarSw" :toggle="false">
+      <SidebarImportModal v-model:open="importModalOpen" @import="handlePaletteImport" />
+      <SidebarExportModal v-model:open="exportModalOpen" :palette="currentPalette" />
       <template #header>
         <UButton 
             @click="togglePalettesSidebar()"
