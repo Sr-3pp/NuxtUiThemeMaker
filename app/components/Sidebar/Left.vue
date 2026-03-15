@@ -118,22 +118,22 @@ const { user } = useAuth();
 
 const { palettesSidebarSw, togglePalettesSidebar } = useSidebar()
 
-const palettesItems: NavigationMenuItem[][] = [[ 
-{
-  label: 'My Palettes',
-  icon: 'i-lucide-inbox',
-  onSelect: () => openOwnPalettes()
-}, 
-{
-  label: 'Default Pressets',
-  icon: 'i-lucide-layout-template',
-  onSelect: () => openDefaultPresets()
-},
-{
-  label: 'Community Palettes',
-  icon: 'i-lucide-globe',
-  onSelect: () => openCommunityPalettes()
-}
+const palettesItems = computed<NavigationMenuItem[][]>(() => [[
+  ...(user.value ? [{
+    label: 'My Palettes',
+    icon: 'i-lucide-inbox',
+    onSelect: () => openOwnPalettes()
+  }] : []),
+  {
+    label: 'Default Pressets',
+    icon: 'i-lucide-layout-template',
+    onSelect: () => openDefaultPresets()
+  },
+  {
+    label: 'Community Palettes',
+    icon: 'i-lucide-globe',
+    onSelect: () => openCommunityPalettes()
+  }
 ], [
   {
     label: 'Reset',
@@ -150,7 +150,7 @@ const palettesItems: NavigationMenuItem[][] = [[
     icon: 'i-lucide-file-output',
     onSelect: () => console.log('open Export modal')
   }
-]]
+]])
 </script>
 
 
@@ -183,18 +183,30 @@ const palettesItems: NavigationMenuItem[][] = [[
 
       <template #footer>
         <UDropdownMenu
+          v-if="user"
           :items="authItems"
           :ui="{
             content: 'w-48'
           }"
         >
           <UButton class="w-full" icon="i-lucide-circle-user" color="neutral" variant="outline">
-            <p v-if="user">
+            <p>
               {{ user.name }}
               <small>{{ user.email }}</small>
             </p>
           </UButton>
         </UDropdownMenu>
+
+        <UButton
+          v-else
+          to="/login"
+          class="w-full"
+          icon="i-lucide-log-in"
+          color="neutral"
+          variant="outline"
+        >
+          Sign in
+        </UButton>
       </template>
     </UDashboardSidebar>
 </template>

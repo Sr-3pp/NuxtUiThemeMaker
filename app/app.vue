@@ -10,7 +10,8 @@ const {
   closeAllDrawers
 } = useDrawers()
 
-const { createEmptyPalette, setCurrentPalette, getUserPalettes, getPublicPalettes, defaultPalettes } = usePalette()
+const { createEmptyPalette, deletePalette, setCurrentPalette, getUserPalettes, getPublicPalettes, defaultPalettes } = usePalette()
+const { user } = useAuth()
 
 const { togglePalettesSidebar } = useSidebar()
 
@@ -26,8 +27,22 @@ const handleEmptyPaletteSelect = () => {
   togglePalettesSidebar()
 }
 
-const { data: userPalettes } = await getUserPalettes()
+const { data: userPalettes, refresh: refreshUserPalettes } = await getUserPalettes()
 const { data: publicPalettes } = await getPublicPalettes()
+
+const handlePaletteDelete = async (palette: StoredPalette) => {
+  await deletePalette(palette._id)
+  await refreshUserPalettes()
+}
+
+watch(user, async (currentUser) => {
+  if (currentUser) {
+    await refreshUserPalettes()
+    return
+  }
+
+  userPalettes.value = []
+}, { immediate: true })
 
 </script>
 
@@ -53,7 +68,9 @@ const { data: publicPalettes } = await getPublicPalettes()
               :palette="palette"
               badge-label="Saved"
               action-label="Open palette"
+              show-delete
               @select="handlePaletteSelect(palette)"
+              @delete="handlePaletteDelete(palette)"
             />
           </div>
         </div>

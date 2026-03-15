@@ -6,13 +6,16 @@ const props = withDefaults(defineProps<{
   palette: PaletteDefinition | StoredPalette
   actionLabel?: string
   badgeLabel?: string
+  showDelete?: boolean
 }>(), {
   actionLabel: 'Use palette',
   badgeLabel: 'Palette',
+  showDelete: false,
 })
 
 const emit = defineEmits<{
   select: []
+  delete: []
 }>()
 
 const paletteDefinition = computed<PaletteDefinition>(() => {
@@ -79,9 +82,19 @@ const swatches = computed(() => {
         </p>
       </div>
 
-      <UButton block color="neutral" variant="outline" @click="emit('select')">
-        {{ actionLabel }}
-      </UButton>
+      <div class="flex gap-2">
+        <UButton block color="neutral" variant="outline" @click="emit('select')">
+          {{ actionLabel }}
+        </UButton>
+        <UButton
+          v-if="showDelete"
+          color="error"
+          variant="soft"
+          icon="i-lucide-trash-2"
+          aria-label="Delete palette"
+          @click="emit('delete')"
+        />
+      </div>
     </div>
   </UCard>
 </template>

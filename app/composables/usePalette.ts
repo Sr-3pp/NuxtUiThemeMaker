@@ -144,6 +144,7 @@ export function usePalette() {
     })
 
     setCurrentPalette(updatedPalette)
+    await refreshNuxtData('user-palettes')
 
     return updatedPalette
   }
@@ -168,11 +169,26 @@ export function usePalette() {
     })
 
     setCurrentPalette(createdPalette)
+    await refreshNuxtData('user-palettes')
 
     return createdPalette
   }
 
+  const deletePalette = async (id: string) => {
+    await $fetch(`/api/palettes/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+
+    if (currentPalette.value?._id === id) {
+      createEmptyPalette()
+    }
+
+    await refreshNuxtData('user-palettes')
+  }
+
   const getUserPalettes = () => useFetch<StoredPalette[]>('/api/palettes/user', {
+    key: 'user-palettes',
     credentials: 'include',
     default: () => [],
   })
@@ -189,6 +205,7 @@ export function usePalette() {
     updatePalette,
     savePalette,
     saveNewPalette,
+    deletePalette,
     defaultPalettes: paletteOptions.reduce<PaletteDefinition[]>((palettes, option) => {
       if (option.type === 'preset') {
         palettes.push(option.palette as PaletteDefinition)
