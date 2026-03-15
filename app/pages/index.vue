@@ -68,7 +68,7 @@ const disableInteractivePreviews = ref(false)
       </template>
 
       <template #body>
-        <ThemePreviewPanel :palette="currentPalette" :disable-interactive="disableInteractivePreviews" />
+        <PreviewPanel :palette="currentPalette" :disable-interactive="disableInteractivePreviews" />
       </template>
 
     </UDashboardPanel>

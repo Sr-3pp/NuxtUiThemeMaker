@@ -76,7 +76,7 @@ usePageSeo({
     <div class="min-h-[calc(100vh-89px)] px-4 py-6">
       <UDashboardPanel>
         <ClientOnly>
-          <ThemePreviewPanel :palette="palette?.palette ?? null" />
+          <PreviewPanel :palette="palette?.palette ?? null" />
         </ClientOnly>
       </UDashboardPanel>
     </div>

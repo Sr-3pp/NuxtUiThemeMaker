@@ -10,7 +10,7 @@ interface UpdatePaletteTokenPayload {
   value: string | null
 }
 
-export interface ThemeWorkbenchEditorProps {
+export interface WorkbenchEditorProps {
   palette: PaletteDefinition
   sourcePalette: PaletteDefinition
   isWorking?: boolean
@@ -18,7 +18,7 @@ export interface ThemeWorkbenchEditorProps {
   tab: EditorTab
 }
 
-export interface ThemeWorkbenchEditorEmits {
+export interface WorkbenchEditorEmits {
   save: []
   saveAsNew: []
   'update-token': [payload: UpdatePaletteTokenPayload]

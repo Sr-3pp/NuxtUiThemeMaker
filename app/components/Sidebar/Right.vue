@@ -49,7 +49,7 @@ const handlePaletteNameInput = (event: Event) => {
           />
         </UFormField>
 
-        <ThemeWorkbenchEditorContent :palette="currentPalette" :sourcePalette="currentPalette" defaultMode="dark" tab="tokens" @update-token="handleUpdateToken"/>
+        <WorkbenchEditorContent :palette="currentPalette" :sourcePalette="currentPalette" defaultMode="dark" tab="tokens" @update-token="handleUpdateToken"/>
       </div>
 
       <template #footer>

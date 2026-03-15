@@ -45,22 +45,22 @@ const previewTheme = computed(() => {
       }"
     >
       <template #components>
-        <ThemePreviewActions :disable-interactive="props.disableInteractive" />
-        <ThemePreviewNavigation :disable-interactive="props.disableInteractive" class="mt-6" />
+        <PreviewActions :disable-interactive="props.disableInteractive" />
+        <PreviewNavigation :disable-interactive="props.disableInteractive" class="mt-6" />
       </template>
 
       <template #forms>
-        <ThemePreviewForms :disable-interactive="props.disableInteractive" />
-        <ThemePreviewOverlays :disable-interactive="props.disableInteractive" />
+        <PreviewForms :disable-interactive="props.disableInteractive" />
+        <PreviewOverlays :disable-interactive="props.disableInteractive" />
       </template>
 
       <template #surfaces>
-        <ThemePreviewDataDisplay class="mb-10" :disable-interactive="props.disableInteractive" />
-        <ThemePreviewFeedback :disable-interactive="props.disableInteractive" />
+        <PreviewDataDisplay class="mb-10" :disable-interactive="props.disableInteractive" />
+        <PreviewFeedback :disable-interactive="props.disableInteractive" />
       </template>
 
       <template #typography>
-        <ThemePreviewSurfaces />
+        <PreviewSurfaces />
       </template>
     </UTabs>
   </div>

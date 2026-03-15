@@ -2,8 +2,8 @@
 import type { PaletteModeKey } from '~/types/palette'
 import type {
   ExportItemValue,
-  ThemeWorkbenchEditorEmits,
-  ThemeWorkbenchEditorProps
+  WorkbenchEditorEmits,
+  WorkbenchEditorProps
 } from '~/types/theme-builder'
 import {
   exportPaletteAppConfig,
@@ -17,9 +17,9 @@ import {
   paletteTokenStyle
 } from '~/utils/paletteEditor'
 
-const props = defineProps<ThemeWorkbenchEditorProps>()
+const props = defineProps<WorkbenchEditorProps>()
 
-const emit = defineEmits<ThemeWorkbenchEditorEmits>()
+const emit = defineEmits<WorkbenchEditorEmits>()
 
 const activeMode = computed<PaletteModeKey>(() => props.defaultMode ?? 'light')
 const selectedExport = ref<ExportItemValue>('css')
