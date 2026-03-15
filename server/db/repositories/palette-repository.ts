@@ -12,6 +12,12 @@ export async function listPalettesByUserId(userId: string) {
     .toArray()
 }
 
+export async function countPalettesByUserId(userId: string) {
+  const collection = await getPaletteCollection()
+
+  return collection.countDocuments({ userId })
+}
+
 export async function listPublicPalettes() {
   const collection = await getPaletteCollection()
 
