@@ -11,8 +11,11 @@ import {
   exportPaletteTs
 } from '~/utils/paletteExport'
 import {
+  formatRadiusSliderValue,
   formatPaletteLabel,
+  getPaletteInputValue,
   getPalettePickerValue,
+  getRadiusSliderValue,
   normalizePaletteTokenValue,
   paletteTokenStyle
 } from '~/utils/paletteEditor'
@@ -46,7 +49,8 @@ const sectionGroups = [
   { label: 'Brand Colors', value: 'brand-colors', sections: ['color'] },
   { label: 'Semantic Colors', value: 'semantic-colors', sections: ['ui'] },
   { label: 'Background & Surface', value: 'background-surface', sections: ['bg', 'text'] },
-  { label: 'Muted & Border', value: 'muted-border', sections: ['border', 'ring', 'divide', 'outline', 'fill', 'stroke'] }
+  { label: 'Muted & Border', value: 'muted-border', sections: ['border', 'ring', 'divide', 'outline', 'fill', 'stroke'] },
+  { label: 'Radius', value: 'radius', sections: ['radius'] }
 ]
 
 const paletteSections = computed(() => {
@@ -92,6 +96,14 @@ function resetTokenValue(sectionKey: string, tokenKey: string) {
     tokenKey,
     props.sourcePalette.modes[activeMode.value]?.[sectionKey]?.[tokenKey] ?? undefined
   )
+}
+
+function isColorSection(sectionKey: string) {
+  return ['color', 'text', 'bg', 'ui', 'border', 'ring', 'divide', 'outline', 'fill', 'stroke'].includes(sectionKey)
+}
+
+function isRadiusSection(sectionKey: string) {
+  return sectionKey === 'radius'
 }
 
 async function copyActiveExport() {
@@ -140,6 +152,7 @@ async function copyActiveExport() {
         >
           <div class="space-y-2 flex gap-2">
             <UPopover
+                v-if="isColorSection(item.value)"
                 :content="{
                   align: 'end',
                   side: 'bottom',
@@ -169,6 +182,12 @@ async function copyActiveExport() {
                   </div>
                 </template>
               </UPopover>
+              <div
+                v-else
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border dark:border-white/10 bg-white/5 text-xs uppercase text-muted dark:bg-black/5"
+              >
+                {{ formatPaletteLabel(sectionKey).slice(0, 2) }}
+              </div>
               <div class="min-w-0 flex-1">
                 <p class="truncate text-sm capitalize">
                   {{ formatPaletteLabel(sectionKey) }}
@@ -176,6 +195,29 @@ async function copyActiveExport() {
                 <p class="truncate text-xs text-muted">
                   {{ token }}
                 </p>
+                <UInput
+                  v-if="!isRadiusSection(item.value)"
+                  :model-value="getPaletteInputValue(item.tokens, sectionKey)"
+                  class="mt-2"
+                  size="sm"
+                  :placeholder="isColorSection(item.value) ? '#000000' : '0.5rem'"
+                  @update:model-value="updateTokenValue(item.value, sectionKey, $event)"
+                />
+                <div v-else class="mt-2 space-y-2">
+                  <USlider
+                    :model-value="getRadiusSliderValue(item.tokens, sectionKey)"
+                    :min="0"
+                    :max="32"
+                    :step="1"
+                    color="primary"
+                    @update:model-value="updateTokenValue(item.value, sectionKey, formatRadiusSliderValue(Array.isArray($event) ? $event[0] ?? 0 : $event ?? 0))"
+                  />
+                  <div class="flex items-center justify-between text-xs text-muted">
+                    <span>0rem</span>
+                    <span>{{ getPaletteInputValue(item.tokens, sectionKey) || '0rem' }}</span>
+                    <span>2rem</span>
+                  </div>
+                </div>
               </div>
               <UButton
                 type="button"
