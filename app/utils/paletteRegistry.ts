@@ -4,7 +4,7 @@ import type { PaletteDefinition, PaletteOption } from '~/types/palette'
 
 function createNullPalette(source: PaletteDefinition): PaletteDefinition {
   return {
-    name: 'Nuxt UI Default',
+    name: 'Empty Palette',
     modes: {
       light: Object.fromEntries(
         Object.entries(source.modes.light).map(([section, tokens]) => [
@@ -22,10 +22,10 @@ function createNullPalette(source: PaletteDefinition): PaletteDefinition {
   }
 }
 
-export const defaultPalette = createNullPalette(extremeSportLanding as PaletteDefinition)
+export const emptyPalette = createNullPalette(extremeSportLanding as PaletteDefinition)
 
 export const paletteOptions = [
-  { id: 'default', name: 'Nuxt UI Default', type: 'default' },
+  { id: 'default', name: 'Empty Palette', type: 'default' },
   { id: 'extremeSportLanding', name: extremeSportLanding.name, type: 'preset', palette: extremeSportLanding },
   { id: 'carbonAndSulfur', name: carbonAndSulfur.name, type: 'preset', palette: carbonAndSulfur }
 ] as const satisfies readonly PaletteOption[]

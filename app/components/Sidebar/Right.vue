@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
 
-const { currentPalette, updatePalette, savePalette, saveNewPalette } = usePalette()
+const { currentPalette, updatePalette, updatePaletteName, savePalette, saveNewPalette } = usePalette()
 const { editorSidebarSw } = useSidebar()
 
 const saveItems = computed<DropdownMenuItem[][]>(() => [[
@@ -26,6 +26,10 @@ const handleUpdateToken = (event: H3EventContext) => {
   const { mode, section, token, value } = event
   updatePalette({mode, section, token, value})
 }
+
+const handlePaletteNameInput = (event: Event) => {
+  updatePaletteName((event.target as HTMLInputElement).value)
+}
 </script>
 
 <template>
@@ -36,7 +40,17 @@ const handleUpdateToken = (event: H3EventContext) => {
           Theme Editor
         </p>
       </template>
-      <ThemeWorkbenchEditorContent v-if="currentPalette" :palette="currentPalette" :sourcePalette="currentPalette" defaultMode="dark" tab="tokens" @update-token="handleUpdateToken"/>
+      <div v-if="currentPalette" class="space-y-4">
+        <UFormField label="Palette name">
+          <UInput
+            :model-value="currentPalette.name"
+            placeholder="Untitled palette"
+            @input="handlePaletteNameInput"
+          />
+        </UFormField>
+
+        <ThemeWorkbenchEditorContent :palette="currentPalette" :sourcePalette="currentPalette" defaultMode="dark" tab="tokens" @update-token="handleUpdateToken"/>
+      </div>
 
       <template #footer>
         <UDropdownMenu

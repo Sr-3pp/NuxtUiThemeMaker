@@ -1,6 +1,6 @@
 import type { PaletteDefinition, PaletteModeKey, PaletteTokenValue } from '~/types/palette'
 import type { StoredPalette, UpdatePalettePayload as StoredPaletteUpdatePayload } from '~/types/palette-store'
-import { paletteOptions } from '~/utils/paletteRegistry'
+import { emptyPalette, paletteOptions } from '~/utils/paletteRegistry'
 
 type EditablePalette = PaletteDefinition & Partial<Omit<StoredPalette, 'name' | 'palette'>>
 
@@ -28,8 +28,6 @@ interface UpdatePalettePayload {
 }
 
 export function usePalette() {
-  const currentPalette = useState<EditablePalette | null>('current-palette', () => null)
-
   const toEditablePalette = (palette: PaletteDefinition | StoredPalette): EditablePalette => {
     if ('_id' in palette) {
       const clonedPalette = clonePaletteDefinition({
@@ -76,11 +74,31 @@ export function usePalette() {
     })
   }
 
+  const currentPalette = useState<EditablePalette | null>('current-palette', () => {
+    const editablePalette = toEditablePalette(emptyPalette)
+
+    hydratePalette(editablePalette)
+
+    return editablePalette
+  })
+
   const setCurrentPalette = (palette: PaletteDefinition | StoredPalette) => {
     const editablePalette = toEditablePalette(palette)
 
     hydratePalette(editablePalette)
     currentPalette.value = editablePalette
+  }
+
+  const createEmptyPalette = () => {
+    setCurrentPalette(emptyPalette)
+  }
+
+  const updatePaletteName = (name: string) => {
+    if (!currentPalette.value) {
+      return
+    }
+
+    currentPalette.value.name = name
   }
 
   const updatePalette = ({ mode, section, token, value }: UpdatePalettePayload) => {
@@ -165,7 +183,9 @@ export function usePalette() {
 
   return {
     currentPalette,
+    createEmptyPalette,
     setCurrentPalette,
+    updatePaletteName,
     updatePalette,
     savePalette,
     saveNewPalette,

@@ -16,7 +16,7 @@ export type PaletteModeKey = keyof PaletteDefinition['modes']
 
 interface DefaultPaletteOption {
   id: 'default'
-  name: 'Nuxt UI Default'
+  name: string
   type: 'default'
 }
 

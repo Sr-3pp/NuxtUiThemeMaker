@@ -9,12 +9,18 @@ const {
   closeAllDrawers
 } = useDrawers()
 
-const { setCurrentPalette, getUserPalettes, getPublicPalettes, defaultPalettes } = usePalette()
+const { createEmptyPalette, setCurrentPalette, getUserPalettes, getPublicPalettes, defaultPalettes } = usePalette()
 
 const { togglePalettesSidebar } = useSidebar()
 
 const handlePaletteSelect = (option: PaletteDefinition | StoredPalette) => {
   setCurrentPalette(option)
+  closeAllDrawers()
+  togglePalettesSidebar()
+}
+
+const handleEmptyPaletteSelect = () => {
+  createEmptyPalette()
   closeAllDrawers()
   togglePalettesSidebar()
 }
@@ -52,6 +58,12 @@ const { data: publicPalettes } = await getPublicPalettes()
     >
       <template #body>
         <ul>
+          <li>
+            Empty palette
+            <button @click="handleEmptyPaletteSelect()">
+              start from 0
+            </button>
+          </li>
           <li v-for="(option, i) in defaultPalettes" :key="`default-palettes-${i}`">
             {{ option.name }}
             <button @click="handlePaletteSelect(option)">
