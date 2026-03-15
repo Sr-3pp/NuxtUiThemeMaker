@@ -61,7 +61,7 @@ watch(user, async (currentUser) => {
             My palettes
           </p>
 
-          <div class="grid gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <PaletteCard
               v-for="palette in userPalettes"
               :key="palette._id"
@@ -85,7 +85,7 @@ watch(user, async (currentUser) => {
             Starter palettes
           </p>
 
-          <div class="grid gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <PaletteCard
               :palette="emptyPalette"
               badge-label="Blank"
@@ -114,7 +114,7 @@ watch(user, async (currentUser) => {
             Community palettes
           </p>
 
-          <div class="grid gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <PaletteCard
               v-for="palette in publicPalettes"
               :key="palette._id"

@@ -23,14 +23,13 @@ const paletteDefinition = computed<PaletteDefinition>(() => {
 })
 
 const swatches = computed(() => {
-  const lightMode = paletteDefinition.value.modes.light
-  const source = lightMode.color ?? lightMode.ui ?? {}
-  const fallbackSource = lightMode.ui ?? {}
-  const tokens = ['primary', 'secondary', 'neutral', 'success', 'warning', 'error']
+  const lightColors = paletteDefinition.value.modes.light.color ?? {}
+  const darkColors = paletteDefinition.value.modes.dark.color ?? {}
+  const tokens = ['primary', 'secondary', 'success', 'info', 'warning', 'error']
 
   return tokens.map((token) => ({
     token,
-    value: source[token] ?? fallbackSource[token] ?? null,
+    value: lightColors[token] ?? darkColors[token] ?? null,
   }))
 })
 </script>

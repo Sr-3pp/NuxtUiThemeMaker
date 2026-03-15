@@ -21,7 +21,18 @@ const props = defineProps<WorkbenchEditorProps>()
 
 const emit = defineEmits<WorkbenchEditorEmits>()
 
-const activeMode = computed<PaletteModeKey>(() => props.defaultMode ?? 'light')
+const colorMode = useColorMode()
+const activeMode = computed<PaletteModeKey>(() => {
+  if (colorMode.value === 'dark') {
+    return 'dark'
+  }
+
+  if (colorMode.value === 'light') {
+    return 'light'
+  }
+
+  return props.defaultMode ?? 'light'
+})
 const selectedExport = ref<ExportItemValue>('css')
 const copyState = ref<'idle' | 'copied' | 'error'>('idle')
 
