@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { PaletteDefinition } from '~/types/palette'
 import type { StoredPalette } from '~/types/palette-store'
+import { emptyPalette } from '~/utils/paletteRegistry'
 
 const {
   ownPalettesOpen,
@@ -40,16 +41,21 @@ const { data: publicPalettes } = await getPublicPalettes()
       v-model:open="ownPalettesOpen"
     >
       <template #body>
-        <div>
-          My palettes
-          <ul>
-            <li v-for="palette in userPalettes" :key="palette._id">
-              {{ palette.name }}
-              <button @click="handlePaletteSelect(palette)">
-                set palette
-              </button>
-            </li>
-          </ul>
+        <div class="space-y-4 p-4">
+          <p class="text-sm font-medium">
+            My palettes
+          </p>
+
+          <div class="grid gap-4">
+            <PaletteCard
+              v-for="palette in userPalettes"
+              :key="palette._id"
+              :palette="palette"
+              badge-label="Saved"
+              action-label="Open palette"
+              @select="handlePaletteSelect(palette)"
+            />
+          </div>
         </div>
       </template>
     </UDrawer>
@@ -57,36 +63,50 @@ const { data: publicPalettes } = await getPublicPalettes()
       v-model:open="defaultPresetsOpen"
     >
       <template #body>
-        <ul>
-          <li>
-            Empty palette
-            <button @click="handleEmptyPaletteSelect()">
-              start from 0
-            </button>
-          </li>
-          <li v-for="(option, i) in defaultPalettes" :key="`default-palettes-${i}`">
-            {{ option.name }}
-            <button @click="handlePaletteSelect(option)">
-              set palette
-            </button>
-          </li>
-        </ul>
+        <div class="space-y-4 p-4">
+          <p class="text-sm font-medium">
+            Starter palettes
+          </p>
+
+          <div class="grid gap-4">
+            <PaletteCard
+              :palette="emptyPalette"
+              badge-label="Blank"
+              action-label="Open blank palette"
+              @select="handleEmptyPaletteSelect()"
+            />
+
+            <PaletteCard
+              v-for="(option, i) in defaultPalettes"
+              :key="`default-palettes-${i}`"
+              :palette="option"
+              badge-label="Preset"
+              action-label="Use preset"
+              @select="handlePaletteSelect(option)"
+            />
+          </div>
+        </div>
       </template>
     </UDrawer>
     <UDrawer
       v-model:open="communityPalettesOpen"
     >
       <template #body>
-        <div>
-          Community palettes
-          <ul>
-            <li v-for="palette in publicPalettes" :key="palette._id">
-              {{ palette.name }}
-              <button @click="handlePaletteSelect(palette)">
-                set palette
-              </button>
-            </li>
-          </ul>
+        <div class="space-y-4 p-4">
+          <p class="text-sm font-medium">
+            Community palettes
+          </p>
+
+          <div class="grid gap-4">
+            <PaletteCard
+              v-for="palette in publicPalettes"
+              :key="palette._id"
+              :palette="palette"
+              badge-label="Community"
+              action-label="Open palette"
+              @select="handlePaletteSelect(palette)"
+            />
+          </div>
         </div>
       </template>
     </UDrawer>
