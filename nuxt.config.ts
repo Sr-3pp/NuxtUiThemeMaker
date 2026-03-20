@@ -45,7 +45,16 @@ export default defineNuxtConfig({
     ],
   },
   fonts: {
-    provider: 'local',
+    families: [
+      {
+        name: 'IBM Plex Sans',
+        provider: 'google',
+        global: true,
+        weights: [400, 500, 600, 700],
+        styles: ['normal'],
+        subsets: ['latin'],
+      },
+    ],
   },
   css: [
     '@/assets/css/main.css' 
