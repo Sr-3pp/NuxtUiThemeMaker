@@ -1,75 +1,69 @@
-# Nuxt Minimal Starter
+# Nuxt UI Theme Builder
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Nuxt UI Theme Builder is a Nuxt 4 app for creating, previewing, saving, exporting, and sharing Nuxt UI color palettes.
+
+## Features
+
+- Live palette editing for light and dark modes
+- Component preview workbench for Nuxt UI surfaces, forms, feedback, and actions
+- Palette import/export helpers
+- Account-backed palette storage with public sharing
+- Server-side palette APIs backed by MongoDB and Better Auth
+
+## Stack
+
+- Nuxt 4
+- Vue 3
+- `@nuxt/ui`
+- Better Auth
+- MongoDB
+- Vitest
+- Playwright
 
 ## Setup
 
-Make sure to install dependencies:
+Install dependencies:
 
 ```bash
-# npm
-npm install
-
-# pnpm
 pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+Create a local `.env` with the runtime variables used by the app:
 
 ```bash
-# npm
-npm run dev
+NUXT_BETTER_AUTH_SECRET=change-me
+NUXT_BETTER_AUTH_URL=http://localhost:3000
+NUXT_BETTER_AUTH_ALLOWED_HOSTS=localhost:3000
+NUXT_BETTER_AUTH_TRUSTED_ORIGINS=http://localhost:3000
+NUXT_MONGODB_URI=mongodb://127.0.0.1:27017
+NUXT_MONGODB_DB_NAME=nuxt-ui-theme-builder
+NUXT_PUBLIC_SITE_NAME=Nuxt UI Theme Builder
+NUXT_PUBLIC_SITE_DESCRIPTION=Build, preview, save, and share Nuxt UI color palettes with a live component workbench.
+NUXT_PUBLIC_SITE_URL=http://localhost:3000
+```
 
-# pnpm
+## Scripts
+
+```bash
 pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
-```
-
-## Production
-
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
 pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
 pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
+pnpm test
+pnpm test:unit
+pnpm test:nuxt
+pnpm test:e2e
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## App Areas
+
+- `/` renders the theme builder
+- `/login` and `/register` handle account access
+- `/palette/[slug]` renders a shareable palette preview page
+- `/api/palettes/*` provides palette CRUD and sharing endpoints
+- `/api/auth/*` is served by Better Auth
+
+## Notes
+
+- MongoDB is required for saved palettes and auth-backed flows.
+- Public palette sharing is available through palette slugs.
+- Rate limiting is applied to API routes in Nitro middleware.

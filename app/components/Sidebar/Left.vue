@@ -26,115 +26,41 @@ function handlePaletteImport(palette: Parameters<typeof setCurrentPalette>[0]) {
   setCurrentPalette(palette)
 }
 
-const authItems = ref<DropdownMenuItem[][]>([
-  [
-    {
-      label: 'Benjamin',
-      avatar: {
-        src: 'https://github.com/benjamincanac.png',
-        loading: 'lazy'
-      },
-      type: 'label'
-    }
-  ],
-  [
-    {
-      label: 'Profile',
-      icon: 'i-lucide-user'
-    },
-    {
-      label: 'Billing',
-      icon: 'i-lucide-credit-card'
-    },
-    {
-      label: 'Settings',
-      icon: 'i-lucide-cog',
-      kbds: [',']
-    },
-    {
-      label: 'Keyboard shortcuts',
-      icon: 'i-lucide-monitor'
-    }
-  ],
-  [
-    {
-      label: 'Team',
-      icon: 'i-lucide-users'
-    },
-    {
-      label: 'Invite users',
-      icon: 'i-lucide-user-plus',
-      children: [
-        [
-          {
-            label: 'Email',
-            icon: 'i-lucide-mail'
-          },
-          {
-            label: 'Message',
-            icon: 'i-lucide-message-square'
-          }
-        ],
-        [
-          {
-            label: 'More',
-            icon: 'i-lucide-circle-plus',
-            children: [
-              {
-                label: 'Import from Slack',
-                icon: 'i-simple-icons-slack',
-                to: 'https://slack.com',
-                target: '_blank'
-              },
-              {
-                label: 'Import from Trello',
-                icon: 'i-simple-icons-trello'
-              },
-              {
-                label: 'Import from Asana',
-                icon: 'i-simple-icons-asana'
-              }
-            ]
-          }
-        ]
-      ]
-    },
-    {
-      label: 'New team',
-      icon: 'i-lucide-plus',
-      kbds: ['meta', 'n']
-    }
-  ],
-  [
-    {
-      label: 'GitHub',
-      icon: 'i-simple-icons-github',
-      to: 'https://github.com/nuxt/ui',
-      target: '_blank'
-    },
-    {
-      label: 'Support',
-      icon: 'i-lucide-life-buoy',
-      to: '/docs/components/dropdown-menu'
-    },
-    {
-      label: 'API',
-      icon: 'i-lucide-cloud',
-      disabled: true
-    }
-  ],
-  [
-    {
-      label: 'Logout',
-      icon: 'i-lucide-log-out',
-      kbds: ['shift', 'meta', 'q']
-    }
-  ]
-])
-
-const { user } = useAuth();
+const { signOut, user } = useAuth();
 
 const { palettesSidebarSw, togglePalettesSidebar } = useSidebar()
+
+const authItems = computed<DropdownMenuItem[][]>(() => {
+  if (!user.value) {
+    return []
+  }
+
+  return [
+    [
+      {
+        label: user.value.name || user.value.email,
+        type: 'label'
+      }
+    ],
+    [
+      {
+        label: 'My Palettes',
+        icon: 'i-lucide-inbox',
+        onSelect: () => openOwnPalettes()
+      }
+    ],
+    [
+      {
+        label: 'Sign out',
+        icon: 'i-lucide-log-out',
+        onSelect: async () => {
+          await signOut()
+          await navigateTo('/')
+        }
+      }
+    ]
+  ]
+})
 
 const palettesItems = computed<NavigationMenuItem[][]>(() => [[
   ...(user.value ? [{
@@ -143,7 +69,7 @@ const palettesItems = computed<NavigationMenuItem[][]>(() => [[
     onSelect: () => openOwnPalettes()
   }] : []),
   {
-    label: 'Default Pressets',
+    label: 'Default Presets',
     icon: 'i-lucide-layout-template',
     onSelect: () => openDefaultPresets()
   },
@@ -210,10 +136,10 @@ const palettesItems = computed<NavigationMenuItem[][]>(() => [[
           }"
         >
           <UButton class="w-full" icon="i-lucide-circle-user" color="neutral" variant="outline">
-            <p>
-              {{ user.name }}
-              <small>{{ user.email }}</small>
-            </p>
+            <span class="flex min-w-0 flex-col items-start text-left">
+              <span class="truncate">{{ user.name }}</span>
+              <span class="truncate text-xs text-muted">{{ user.email }}</span>
+            </span>
           </UButton>
         </UDropdownMenu>
 

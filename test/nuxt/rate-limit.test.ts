@@ -77,6 +77,6 @@ describe('rate limit utilities', () => {
     }
     expect(getResponseHeader(event, 'X-RateLimit-Limit')).toBe('12')
     expect(getResponseHeader(event, 'X-RateLimit-Remaining')).toBe('0')
-    expect(getResponseHeader(event, 'Retry-After')).toBe('60')
+    expect(String(getResponseHeader(event, 'Retry-After'))).toBe('60')
   })
 })
