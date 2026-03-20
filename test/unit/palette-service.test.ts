@@ -173,6 +173,98 @@ describe('palette service', () => {
     expect(updatePaletteByIdMock).not.toHaveBeenCalled()
   })
 
+  it('updates a palette for its owner and preserves visibility when omitted', async () => {
+    const existingPalette = {
+      _id: 'palette-id',
+      userId: 'user-1',
+      slug: 'old-slug',
+      name: 'Forest Glow',
+      palette: {
+        name: 'Forest Glow',
+        modes: {
+          light: {},
+          dark: {},
+        },
+      },
+      isPublic: true,
+      createdAt: new Date('2026-03-09T10:00:00.000Z'),
+      updatedAt: new Date('2026-03-09T10:00:00.000Z'),
+    }
+    const updatedPalette = {
+      ...existingPalette,
+      slug: 'aurora',
+      name: 'Aurora',
+      updatedAt: new Date('2026-03-10T10:00:00.000Z'),
+    }
+    const storedPalette = {
+      _id: 'palette-id',
+      userId: 'user-1',
+      slug: 'aurora',
+      name: 'Aurora',
+      palette: {
+        name: 'Aurora',
+        modes: {
+          light: {},
+          dark: {},
+        },
+      },
+      isPublic: true,
+      createdAt: '2026-03-09T10:00:00.000Z',
+      updatedAt: '2026-03-10T10:00:00.000Z',
+    }
+
+    findPaletteByIdMock.mockResolvedValueOnce(existingPalette)
+    generateUniquePaletteSlugMock.mockResolvedValueOnce('aurora')
+    normalizePaletteForStorageMock.mockImplementationOnce((name, palette) => ({
+      ...palette,
+      name,
+    }))
+    updatePaletteByIdMock.mockResolvedValueOnce(updatedPalette)
+    toStoredPaletteMock.mockReturnValueOnce(storedPalette)
+
+    const { updatePaletteForUser } = await import('../../server/services/palette-service')
+
+    const result = await updatePaletteForUser('69af8b6940280b9bc83c3c07', 'user-1', {
+      name: 'Aurora',
+      palette: {
+        name: 'Draft',
+        modes: {
+          light: {},
+          dark: {},
+        },
+      },
+    })
+
+    expect(generateUniquePaletteSlugMock).toHaveBeenCalledWith('Aurora', 'palette-id')
+    expect(updatePaletteByIdMock).toHaveBeenCalledWith('palette-id', {
+      slug: 'aurora',
+      name: 'Aurora',
+      palette: {
+        name: 'Aurora',
+        modes: {
+          light: {},
+          dark: {},
+        },
+      },
+      isPublic: true,
+      updatedAt: expect.any(Date),
+    })
+    expect(result).toEqual(storedPalette)
+  })
+
+  it('throws when an owned palette cannot be found', async () => {
+    findPaletteByIdMock.mockResolvedValueOnce(null)
+
+    const { getOwnedPaletteByIdOrThrow } = await import('../../server/services/palette-service')
+
+    await expect(getOwnedPaletteByIdOrThrow('69af8b6940280b9bc83c3c07', 'user-1'))
+      .rejects
+      .toMatchObject({
+        statusCode: 404,
+        statusMessage: 'Palette not found',
+      })
+  })
+
   it('deletes an owned palette', async () => {
     findPaletteByIdMock.mockResolvedValueOnce({
       _id: 'palette-id',

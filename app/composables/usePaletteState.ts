@@ -2,6 +2,7 @@ import type { PaletteDefinition } from '~/types/palette'
 import type { StoredPalette } from '~/types/palette-store'
 import { emptyPalette } from '~/utils/paletteRegistry'
 import {
+  clonePaletteDefinition,
   createEditablePalette,
   type EditablePalette,
   type UpdateEditablePaletteTokenPayload,
@@ -31,7 +32,15 @@ export function usePaletteState() {
       return
     }
 
-    currentPalette.value = createEditablePalette(sourcePalette.value)
+    currentPalette.value = {
+      ...createEditablePalette(clonePaletteDefinition(sourcePalette.value)),
+      _id: sourcePalette.value._id,
+      userId: sourcePalette.value.userId,
+      slug: sourcePalette.value.slug,
+      isPublic: sourcePalette.value.isPublic,
+      createdAt: sourcePalette.value.createdAt,
+      updatedAt: sourcePalette.value.updatedAt,
+    }
   }
 
   const updatePaletteName = (name: string) => {
