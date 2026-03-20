@@ -4,13 +4,8 @@ import {
   getRouterParam,
   readValidatedBody,
 } from 'h3'
-import { toStoredPalette } from '~~/server/domain/palette'
 import { paletteVisibilitySchema } from '~~/server/domain/palette-schema'
-import {
-  findPaletteById,
-  parsePaletteObjectId,
-  updatePaletteById,
-} from '~~/server/db/repositories/palette-repository'
+import { setPaletteVisibilityForUser } from '~~/server/services/palette-service'
 import { requireAuthSession } from '~~/server/utils/auth-session'
 
 export default defineEventHandler(async (event) => {
@@ -25,34 +20,6 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readValidatedBody(event, paletteVisibilitySchema.parse)
-  const objectId = parsePaletteObjectId(id)
-  const existing = await findPaletteById(objectId)
 
-  if (!existing) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Palette not found',
-    })
-  }
-
-  if (existing.userId !== user.id) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Forbidden',
-    })
-  }
-
-  const updated = await updatePaletteById(existing._id, {
-    isPublic: body.isPublic,
-    updatedAt: new Date(),
-  })
-
-  if (!updated) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to update visibility',
-    })
-  }
-
-  return toStoredPalette(updated)
+  return setPaletteVisibilityForUser(id, user.id, body.isPublic)
 })

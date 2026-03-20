@@ -1,9 +1,6 @@
+import { createError, defineEventHandler, getRouterParam } from 'h3'
 import { requireAuthSession } from '~~/server/utils/auth-session'
-import {
-  deletePaletteById,
-  findPaletteById,
-  parsePaletteObjectId,
-} from '~~/server/db/repositories/palette-repository'
+import { deletePaletteForUser } from '~~/server/services/palette-service'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireAuthSession(event)
@@ -16,24 +13,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const objectId = parsePaletteObjectId(id)
-  const existing = await findPaletteById(objectId)
-
-  if (!existing) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Palette not found',
-    })
-  }
-
-  if (existing.userId !== user.id) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Forbidden',
-    })
-  }
-
-  await deletePaletteById(existing._id)
+  await deletePaletteForUser(id, user.id)
 
   return { success: true }
 })

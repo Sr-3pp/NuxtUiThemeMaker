@@ -1,44 +1,15 @@
-import { createEvent, type H3Event } from 'h3'
+import { createError, createEvent, type H3Event } from 'h3'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const requireAuthSessionMock = vi.fn()
-const countPalettesByUserIdMock = vi.fn()
-const createPaletteMock = vi.fn()
-const generateUniquePaletteSlugMock = vi.fn()
-const normalizePaletteForStorageMock = vi.fn()
-const toStoredPaletteMock = vi.fn((palette: {
-  _id: string
-  userId: string
-  slug: string
-  name: string
-  palette: { name: string, modes: { light: {}, dark: {} } }
-  isPublic: boolean
-  createdAt: Date
-  updatedAt: Date
-}) => ({
-  _id: palette._id,
-  userId: palette.userId,
-  slug: palette.slug,
-  name: palette.name,
-  palette: palette.palette,
-  isPublic: palette.isPublic,
-  createdAt: palette.createdAt.toISOString(),
-  updatedAt: palette.updatedAt.toISOString(),
-}))
+const createPaletteForUserMock = vi.fn()
 
 vi.mock('~~/server/utils/auth-session', () => ({
   requireAuthSession: requireAuthSessionMock,
 }))
 
-vi.mock('~~/server/db/repositories/palette-repository', () => ({
-  countPalettesByUserId: countPalettesByUserIdMock,
-  createPalette: createPaletteMock,
-  generateUniquePaletteSlug: generateUniquePaletteSlugMock,
-}))
-
-vi.mock('~~/server/domain/palette', () => ({
-  normalizePaletteForStorage: normalizePaletteForStorageMock,
-  toStoredPalette: toStoredPaletteMock,
+vi.mock('~~/server/services/palette-service', () => ({
+  createPaletteForUser: createPaletteForUserMock,
 }))
 
 function createPostEvent(body: Record<string, unknown>) {
@@ -63,17 +34,17 @@ describe('palette create api handler', () => {
     vi.resetModules()
     vi.clearAllMocks()
     requireAuthSessionMock.mockReset()
-    countPalettesByUserIdMock.mockReset()
-    createPaletteMock.mockReset()
-    generateUniquePaletteSlugMock.mockReset()
-    normalizePaletteForStorageMock.mockReset()
+    createPaletteForUserMock.mockReset()
   })
 
-  it('blocks free plan users once they already have 2 saved palettes', async () => {
+  it('returns the existing service error for free plan users at the palette limit', async () => {
     requireAuthSessionMock.mockResolvedValueOnce({
       user: { id: 'user-1', plan: 'free' },
     })
-    countPalettesByUserIdMock.mockResolvedValueOnce(2)
+    createPaletteForUserMock.mockRejectedValueOnce(createError({
+      statusCode: 403,
+      statusMessage: 'Free plan users can only save 2 palettes',
+    }))
 
     const { default: handler } = await import('~~/server/api/palettes/index.post')
 
@@ -92,13 +63,24 @@ describe('palette create api handler', () => {
       statusMessage: 'Free plan users can only save 2 palettes',
     })
 
-    expect(countPalettesByUserIdMock).toHaveBeenCalledWith('user-1')
-    expect(createPaletteMock).not.toHaveBeenCalled()
+    expect(createPaletteForUserMock).toHaveBeenCalledWith(
+      { id: 'user-1', plan: 'free' },
+      {
+        name: 'Forest Glow',
+        palette: {
+          name: 'Forest Glow',
+          modes: {
+            light: {},
+            dark: {},
+          },
+        },
+        isPublic: false,
+      }
+    )
   })
 
-  it('allows pro users to create palettes beyond the free tier limit', async () => {
-    const createdAt = new Date('2026-03-15T12:00:00.000Z')
-    const createdPalette = {
+  it('delegates palette creation to the service for authenticated users', async () => {
+    createPaletteForUserMock.mockResolvedValueOnce({
       _id: 'palette-id',
       userId: 'user-1',
       slug: 'forest-glow',
@@ -111,19 +93,12 @@ describe('palette create api handler', () => {
         },
       },
       isPublic: false,
-      createdAt,
-      updatedAt: createdAt,
-    }
-
+      createdAt: '2026-03-15T12:00:00.000Z',
+      updatedAt: '2026-03-15T12:00:00.000Z',
+    })
     requireAuthSessionMock.mockResolvedValueOnce({
       user: { id: 'user-1', plan: 'pro' },
     })
-    generateUniquePaletteSlugMock.mockResolvedValueOnce('forest-glow')
-    normalizePaletteForStorageMock.mockImplementationOnce((name, palette) => ({
-      ...palette,
-      name,
-    }))
-    createPaletteMock.mockResolvedValueOnce(createdPalette)
 
     const { default: handler } = await import('~~/server/api/palettes/index.post')
 
@@ -139,23 +114,20 @@ describe('palette create api handler', () => {
       isPublic: false,
     }) as H3Event)
 
-    expect(countPalettesByUserIdMock).not.toHaveBeenCalled()
-    expect(generateUniquePaletteSlugMock).toHaveBeenCalledWith('Forest Glow')
-    expect(createPaletteMock).toHaveBeenCalledWith({
-      userId: 'user-1',
-      slug: 'forest-glow',
-      name: 'Forest Glow',
-      palette: {
+    expect(createPaletteForUserMock).toHaveBeenCalledWith(
+      { id: 'user-1', plan: 'pro' },
+      {
         name: 'Forest Glow',
-        modes: {
-          light: {},
-          dark: {},
+        palette: {
+          name: 'Draft Name',
+          modes: {
+            light: {},
+            dark: {},
+          },
         },
-      },
-      isPublic: false,
-      createdAt: expect.any(Date),
-      updatedAt: expect.any(Date),
-    })
+        isPublic: false,
+      }
+    )
     expect(result).toMatchObject({
       _id: 'palette-id',
       userId: 'user-1',
