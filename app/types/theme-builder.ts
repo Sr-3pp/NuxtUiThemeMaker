@@ -3,7 +3,7 @@ import type { PaletteDefinition, PaletteModeKey } from '~/types/palette'
 export type EditorTab = 'tokens' | 'export'
 export type ExportItemValue = 'css' | 'appConfig' | 'ts'
 
-interface UpdatePaletteTokenPayload {
+export interface UpdatePaletteTokenPayload {
   mode: PaletteModeKey
   section: string
   token: string
