@@ -44,6 +44,9 @@ export default defineNuxtConfig({
       },
     ],
   },
+  fonts: {
+    provider: 'local',
+  },
   css: [
     '@/assets/css/main.css' 
   ]
