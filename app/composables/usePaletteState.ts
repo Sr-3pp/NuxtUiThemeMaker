@@ -1,0 +1,62 @@
+import type { PaletteDefinition } from '~/types/palette'
+import type { StoredPalette } from '~/types/palette-store'
+import { emptyPalette } from '~/utils/paletteRegistry'
+import {
+  createEditablePalette,
+  type EditablePalette,
+  type UpdateEditablePaletteTokenPayload,
+  updateEditablePaletteToken,
+} from '~/utils/palette-domain'
+
+export function usePaletteState() {
+  const currentPalette = useState<EditablePalette | null>('current-palette', () => {
+    return createEditablePalette(emptyPalette)
+  })
+  const sourcePalette = useState<EditablePalette | null>('source-palette', () => {
+    return createEditablePalette(emptyPalette)
+  })
+
+  const setCurrentPalette = (palette: PaletteDefinition | StoredPalette) => {
+    currentPalette.value = createEditablePalette(palette)
+    sourcePalette.value = createEditablePalette(palette)
+  }
+
+  const createEmptyPalette = () => {
+    setCurrentPalette(emptyPalette)
+  }
+
+  const resetCurrentPalette = () => {
+    if (!sourcePalette.value) {
+      createEmptyPalette()
+      return
+    }
+
+    currentPalette.value = createEditablePalette(sourcePalette.value)
+  }
+
+  const updatePaletteName = (name: string) => {
+    if (!currentPalette.value) {
+      return
+    }
+
+    currentPalette.value.name = name
+  }
+
+  const updatePalette = (payload: UpdateEditablePaletteTokenPayload) => {
+    if (!currentPalette.value) {
+      return
+    }
+
+    updateEditablePaletteToken(currentPalette.value, payload)
+  }
+
+  return {
+    currentPalette,
+    sourcePalette,
+    createEmptyPalette,
+    resetCurrentPalette,
+    setCurrentPalette,
+    updatePaletteName,
+    updatePalette,
+  }
+}

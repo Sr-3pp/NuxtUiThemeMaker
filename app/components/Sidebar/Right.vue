@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
+import type { UpdateEditablePaletteTokenPayload } from '~/utils/palette-domain'
 
-const { currentPalette, sourcePalette, updatePalette, updatePaletteName, savePalette, saveNewPalette } = usePalette()
+const { currentPalette, sourcePalette, setCurrentPalette, updatePalette, updatePaletteName } = usePaletteState()
+const { savePalette, saveNewPalette } = usePaletteApi()
 const { editorSidebarSw } = useSidebar()
 
 const saveItems = computed<DropdownMenuItem[][]>(() => [[
@@ -10,19 +12,35 @@ const saveItems = computed<DropdownMenuItem[][]>(() => [[
     icon: 'i-lucide-save',
     disabled: !currentPalette.value?._id,
     onSelect: async () => {
-      await savePalette()
+      if (!currentPalette.value) {
+        return
+      }
+
+      const updatedPalette = await savePalette(currentPalette.value)
+
+      if (updatedPalette) {
+        setCurrentPalette(updatedPalette)
+      }
     }
   },
   {
     label: 'Save as New Palette',
     icon: 'i-lucide-copy-plus',
     onSelect: async () => {
-      await saveNewPalette()
+      if (!currentPalette.value) {
+        return
+      }
+
+      const createdPalette = await saveNewPalette(currentPalette.value)
+
+      if (createdPalette) {
+        setCurrentPalette(createdPalette)
+      }
     }
   }
 ]])
 
-const handleUpdateToken = (event: H3EventContext) => {
+const handleUpdateToken = (event: UpdateEditablePaletteTokenPayload) => {
   const { mode, section, token, value } = event
   updatePalette({mode, section, token, value})
 }

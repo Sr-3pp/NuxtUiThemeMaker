@@ -7,7 +7,7 @@ const {
   openCommunityPalettes
 } = useDrawers()
 
-const { currentPalette, resetCurrentPalette, setCurrentPalette } = usePalette()
+const { currentPalette, resetCurrentPalette, setCurrentPalette } = usePaletteState()
 const importModalOpen = ref(false)
 const exportModalOpen = ref(false)
 

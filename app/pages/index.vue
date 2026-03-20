@@ -25,7 +25,7 @@ usePageSeo({
   ],
 })
 
-const { currentPalette } = usePalette()
+const { currentPalette } = usePaletteState()
 
 const { togglePalettesSidebar, toggleEditorSidebar } = useSidebar()
 

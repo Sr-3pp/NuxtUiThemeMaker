@@ -29,3 +29,11 @@ export const paletteOptions = [
   { id: 'extremeSportLanding', name: extremeSportLanding.name, type: 'preset', palette: extremeSportLanding },
   { id: 'carbonAndSulfur', name: carbonAndSulfur.name, type: 'preset', palette: carbonAndSulfur }
 ] as const satisfies readonly PaletteOption[]
+
+export const defaultPalettes = paletteOptions.reduce<PaletteDefinition[]>((palettes, option) => {
+  if (option.type === 'preset') {
+    palettes.push(option.palette as PaletteDefinition)
+  }
+
+  return palettes
+}, [])

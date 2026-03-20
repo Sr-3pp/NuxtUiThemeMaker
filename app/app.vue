@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PaletteDefinition } from '~/types/palette'
 import type { StoredPalette } from '~/types/palette-store'
-import { emptyPalette } from '~/utils/paletteRegistry'
+import { defaultPalettes, emptyPalette } from '~/utils/paletteRegistry'
 
 const {
   ownPalettesOpen,
@@ -10,7 +10,8 @@ const {
   closeAllDrawers
 } = useDrawers()
 
-const { createEmptyPalette, deletePalette, updatePaletteVisibility, setCurrentPalette, getUserPalettes, getPublicPalettes, defaultPalettes } = usePalette()
+const { createEmptyPalette, setCurrentPalette, currentPalette } = usePaletteState()
+const { deletePalette, getPublicPalettes, getUserPalettes, updatePaletteVisibility } = usePaletteApi()
 const { user } = useAuth()
 
 const { togglePalettesSidebar } = useSidebar()
@@ -32,11 +33,21 @@ const { data: publicPalettes } = await getPublicPalettes()
 
 const handlePaletteDelete = async (palette: StoredPalette) => {
   await deletePalette(palette._id)
+
+  if (currentPalette.value?._id === palette._id) {
+    createEmptyPalette()
+  }
+
   await refreshUserPalettes()
 }
 
 const handlePaletteVisibilityToggle = async (palette: StoredPalette) => {
-  await updatePaletteVisibility(palette._id, !palette.isPublic)
+  const updatedPalette = await updatePaletteVisibility(palette._id, !palette.isPublic)
+
+  if (currentPalette.value?._id === palette._id && updatedPalette) {
+    setCurrentPalette(updatedPalette)
+  }
+
   await refreshUserPalettes()
 }
 
