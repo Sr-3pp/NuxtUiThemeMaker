@@ -46,13 +46,18 @@ const disableInteractivePreviews = ref(false)
             <UIcon name="i-lucide:layout-list" />
           </UButton>
 
-          <div class="flex gap-2">
+          <div class="flex min-w-0 gap-2">
             <span class="rounded-sm bg-primary size-6 flex items-center justify-center">
                <UIcon name="i-lucide:palette" class="text-black" />
             </span>
-            <p class="font-bold flex gap-2 sm:gap-4">
-              <span>Nuxt UI Theme Builder</span> | <span class="text-muted">Palette: </span> {{ currentPalette?.name }}
-            </p>
+            <div class="min-w-0">
+              <p class="font-bold flex flex-wrap gap-2 sm:gap-4">
+                <span>Nuxt UI Theme Builder</span> | <span class="text-muted">Palette: </span> {{ currentPalette?.name }}
+              </p>
+              <p class="text-xs text-muted">
+                Created by Sr.3pp
+              </p>
+            </div>
           </div>
 
           <UColorModeSwitch />
