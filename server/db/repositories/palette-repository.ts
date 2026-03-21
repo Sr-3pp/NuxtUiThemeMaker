@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb'
-import { getPaletteCollection, type PaletteDocument } from '~~/server/db/collections/palettes'
+import type { PaletteDocument } from '~~/server/types/palette-document'
+import { getPaletteCollection } from '~~/server/db/collections/palettes'
 
 export async function listPalettesByUserId(userId: string) {
   const collection = await getPaletteCollection()
