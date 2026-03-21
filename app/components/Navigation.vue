@@ -3,6 +3,7 @@ const { togglePalettesSidebar, toggleEditorSidebar } = useSidebar()
 const { currentPalette, setCurrentPalette } = usePaletteState()
 const { generatePalette } = usePaletteApi()
 const { cta, helperText, isDisabled, refresh } = usePaletteGenerationAccess()
+const { showErrorToast } = useErrorToast()
 
 const prompt = ref('')
 const isGenerating = ref(false)
@@ -22,6 +23,7 @@ const handleGenertion = async () => {
         }
     } catch (error) {
         console.error('Error generating palette:', error)
+        showErrorToast(error, 'Failed to generate palette.')
         await refresh()
     } finally {
         isGenerating.value = false
@@ -86,8 +88,6 @@ const handleGenertion = async () => {
             {{ helperText }}
         </UButton>
     </div>
-
-    <UColorModeSwitch label="Switch Mode" />
     
     
     <UButton 

@@ -5,6 +5,7 @@ import type { UpdateEditablePaletteTokenPayload } from '~/types/palette-editor'
 const { currentPalette, sourcePalette, setCurrentPalette, updatePalette, updatePaletteName } = usePaletteState()
 const { savePalette, saveNewPalette } = usePaletteApi()
 const { editorSidebarSw } = useSidebar()
+const { showErrorToast } = useErrorToast()
 
 const saveItems = computed<DropdownMenuItem[][]>(() => [[
   {
@@ -16,10 +17,14 @@ const saveItems = computed<DropdownMenuItem[][]>(() => [[
         return
       }
 
-      const updatedPalette = await savePalette(currentPalette.value)
+      try {
+        const updatedPalette = await savePalette(currentPalette.value)
 
-      if (updatedPalette) {
-        setCurrentPalette(updatedPalette)
+        if (updatedPalette) {
+          setCurrentPalette(updatedPalette)
+        }
+      } catch (error) {
+        showErrorToast(error, 'Failed to save palette.')
       }
     }
   },
@@ -31,10 +36,14 @@ const saveItems = computed<DropdownMenuItem[][]>(() => [[
         return
       }
 
-      const createdPalette = await saveNewPalette(currentPalette.value)
+      try {
+        const createdPalette = await saveNewPalette(currentPalette.value)
 
-      if (createdPalette) {
-        setCurrentPalette(createdPalette)
+        if (createdPalette) {
+          setCurrentPalette(createdPalette)
+        }
+      } catch (error) {
+        showErrorToast(error, 'Failed to save palette.')
       }
     }
   }
@@ -53,10 +62,14 @@ const handlePaletteNameInput = (event: Event) => {
 <template>
     <UDashboardSidebar id="theme-editor-sidebar" v-model:open="editorSidebarSw" side="right" mode="drawer" resizable>
       <template #header>
-        <UIcon name="i-lucide:palette" />
-        <p class="font-medium">
-          Theme Editor
-        </p>
+        <div class="w-full flex items-center">
+          <UIcon class="mr-2" name="i-lucide:palette" />
+          <p class="font-medium">
+            Theme Editor
+          </p>
+  
+          <UColorModeSwitch class="ml-auto" />
+        </div>
       </template>
       <div v-if="currentPalette" class="space-y-4">
         <UFormField label="Palette name">
