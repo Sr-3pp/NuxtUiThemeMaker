@@ -25,8 +25,7 @@ const billingInterval = ref<'monthly' | 'yearly'>('monthly')
         </p>
       </div>
 
-      <div class="flex justify-center">
-        <UButtonGroup>
+      <div class="flex justify-center gap-4">
           <UButton
             :variant="billingInterval === 'monthly' ? 'solid' : 'outline'"
             color="primary"
@@ -41,7 +40,6 @@ const billingInterval = ref<'monthly' | 'yearly'>('monthly')
           >
             Yearly
           </UButton>
-        </UButtonGroup>
       </div>
 
       <div class="grid gap-6 lg:grid-cols-2">
@@ -50,7 +48,7 @@ const billingInterval = ref<'monthly' | 'yearly'>('monthly')
           :key="plan.id"
           class="rounded-3xl border border-default/60 bg-default/70 shadow-xl"
         >
-          <div class="space-y-5">
+          <div class="space-y-5 flex flex-col gap-6">
             <div class="space-y-2">
               <p class="text-xs uppercase tracking-[0.2em] text-primary">
                 {{ plan.name }}
@@ -71,6 +69,7 @@ const billingInterval = ref<'monthly' | 'yearly'>('monthly')
             </ul>
 
             <UButton
+              class="mx-auto w-auto"
               block
               color="primary"
               :to="`/register?redirect=${encodeURIComponent('/pricing')}`"
@@ -80,6 +79,15 @@ const billingInterval = ref<'monthly' | 'yearly'>('monthly')
           </div>
         </UCard>
       </div>
+
+      <UButton
+        class="mx-auto w-auto"
+        variant="link"
+        color="primary"
+        to="/"
+      >
+        Go to Theme Editor
+      </UButton>
     </div>
   </UMain>
 </template>

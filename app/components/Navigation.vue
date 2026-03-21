@@ -32,29 +32,41 @@ const handleGenertion = async () => {
 </script>
 
 <template>
-<div class="flex gap-4 items-center justify-between p-2 sm:p-4">
-    <UButton
-        class="sm:hidden" 
-        @click="togglePalettesSidebar()"
-    >
-        <UIcon name="i-lucide:layout-list" />
-    </UButton>
-
-    <div class="flex min-w-0 gap-2">
-        <span class="rounded-sm bg-primary size-6 flex items-center justify-center">
+<div class="flex flex-col sm:flex-row gap-4 items-center justify-between p-2 sm:p-4">
+    
+    <div class="flex min-w-0 gap-2 w-full sm:w-auto">
+        <UButton
+            class="sm:hidden mb-auto mr-auto" 
+            variant="outline"
+            @click="togglePalettesSidebar()"
+        >
+            <UIcon name="i-lucide:layout-list" />
+        </UButton>
+        <span class="rounded-sm bg-primary size-6 flex items-center justify-center flex-shrink-0">
             <UIcon name="i-lucide:palette" class="text-black" />
         </span>
         <div class="min-w-0">
             <p class="font-bold flex flex-wrap gap-2 sm:gap-4">
-            <span>Nuxt UI Theme Builder</span> | <span class="text-muted">Palette: </span> {{ currentPalette?.name }}
+                <span>Nuxt UI Theme Builder</span> 
+                <span class="hidden sm:inline-block">
+                    | <span class="text-muted">Palette: </span> {{ currentPalette?.name }}
+                </span>
             </p>
-            <p class="text-xs text-muted">
-            Created by Sr.3pp
+            <p class="text-xs text-muted hidden sm:block">
+            Created by <NuxtLink to="https://github.com/sr-3pp" target="_blank">Sr.3pp</NuxtLink>
             </p>
         </div>
+
+        <UButton 
+            class="sm:hidden mb-auto ml-auto"
+            variant="outline" 
+            @click="toggleEditorSidebar()"
+        >
+            <UIcon name="i-lucide:palette" />
+        </UButton>
     </div>
 
-    <div class="ml-auto flex w-full max-w-sm flex-col gap-2">
+    <div class="ml-auto flex w-full max-w-sm gap-2 items-center">
         <UInput
             v-if="!isDisabled"
             v-model="prompt"
@@ -87,14 +99,17 @@ const handleGenertion = async () => {
             <UIcon name="mingcute:ai-line" class="size-4" />
             {{ helperText }}
         </UButton>
+
+        <UButton
+            class="ml-auto"
+            color="secondary"
+            variant="ghost"
+            v-if="isDisabled"
+            to="/pricing"
+            icon="mynaui:label"
+        >
+            <span class="hidden sm:inline-block">See Plans</span>
+        </UButton>
     </div>
-    
-    
-    <UButton 
-        class="sm:hidden" 
-        @click="toggleEditorSidebar()"
-    >
-        <UIcon name="i-lucide:palette" />
-    </UButton>
 </div>
 </template>
