@@ -7,11 +7,10 @@ import {
   createPalette,
   deletePaletteById,
   findPaletteById,
-  generateUniquePaletteSlug,
-  parsePaletteObjectId,
   updatePaletteById,
 } from '~~/server/db/repositories/palette-repository'
 import { normalizePaletteForStorage, toStoredPalette } from '~~/server/domain/palette'
+import { generateUniquePaletteSlug, parsePaletteObjectId } from '~~/server/services/palette-helpers'
 
 const FREE_PLAN_PALETTE_LIMIT = 2
 

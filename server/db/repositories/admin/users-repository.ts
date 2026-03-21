@@ -1,5 +1,5 @@
 import type { AdminUserListItem } from '~/types/admin-user'
-import { getMongoDb } from '~~/server/utils/mongodb'
+import { listUserDocuments } from '~~/server/db/repositories/user-repository'
 
 function normalizeDate(value: unknown) {
   if (value instanceof Date) {
@@ -26,26 +26,23 @@ function normalizeNullableDate(value: unknown) {
 }
 
 export async function listAdminUsers(): Promise<AdminUserListItem[]> {
-  const db = await getMongoDb()
-  const users = await db.collection('user')
-    .find({}, {
-      projection: {
-        id: 1,
-        name: 1,
-        email: 1,
-        emailVerified: 1,
-        isAdmin: 1,
-        plan: 1,
-        planStatus: 1,
-        planInterval: 1,
-        planExpiresAt: 1,
-        aiPaletteGenerationsUsed: 1,
-        createdAt: 1,
-        updatedAt: 1,
-      },
-    })
-    .sort({ createdAt: -1 })
-    .toArray()
+  const users = await listUserDocuments({
+    projection: {
+      id: 1,
+      name: 1,
+      email: 1,
+      emailVerified: 1,
+      isAdmin: 1,
+      plan: 1,
+      planStatus: 1,
+      planInterval: 1,
+      planExpiresAt: 1,
+      aiPaletteGenerationsUsed: 1,
+      createdAt: 1,
+      updatedAt: 1,
+    },
+    sort: { createdAt: -1 },
+  })
 
   return users.map(user => ({
     id: String(user.id ?? user._id),

@@ -1,6 +1,4 @@
-import { randomUUID } from 'node:crypto'
 import { ObjectId } from 'mongodb'
-import { createSlugBase } from '~~/server/domain/palette'
 import { getPaletteCollection, type PaletteDocument } from '~~/server/db/collections/palettes'
 
 export async function listPalettesByUserId(userId: string) {
@@ -63,36 +61,4 @@ export async function deletePaletteById(id: ObjectId) {
   const collection = await getPaletteCollection()
 
   return collection.deleteOne({ _id: id })
-}
-
-export async function generateUniquePaletteSlug(name: string, currentId?: ObjectId) {
-  const collection = await getPaletteCollection()
-  const baseSlug = createSlugBase(name)
-  let slug = baseSlug
-  let attempt = 0
-
-  while (true) {
-    const existing = await collection.findOne(
-      { slug },
-      { projection: { _id: 1 } }
-    )
-
-    if (!existing || (currentId && existing._id.equals(currentId))) {
-      return slug
-    }
-
-    attempt += 1
-    slug = `${baseSlug}-${randomUUID().slice(0, Math.min(4 + attempt, 8))}`
-  }
-}
-
-export function parsePaletteObjectId(id: string) {
-  if (!ObjectId.isValid(id)) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Invalid palette id',
-    })
-  }
-
-  return new ObjectId(id)
 }

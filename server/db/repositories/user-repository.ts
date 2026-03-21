@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb'
 import { getMongoDb } from '~~/server/utils/mongodb'
 
-const USER_COLLECTIONS = ['user', 'users'] as const
+export const USER_COLLECTIONS = ['user', 'users'] as const
 
 function getUserFilters(userId: string) {
   const filters: Record<string, unknown>[] = [
@@ -14,6 +14,31 @@ function getUserFilters(userId: string) {
   }
 
   return filters
+}
+
+export async function listUserDocuments(
+  options?: {
+    filter?: Record<string, unknown>
+    projection?: Record<string, 0 | 1>
+    sort?: Record<string, 1 | -1>
+  },
+): Promise<Record<string, unknown>[]> {
+  const db = await getMongoDb()
+
+  for (const collectionName of USER_COLLECTIONS) {
+    const documents = await db.collection(collectionName)
+      .find(options?.filter ?? {}, {
+        projection: options?.projection,
+      })
+      .sort(options?.sort ?? {})
+      .toArray()
+
+    if (documents.length > 0 || collectionName === USER_COLLECTIONS[USER_COLLECTIONS.length - 1]) {
+      return documents
+    }
+  }
+
+  return []
 }
 
 export async function incrementAiPaletteGenerationsUsed(userId: string) {
