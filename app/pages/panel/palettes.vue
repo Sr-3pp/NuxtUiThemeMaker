@@ -18,6 +18,7 @@ const { data: palettes, refresh, status } = await useAsyncData('admin-palettes',
   }),
 )
 
+const searchQuery = ref('')
 const isEditOpen = ref(false)
 const isDeleteOpen = ref(false)
 const isSaving = ref(false)
@@ -32,6 +33,21 @@ const editState = reactive({
 const editSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
   isPublic: z.boolean(),
+})
+
+const filteredPalettes = computed(() => {
+  const items = palettes.value ?? []
+  const query = searchQuery.value.trim().toLowerCase()
+
+  if (!query) {
+    return items
+  }
+
+  return items.filter(palette =>
+    palette.name.toLowerCase().includes(query)
+    || palette.slug.toLowerCase().includes(query)
+    || palette.userId.toLowerCase().includes(query),
+  )
 })
 
 function formatDate(value: string) {
@@ -198,8 +214,21 @@ const tableColumns: TableColumn<AdminPaletteListItem>[] = [
     </div>
 
     <UCard variant="outline">
+      <div class="flex flex-col gap-3 border-b border-default px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <UInput
+          v-model="searchQuery"
+          class="w-full sm:max-w-sm"
+          placeholder="Search by name, slug, or owner"
+          trailing-icon="i-lucide-search"
+        />
+
+        <p class="text-sm text-muted">
+          {{ filteredPalettes.length }} {{ filteredPalettes.length === 1 ? 'palette' : 'palettes' }}
+        </p>
+      </div>
+
       <UTable
-        :data="palettes ?? []"
+        :data="filteredPalettes"
         :columns="tableColumns"
         :loading="status === 'pending'"
       />
