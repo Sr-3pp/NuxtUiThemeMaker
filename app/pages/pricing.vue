@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { pricingPlans } from '~/data/pricing'
+import type { BillingStatus } from '~/types/billing'
 import type { PaletteGenerationAccess } from '~/types/palette-generation'
 
 const route = useRoute()
@@ -8,6 +9,16 @@ const toast = useToast()
 const { user, refetchSession } = useAuth()
 const { createCheckoutSession } = useStripeCheckout()
 const { showErrorToast } = useErrorToast()
+const { data: billingStatus, refresh: refreshBillingStatus } = await useFetch<BillingStatus>('/api/billing/status', {
+  credentials: 'include',
+  default: () => ({
+    hasActivePlan: false,
+    isAdminUnlimited: false,
+    plan: 'free',
+    planInterval: null,
+    planStatus: 'inactive',
+  } satisfies BillingStatus),
+})
 
 usePageSeo({
   title: 'Pricing',
@@ -35,6 +46,7 @@ watch(() => route.query.checkout, async (value) => {
   if (value === 'success') {
     checkoutBanner.value = null
     await refetchSession()
+    await refreshBillingStatus()
 
     if (await hasPaidUnlimitedAccess()) {
       await navigateTo('/?checkout=success')
@@ -87,6 +99,31 @@ async function startCheckout(planId: 'pro' | 'team') {
     pendingPlanId.value = null
   }
 }
+
+function getPlanBadge(planId: 'pro' | 'team') {
+  if (billingStatus.value.isAdminUnlimited) {
+    return {
+      color: 'neutral' as const,
+      label: 'Admin access',
+    }
+  }
+
+  if (billingStatus.value.plan !== planId) {
+    return null
+  }
+
+  if (billingStatus.value.hasActivePlan) {
+    return {
+      color: 'success' as const,
+      label: billingStatus.value.planInterval ? `Current plan · ${billingStatus.value.planInterval}` : 'Current plan',
+    }
+  }
+
+  return {
+    color: 'warning' as const,
+    label: `Current plan · ${billingStatus.value.planStatus}`,
+  }
+}
 </script>
 
 <template>
@@ -137,9 +174,18 @@ async function startCheckout(planId: 'pro' | 'team') {
         >
           <div class="space-y-5 flex flex-col gap-6">
             <div class="space-y-2">
-              <p class="text-xs uppercase tracking-[0.2em] text-primary">
-                {{ plan.name }}
-              </p>
+              <div class="flex items-center justify-between gap-3">
+                <p class="text-xs uppercase tracking-[0.2em] text-primary">
+                  {{ plan.name }}
+                </p>
+                <UBadge
+                  v-if="getPlanBadge(plan.id)"
+                  :color="getPlanBadge(plan.id)?.color"
+                  variant="soft"
+                >
+                  {{ getPlanBadge(plan.id)?.label }}
+                </UBadge>
+              </div>
               <h2 class="text-2xl font-semibold">
                 {{ billingInterval === 'monthly' ? `$${plan.monthlyPrice}/mo` : `$${plan.yearlyPrice}/yr` }}
               </h2>
@@ -159,10 +205,11 @@ async function startCheckout(planId: 'pro' | 'team') {
               class="mx-auto w-auto"
               block
               color="primary"
+              :variant="billingStatus.plan === plan.id && billingStatus.hasActivePlan ? 'outline' : 'solid'"
               :loading="pendingPlanId === plan.id"
               @click="startCheckout(plan.id)"
             >
-              {{ user ? `Choose ${plan.name}` : `Register for ${plan.name}` }}
+              {{ user ? (billingStatus.plan === plan.id && billingStatus.hasActivePlan ? `Current ${plan.name} Plan` : `Choose ${plan.name}`) : `Register for ${plan.name}` }}
             </UButton>
           </div>
         </UCard>
