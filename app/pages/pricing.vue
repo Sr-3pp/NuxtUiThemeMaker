@@ -1,5 +1,13 @@
 <script setup lang="ts">
 import { pricingPlans } from '~/data/pricing'
+import type { PaletteGenerationAccess } from '~/types/palette-generation'
+
+const route = useRoute()
+const router = useRouter()
+const toast = useToast()
+const { user, refetchSession } = useAuth()
+const { createCheckoutSession } = useStripeCheckout()
+const { showErrorToast } = useErrorToast()
 
 usePageSeo({
   title: 'Pricing',
@@ -8,6 +16,77 @@ usePageSeo({
 })
 
 const billingInterval = ref<'monthly' | 'yearly'>('monthly')
+const pendingPlanId = ref<string | null>(null)
+const checkoutBanner = ref<{
+  color: 'error' | 'warning'
+  description: string
+  title: string
+} | null>(null)
+
+async function hasPaidUnlimitedAccess() {
+  const access = await $fetch<PaletteGenerationAccess>('/api/palettes/generation-access', {
+    credentials: 'include',
+  })
+
+  return access.isPaidUnlimited || access.isAdminUnlimited
+}
+
+watch(() => route.query.checkout, async (value) => {
+  if (value === 'success') {
+    checkoutBanner.value = null
+    await refetchSession()
+
+    if (await hasPaidUnlimitedAccess()) {
+      await navigateTo('/?checkout=success')
+      return
+    }
+
+    checkoutBanner.value = {
+      title: 'Payment received, billing still syncing',
+      description: 'Your payment succeeded, but your plan has not been activated yet. Refresh in a few seconds or contact support if it stays the same.',
+      color: 'warning',
+    }
+    showErrorToast(new Error('Your payment succeeded, but the billing update has not completed yet.'), 'Billing activation is still pending.')
+    await router.replace({ query: { ...route.query, checkout: undefined } })
+  }
+
+  if (value === 'canceled') {
+    checkoutBanner.value = {
+      title: 'Checkout canceled',
+      description: 'No payment was charged. You can choose a plan again whenever you are ready.',
+      color: 'warning',
+    }
+    toast.add({
+      title: 'Checkout canceled',
+      description: 'No payment was charged.',
+      color: 'neutral',
+    })
+    await router.replace({ query: { ...route.query, checkout: undefined } })
+  }
+}, { immediate: true })
+
+async function startCheckout(planId: 'pro' | 'team') {
+  if (!user.value) {
+    await navigateTo(`/register?redirect=${encodeURIComponent('/pricing')}`)
+    return
+  }
+
+  pendingPlanId.value = planId
+
+  try {
+    const checkoutSession = await createCheckoutSession(planId, billingInterval.value)
+
+    if (!checkoutSession.url) {
+      throw new Error('Stripe checkout session did not return a redirect URL')
+    }
+
+    await navigateTo(checkoutSession.url, { external: true })
+  } catch (error) {
+    showErrorToast(error, 'Failed to start checkout.')
+  } finally {
+    pendingPlanId.value = null
+  }
+}
 </script>
 
 <template>
@@ -24,6 +103,14 @@ const billingInterval = ref<'monthly' | 'yearly'>('monthly')
           Every registered account starts with 3 free AI palette generations. Upgrade to a paid plan for unlimited monthly or yearly access.
         </p>
       </div>
+
+      <UAlert
+        v-if="checkoutBanner"
+        :title="checkoutBanner.title"
+        :description="checkoutBanner.description"
+        :color="checkoutBanner.color"
+        variant="soft"
+      />
 
       <div class="flex justify-center gap-4">
           <UButton
@@ -72,9 +159,10 @@ const billingInterval = ref<'monthly' | 'yearly'>('monthly')
               class="mx-auto w-auto"
               block
               color="primary"
-              :to="`/register?redirect=${encodeURIComponent('/pricing')}`"
+              :loading="pendingPlanId === plan.id"
+              @click="startCheckout(plan.id)"
             >
-              Choose {{ plan.name }}
+              {{ user ? `Choose ${plan.name}` : `Register for ${plan.name}` }}
             </UButton>
           </div>
         </UCard>

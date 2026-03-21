@@ -12,6 +12,7 @@ export default defineNuxtConfig({
     geminiApiKey: process.env.NUXT_GEMINI_API_KEY || '',
     stripePublicKey: process.env.NUXT_STRIPE_PUBLIC_KEY || '',
     stripeSecretKey: process.env.NUXT_STRIPE_SECRET_KEY || '',
+    stripeWebhookSecret: process.env.NUXT_STRIPE_WEBHOOK_SECRET || '',
     
     public: {
       siteDescription: process.env.NUXT_PUBLIC_SITE_DESCRIPTION || 'Build, preview, save, and share Nuxt UI color palettes with a live component workbench.',

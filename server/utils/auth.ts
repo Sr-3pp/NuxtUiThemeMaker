@@ -11,6 +11,7 @@ let authInstance: ReturnType<typeof createAuthInstance> | null = null
 
 const planSchema = z.enum(['free', 'pro', 'team'])
 const planStatusSchema = z.enum(['inactive', 'trialing', 'active', 'past_due', 'canceled'])
+const billingIntervalSchema = z.enum(['monthly', 'yearly'])
 const userLevelSchema = z.enum(['user', 'admin'])
 
 function parseList(value: string[] | string | undefined) {
@@ -98,6 +99,15 @@ export async function getAuth() {
             output: z.nullable(z.string()),
           },
         },
+        stripeSubscriptionId: {
+          type: 'string',
+          required: false,
+          defaultValue: null,
+          input: false,
+          validator: {
+            output: z.nullable(z.string()),
+          },
+        },
         planExpiresAt: {
           type: 'date',
           required: false,
@@ -105,6 +115,15 @@ export async function getAuth() {
           input: false,
           validator: {
             output: z.nullable(z.date()),
+          },
+        },
+        planInterval: {
+          type: 'string',
+          required: false,
+          defaultValue: null,
+          input: false,
+          validator: {
+            output: z.nullable(billingIntervalSchema),
           },
         },
         aiPaletteGenerationsUsed: {

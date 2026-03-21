@@ -37,6 +37,10 @@ NUXT_BETTER_AUTH_ALLOWED_HOSTS=localhost:3000
 NUXT_BETTER_AUTH_TRUSTED_ORIGINS=http://localhost:3000
 NUXT_MONGODB_URI=mongodb://127.0.0.1:27017
 NUXT_MONGODB_DB_NAME=nuxt-ui-theme-builder
+NUXT_GEMINI_API_KEY=your-gemini-key
+NUXT_STRIPE_PUBLIC_KEY=pk_test_...
+NUXT_STRIPE_SECRET_KEY=sk_test_...
+NUXT_STRIPE_WEBHOOK_SECRET=whsec_...
 NUXT_PUBLIC_SITE_NAME=Nuxt UI Theme Builder
 NUXT_PUBLIC_SITE_DESCRIPTION=Build, preview, save, and share Nuxt UI color palettes with a live component workbench.
 NUXT_PUBLIC_SITE_URL=http://localhost:3000
@@ -60,10 +64,13 @@ pnpm test:e2e
 - `/login` and `/register` handle account access
 - `/palette/[slug]` renders a shareable palette preview page
 - `/api/palettes/*` provides palette CRUD and sharing endpoints
+- `/api/stripe/checkout` creates Stripe Checkout sessions for paid plans
+- `/api/stripe/webhook` receives Stripe subscription lifecycle events
 - `/api/auth/*` is served by Better Auth
 
 ## Notes
 
 - MongoDB is required for saved palettes and auth-backed flows.
+- Stripe checkout requires `NUXT_STRIPE_SECRET_KEY`, `NUXT_STRIPE_WEBHOOK_SECRET`, and a configured webhook endpoint pointed at `/api/stripe/webhook`.
 - Public palette sharing is available through palette slugs.
 - Rate limiting is applied to API routes in Nitro middleware.

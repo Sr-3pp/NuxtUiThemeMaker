@@ -5,17 +5,7 @@ import {
   setHeader,
   type H3Event,
 } from 'h3'
-
-interface RateLimitRule {
-  id: string
-  max: number
-  windowMs: number
-}
-
-interface RateLimitBucket {
-  count: number
-  resetAt: number
-}
+import type { RateLimitBucket, RateLimitRule } from '~~/server/types/rate-limit'
 
 const rateLimitBuckets = new Map<string, RateLimitBucket>()
 
