@@ -8,6 +8,9 @@ export async function getOptionalAuthSession(event: H3Event): Promise<AuthSessio
   const auth = await getAuth()
   const session = await auth.api.getSession({
     headers: fromNodeHeaders(event.node.req.headers),
+    query: {
+      disableCookieCache: true,
+    },
   })
 
   return session as AuthSession | null

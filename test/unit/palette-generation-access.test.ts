@@ -16,7 +16,7 @@ import {
 } from '../../server/services/palette-generation-access'
 
 function createSession(overrides: Partial<{
-  level: 'user' | 'admin'
+  isAdmin: boolean
   plan: 'free' | 'pro' | 'team'
   planStatus: 'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled'
   aiPaletteGenerationsUsed: number
@@ -24,7 +24,7 @@ function createSession(overrides: Partial<{
   return {
     user: {
       id: 'user-1',
-      level: overrides.level ?? 'user',
+      isAdmin: overrides.isAdmin ?? false,
       plan: overrides.plan ?? 'free',
       planStatus: overrides.planStatus ?? 'inactive',
       aiPaletteGenerationsUsed: overrides.aiPaletteGenerationsUsed ?? 0,
@@ -97,7 +97,7 @@ describe('palette generation access', () => {
 
   it('grants unlimited access to admin users', () => {
     const access = getPaletteGenerationAccess(createSession({
-      level: 'admin',
+      isAdmin: true,
       plan: 'free',
       planStatus: 'inactive',
       aiPaletteGenerationsUsed: 99,

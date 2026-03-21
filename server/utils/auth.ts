@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth'
 import { mongodbAdapter } from 'better-auth/adapters/mongodb'
 import { z } from 'zod'
+import { migrateLegacyUserAdminFields } from '~~/server/db/repositories/user-repository'
 import { getMongoClient, getMongoDb } from './mongodb'
 
 function createAuthInstance(options: Parameters<typeof betterAuth>[0]) {
@@ -8,11 +9,11 @@ function createAuthInstance(options: Parameters<typeof betterAuth>[0]) {
 }
 
 let authInstance: ReturnType<typeof createAuthInstance> | null = null
+let authSetupPromise: Promise<void> | null = null
 
 const planSchema = z.enum(['free', 'pro', 'team'])
 const planStatusSchema = z.enum(['inactive', 'trialing', 'active', 'past_due', 'canceled'])
 const billingIntervalSchema = z.enum(['monthly', 'yearly'])
-const userLevelSchema = z.enum(['user', 'admin'])
 
 function parseList(value: string[] | string | undefined) {
   if (Array.isArray(value)) {
@@ -27,6 +28,10 @@ function parseList(value: string[] | string | undefined) {
 
 export async function getAuth() {
   if (authInstance) {
+    if (authSetupPromise) {
+      await authSetupPromise
+    }
+
     return authInstance
   }
 
@@ -66,12 +71,12 @@ export async function getAuth() {
     },
     user: {
       additionalFields: {
-        level: {
-          type: 'string',
-          defaultValue: 'user',
+        isAdmin: {
+          type: 'boolean',
+          defaultValue: false,
           input: false,
           validator: {
-            output: userLevelSchema,
+            output: z.boolean(),
           },
         },
         plan: {
@@ -143,6 +148,14 @@ export async function getAuth() {
       enabled: true,
     },
   })
+
+  authSetupPromise ??= migrateLegacyUserAdminFields()
+    .catch((error) => {
+      authSetupPromise = null
+      throw error
+    })
+
+  await authSetupPromise
 
   return authInstance
 }

@@ -156,3 +156,54 @@ export async function findUserByStripeCustomerId(stripeCustomerId: string) {
 
   return null
 }
+
+export async function migrateLegacyUserAdminFields() {
+  const db = await getMongoDb()
+
+  for (const collectionName of USER_COLLECTIONS) {
+    const collection = db.collection(collectionName)
+
+    await collection.updateMany(
+      {
+        level: 'admin',
+        isAdmin: {
+          $ne: true,
+        },
+      },
+      {
+        $set: {
+          isAdmin: true,
+        },
+      },
+    )
+
+    await collection.updateMany(
+      {
+        isAdmin: {
+          $exists: false,
+        },
+        level: {
+          $ne: 'admin',
+        },
+      },
+      {
+        $set: {
+          isAdmin: false,
+        },
+      },
+    )
+
+    await collection.updateMany(
+      {
+        level: {
+          $exists: true,
+        },
+      },
+      {
+        $unset: {
+          level: '',
+        },
+      },
+    )
+  }
+}

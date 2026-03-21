@@ -50,6 +50,7 @@ watch(() => route.query.checkout, async (value) => {
 <template>
   <UDashboardGroup>
     <SidebarLeft />
+    <PaletteLibraryDrawers />
 
     <UDashboardPanel>
       <template #header>

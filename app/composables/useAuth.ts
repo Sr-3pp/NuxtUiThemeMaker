@@ -1,11 +1,13 @@
 import { authClient } from '~/utils/auth-client'
+import type { AuthClientSession } from '~/utils/auth-client'
 
 export function useAuth() {
   const sessionState = authClient.useSession()
 
-  const session = computed(() => sessionState.value.data ?? null)
+  const session = computed(() => sessionState.value.data as AuthClientSession | null ?? null)
   const user = computed(() => session.value?.user ?? null)
   const isAuthenticated = computed(() => Boolean(user.value))
+  const isAdmin = computed(() => Boolean(user.value?.isAdmin))
 
   function normalizeRedirectTarget(redirect: unknown, fallback = '/') {
     return typeof redirect === 'string' && redirect.startsWith('/') ? redirect : fallback
@@ -35,6 +37,7 @@ export function useAuth() {
   }
 
   return {
+    isAdmin,
     isAuthenticated,
     normalizeRedirectTarget,
     refetchSession,

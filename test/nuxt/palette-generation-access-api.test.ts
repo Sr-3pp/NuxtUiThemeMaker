@@ -43,6 +43,7 @@ describe('palette generation access api handler', () => {
     getOptionalAuthSessionMock.mockResolvedValueOnce({
       user: {
         id: 'user-1',
+        isAdmin: false,
         plan: 'pro',
         planStatus: 'active',
         aiPaletteGenerationsUsed: 99,

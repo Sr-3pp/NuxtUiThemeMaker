@@ -47,6 +47,11 @@ const authItems = computed<DropdownMenuItem[][]>(() => {
         label: 'My Palettes',
         icon: 'i-lucide-inbox',
         onSelect: () => openOwnPalettes()
+      },
+      {
+        label: 'Panel',
+        icon: 'i-lucide-inbox',
+        onSelect: () => navigateTo('/panel')
       }
     ],
     [

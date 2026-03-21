@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     } satisfies BillingStatus
   }
 
-  const isAdminUnlimited = session.user.level === 'admin'
+  const isAdminUnlimited = session.user.isAdmin
   const hasActivePlan = isAdminUnlimited
     || (
       ['pro', 'team'].includes(session.user.plan)

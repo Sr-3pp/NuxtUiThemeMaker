@@ -73,6 +73,7 @@ describe('palette generate api handler', () => {
     const session = {
       user: {
         id: 'user-1',
+        isAdmin: false,
         plan: 'free',
         planStatus: 'inactive',
         aiPaletteGenerationsUsed: 1,
@@ -123,6 +124,7 @@ describe('palette generate api handler', () => {
     const session = {
       user: {
         id: 'user-1',
+        isAdmin: false,
         plan: 'free',
         planStatus: 'inactive',
         aiPaletteGenerationsUsed: 2,

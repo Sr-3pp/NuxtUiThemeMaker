@@ -10,7 +10,7 @@ function hasPaidUnlimitedAccess(user: AuthSessionUser) {
 }
 
 function hasAdminUnlimitedAccess(user: AuthSessionUser) {
-  return user.level === 'admin'
+  return user.isAdmin
 }
 
 export function getPaletteGenerationAccess(session: AuthSession | null): PaletteGenerationAccess {
