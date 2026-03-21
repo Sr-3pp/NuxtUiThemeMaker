@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { EditablePalette } from '../../app/utils/palette-domain'
+import type { EditablePalette } from '../../app/types/palette-editor'
 
 vi.mock('~/utils/palette-domain', async () => {
   const actual = await vi.importActual<typeof import('../../app/utils/palette-domain')>('../../app/utils/palette-domain')
@@ -146,10 +146,12 @@ describe('usePaletteApi', () => {
     const api = usePaletteApi()
 
     useFetchMock
+      .mockReturnValueOnce({ data: { value: { canGenerate: false } } })
       .mockReturnValueOnce({ data: { value: [] } })
       .mockReturnValueOnce({ data: { value: [] } })
 
     await api.deletePalette('palette-1')
+    api.getPaletteGenerationAccess()
     api.getUserPalettes()
     api.getPublicPalettes()
 
@@ -157,12 +159,33 @@ describe('usePaletteApi', () => {
       method: 'DELETE',
       credentials: 'include',
     }))
-    expect(useFetchMock).toHaveBeenNthCalledWith(1, '/api/palettes/user', expect.objectContaining({
+    expect(useFetchMock).toHaveBeenNthCalledWith(1, '/api/palettes/generation-access', expect.objectContaining({
+      key: 'palette-generation-access',
+      credentials: 'include',
+    }))
+    expect(useFetchMock).toHaveBeenNthCalledWith(2, '/api/palettes/user', expect.objectContaining({
       key: 'user-palettes',
       credentials: 'include',
     }))
-    expect(useFetchMock).toHaveBeenNthCalledWith(2, '/api/palettes', expect.objectContaining({
+    expect(useFetchMock).toHaveBeenNthCalledWith(3, '/api/palettes', expect.objectContaining({
       default: expect.any(Function),
     }))
+  })
+
+  it('generates palettes with credentials and refreshes generation access', async () => {
+    const { usePaletteApi } = await import('../../app/composables/usePaletteApi')
+    const api = usePaletteApi()
+
+    fetchMock.mockResolvedValueOnce({ name: 'Coastal Ledger' })
+
+    const result = await api.generatePalette('Ocean dashboard')
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/palettes/generate', expect.objectContaining({
+      method: 'POST',
+      credentials: 'include',
+      body: { prompt: 'Ocean dashboard' },
+    }))
+    expect(refreshNuxtDataMock).toHaveBeenCalledWith('palette-generation-access')
+    expect(result).toEqual({ name: 'Coastal Ledger' })
   })
 })

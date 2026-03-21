@@ -1,5 +1,6 @@
+import type { EditablePalette } from '~/types/palette-editor'
 import type { StoredPalette, UpdatePalettePayload, UpdatePaletteVisibilityPayload } from '~/types/palette-store'
-import type { EditablePalette } from '~/utils/palette-domain'
+import type { PaletteGenerationAccess } from '~/types/palette-generation'
 import { clonePaletteDefinition } from '~/utils/palette-domain'
 
 export function usePaletteApi() {
@@ -78,17 +79,35 @@ export function usePaletteApi() {
     default: () => [],
   })
 
+  const getPaletteGenerationAccess = () => useFetch<PaletteGenerationAccess>('/api/palettes/generation-access', {
+    key: 'palette-generation-access',
+    credentials: 'include',
+    default: () => ({
+      canGenerate: false,
+      isPaidUnlimited: false,
+      isAdminUnlimited: false,
+      freeLimit: 3,
+      freeUsed: 0,
+      freeRemaining: 3,
+      reason: 'unauthenticated',
+    } satisfies PaletteGenerationAccess),
+  })
+
   const generatePalette = async (prompt: string) => {
     const generatedPalette = await $fetch<EditablePalette>('/api/palettes/generate', {
       method: 'POST',
+      credentials: 'include',
       body: { prompt },
     })
+
+    await refreshNuxtData('palette-generation-access')
 
     return generatedPalette
   }
 
   return {
     deletePalette,
+    getPaletteGenerationAccess,
     getPublicPalettes,
     getUserPalettes,
     saveNewPalette,

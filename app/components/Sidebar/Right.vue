@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
-import type { UpdateEditablePaletteTokenPayload } from '~/utils/palette-domain'
+import type { UpdateEditablePaletteTokenPayload } from '~/types/palette-editor'
 
 const { currentPalette, sourcePalette, setCurrentPalette, updatePalette, updatePaletteName } = usePaletteState()
 const { savePalette, saveNewPalette } = usePaletteApi()

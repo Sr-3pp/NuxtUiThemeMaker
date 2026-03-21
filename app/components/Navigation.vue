@@ -2,21 +2,29 @@
 const { togglePalettesSidebar, toggleEditorSidebar } = useSidebar()
 const { currentPalette, setCurrentPalette } = usePaletteState()
 const { generatePalette } = usePaletteApi()
+const { cta, helperText, isDisabled, refresh } = usePaletteGenerationAccess()
 
 const prompt = ref('')
+const isGenerating = ref(false)
 
 const handleGenertion = async () => {
-    if (!prompt.value.trim()) {
+    if (!prompt.value.trim() || isDisabled.value || isGenerating.value) {
         return
     }
+
+    isGenerating.value = true
 
     try {
         const generatedPalette = await generatePalette(prompt.value)
         if (generatedPalette) {
             setCurrentPalette(generatedPalette)
+            prompt.value = ''
         }
     } catch (error) {
         console.error('Error generating palette:', error)
+        await refresh()
+    } finally {
+        isGenerating.value = false
     }
 }
 </script>
@@ -44,25 +52,42 @@ const handleGenertion = async () => {
         </div>
     </div>
 
-    <UInput 
-        class="w-1/5 ml-auto"
-        label="Generate Palette"
-        placeholder="Describe your palette..."
-        icon="mingcute:ai-line"
-        v-model="prompt"
-    >
-        <template #trailing>
-            <UButton 
-                color="primary" 
-                variant="link"
-                @click="handleGenertion()"
-                icon="solar:star-fall-minimalistic-2-bold"
-            >
-            </UButton>
-        </template>
-    </UInput>
+    <div class="ml-auto flex w-full max-w-sm flex-col gap-2">
+        <UInput
+            v-if="!isDisabled"
+            v-model="prompt"
+            class="w-full"
+            label="Generate Palette"
+            placeholder="Describe your palette..."
+            @keydown.enter="handleGenertion()"
+        >
+            <template #trailing>
+                <UButton
+                    class="px-0"
+                    color="primary"
+                    variant="link"
+                    :disabled="isDisabled"
+                    :loading="isGenerating"
+                    @click="handleGenertion()"
+                    icon="mingcute:ai-line"
+                />
+            </template>
+        </UInput>
 
-    <UColorModeSwitch />
+        <UButton
+            class="ml-auto"
+            v-else
+            :to="cta?.to"
+            color="primary"
+            variant="link"
+            size="xs"
+        >
+            <UIcon name="mingcute:ai-line" class="size-4" />
+            {{ helperText }}
+        </UButton>
+    </div>
+
+    <UColorModeSwitch label="Switch Mode" />
     
     
     <UButton 

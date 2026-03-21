@@ -1,11 +1,10 @@
+import type { EditablePalette, UpdateEditablePaletteTokenPayload } from '~/types/palette-editor'
 import type { PaletteDefinition } from '~/types/palette'
 import type { StoredPalette } from '~/types/palette-store'
 import { emptyPalette } from '~/utils/paletteRegistry'
 import {
   clonePaletteDefinition,
   createEditablePalette,
-  type EditablePalette,
-  type UpdateEditablePaletteTokenPayload,
   updateEditablePaletteToken,
 } from '~/utils/palette-domain'
 

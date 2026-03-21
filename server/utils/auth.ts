@@ -107,6 +107,14 @@ export async function getAuth() {
             output: z.nullable(z.date()),
           },
         },
+        aiPaletteGenerationsUsed: {
+          type: 'number',
+          defaultValue: 0,
+          input: false,
+          validator: {
+            output: z.number().int().min(0),
+          },
+        },
       },
     },
     database: mongodbAdapter(db, {

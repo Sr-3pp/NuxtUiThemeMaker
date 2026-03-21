@@ -1,6 +1,7 @@
 import { createError } from 'h3'
 import type { PaletteDefinition } from '~/types/palette'
 import type { StoredPalette } from '~/types/palette-store'
+import type { PaletteUser } from '~~/server/types/palette-service'
 import {
   countPalettesByUserId,
   createPalette,
@@ -13,11 +14,6 @@ import {
 import { normalizePaletteForStorage, toStoredPalette } from '~~/server/domain/palette'
 
 const FREE_PLAN_PALETTE_LIMIT = 2
-
-type PaletteUser = {
-  id: string
-  plan?: string
-}
 
 export async function getOwnedPaletteByIdOrThrow(id: string, userId: string) {
   const objectId = parsePaletteObjectId(id)
