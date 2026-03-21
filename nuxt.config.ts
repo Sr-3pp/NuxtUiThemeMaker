@@ -9,6 +9,7 @@ export default defineNuxtConfig({
     betterAuthUrl: process.env.NUXT_BETTER_AUTH_URL || 'http://localhost:3000',
     mongodbDbName: process.env.NUXT_MONGODB_DB_NAME || '',
     mongodbUri: process.env.NUXT_MONGODB_URI || '',
+    geminiApiKey: process.env.NUXT_GEMINI_API_KEY || '',
     public: {
       siteDescription: process.env.NUXT_PUBLIC_SITE_DESCRIPTION || 'Build, preview, save, and share Nuxt UI color palettes with a live component workbench.',
       siteName: process.env.NUXT_PUBLIC_SITE_NAME || 'Nuxt UI Theme Builder',

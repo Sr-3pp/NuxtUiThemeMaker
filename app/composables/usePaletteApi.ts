@@ -78,6 +78,15 @@ export function usePaletteApi() {
     default: () => [],
   })
 
+  const generatePalette = async (prompt: string) => {
+    const generatedPalette = await $fetch<EditablePalette>('/api/palettes/generate', {
+      method: 'POST',
+      body: { prompt },
+    })
+
+    return generatedPalette
+  }
+
   return {
     deletePalette,
     getPublicPalettes,
@@ -85,5 +94,6 @@ export function usePaletteApi() {
     saveNewPalette,
     savePalette,
     updatePaletteVisibility,
+    generatePalette,
   }
 }
