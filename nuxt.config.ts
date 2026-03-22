@@ -10,6 +10,16 @@ export default defineNuxtConfig({
     mongodbDbName: process.env.NUXT_MONGODB_DB_NAME || '',
     mongodbUri: process.env.NUXT_MONGODB_URI || '',
     geminiApiKey: process.env.NUXT_GEMINI_API_KEY || '',
+    nodemailer: {
+      from: process.env.NUXT_NODEMAILER_FROM || '"Nuxt UI Theme Builder" <no-reply@localhost>',
+      host: process.env.NUXT_NODEMAILER_HOST || '',
+      port: Number(process.env.NUXT_NODEMAILER_PORT || 587),
+      secure: process.env.NUXT_NODEMAILER_SECURE === 'true',
+      auth: {
+        user: process.env.NUXT_NODEMAILER_AUTH_USER || '',
+        pass: process.env.NUXT_NODEMAILER_AUTH_PASS || '',
+      },
+    },
     stripePublicKey: process.env.NUXT_STRIPE_PUBLIC_KEY || '',
     stripeSecretKey: process.env.NUXT_STRIPE_SECRET_KEY || '',
     stripeWebhookSecret: process.env.NUXT_STRIPE_WEBHOOK_SECRET || '',
@@ -38,7 +48,8 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxt/image',
     '@nuxt/test-utils',
-    '@nuxtjs/i18n'
+    '@nuxtjs/i18n',
+    'nuxt-nodemailer',
   ],
   i18n: {
     defaultLocale: 'en-US',

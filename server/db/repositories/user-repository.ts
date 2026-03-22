@@ -168,6 +168,19 @@ export async function updateBillingPlanForUser(
   })
 }
 
+export async function updateEmailDeliveryForUser(
+  userId: string,
+  input: {
+    lastPurchaseConfirmationId?: string | null
+    registrationConfirmationSentAt?: Date | null
+  },
+) {
+  return updateUserAcrossCollections(userId, {
+    ...(input.lastPurchaseConfirmationId !== undefined ? { lastPurchaseConfirmationId: input.lastPurchaseConfirmationId } : {}),
+    ...(input.registrationConfirmationSentAt !== undefined ? { registrationConfirmationSentAt: input.registrationConfirmationSentAt } : {}),
+  })
+}
+
 export async function findUserByStripeCustomerId(stripeCustomerId: string) {
   const db = await getMongoDb()
 

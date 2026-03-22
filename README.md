@@ -41,6 +41,12 @@ NUXT_GEMINI_API_KEY=your-gemini-key
 NUXT_STRIPE_PUBLIC_KEY=pk_test_...
 NUXT_STRIPE_SECRET_KEY=sk_test_...
 NUXT_STRIPE_WEBHOOK_SECRET=whsec_...
+NUXT_NODEMAILER_FROM="Nuxt UI Theme Builder <no-reply@example.com>"
+NUXT_NODEMAILER_HOST=smtp.example.com
+NUXT_NODEMAILER_PORT=587
+NUXT_NODEMAILER_SECURE=false
+NUXT_NODEMAILER_AUTH_USER=your-smtp-user
+NUXT_NODEMAILER_AUTH_PASS=your-smtp-password
 NUXT_PUBLIC_SITE_NAME=Nuxt UI Theme Builder
 NUXT_PUBLIC_SITE_DESCRIPTION=Build, preview, save, and share Nuxt UI color palettes with a live component workbench.
 NUXT_PUBLIC_SITE_URL=http://localhost:3000
@@ -72,5 +78,6 @@ pnpm test:e2e
 
 - MongoDB is required for saved palettes and auth-backed flows.
 - Stripe checkout requires `NUXT_STRIPE_SECRET_KEY`, `NUXT_STRIPE_WEBHOOK_SECRET`, and a configured webhook endpoint pointed at `/api/stripe/webhook`.
+- Registration and paid plan confirmation emails require the `NUXT_NODEMAILER_*` SMTP variables.
 - Public palette sharing is available through palette slugs.
 - Rate limiting is applied to API routes in Nitro middleware.

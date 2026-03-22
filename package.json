@@ -37,6 +37,8 @@
     "@vitest/coverage-v8": "^4.0.18",
     "@vue/test-utils": "^2.4.6",
     "happy-dom": "^20.8.3",
+    "nodemailer": "^7.0.13",
+    "nuxt-nodemailer": "^1.1.4",
     "playwright-core": "^1.58.2",
     "vitest": "^4.0.18"
   }
