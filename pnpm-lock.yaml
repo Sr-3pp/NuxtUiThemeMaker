@@ -63,12 +63,6 @@ importers:
       happy-dom:
         specifier: ^20.8.3
         version: 20.8.3
-      nodemailer:
-        specifier: ^7.0.13
-        version: 7.0.13
-      nuxt-nodemailer:
-        specifier: ^1.1.4
-        version: 1.1.4(magicast@0.5.2)(nodemailer@7.0.13)
       playwright-core:
         specifier: ^1.58.2
         version: 1.58.2
@@ -2677,9 +2671,6 @@ packages:
   '@types/node@25.3.5':
     resolution: {integrity: sha512-oX8xrhvpiyRCQkG1MFchB09f+cXftgIXb3a7UUa4Y3wpmZPw5tyZGTLWhlESOLq1Rq6oDlc8npVU2/9xiCuXMA==}
 
-  '@types/nodemailer@7.0.11':
-    resolution: {integrity: sha512-E+U4RzR2dKrx+u3N4DlsmLaDC6mMZOM/TPROxA0UAPiTgI0y4CEFBmZE+coGWTjakDriRsXG368lNk1u9Q0a2g==}
-
   '@types/react@19.2.14':
     resolution: {integrity: sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w==}
 
@@ -5078,10 +5069,6 @@ packages:
   node-releases@2.0.36:
     resolution: {integrity: sha512-TdC8FSgHz8Mwtw9g5L4gR/Sh9XhSP/0DEkQxfEFXOpiul5IiHgHan2VhYYb6agDSfp4KuvltmGApc8HMgUrIkA==}
 
-  nodemailer@7.0.13:
-    resolution: {integrity: sha512-PNDFSJdP+KFgdsG3ZzMXCgquO7I6McjY2vlqILjtJd0hy8wEvtugS9xKRF2NWlPNGxvLCXlTNIae4serI7dinw==}
-    engines: {node: '>=6.0.0'}
-
   nopt@7.2.1:
     resolution: {integrity: sha512-taM24ViiimT/XntxbPyJQzCG+p4EKOpgD3mxFwW38mGjVUrfERQOeY4EDHjdnptttfHuHQXFx+lTP08Q+mLa/w==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
@@ -5109,11 +5096,6 @@ packages:
 
   nuxt-define@1.0.0:
     resolution: {integrity: sha512-CYZ2WjU+KCyCDVzjYUM4eEpMF0rkPmkpiFrybTqqQCRpUbPt2h3snswWIpFPXTi+osRCY6Og0W/XLAQgDL4FfQ==}
-
-  nuxt-nodemailer@1.1.4:
-    resolution: {integrity: sha512-nIH9dfQ/Z58QtwspetoHJI+XGNraVBW7setEu0f8EJDTLLh2WRMIZgamVRmrF9d10/POT+fLDmQ2N1QEmUwWuw==}
-    peerDependencies:
-      nodemailer: ^7.0.6
 
   nuxt@4.3.1:
     resolution: {integrity: sha512-bl+0rFcT5Ax16aiWFBFPyWcsTob19NTZaDL5P6t0MQdK63AtgS6fN6fwvwdbXtnTk6/YdCzlmuLzXhSM22h0OA==}
@@ -9233,10 +9215,6 @@ snapshots:
     dependencies:
       undici-types: 7.18.2
 
-  '@types/nodemailer@7.0.11':
-    dependencies:
-      '@types/node': 25.3.5
-
   '@types/react@19.2.14':
     dependencies:
       csstype: 3.2.3
@@ -11690,8 +11668,6 @@ snapshots:
 
   node-releases@2.0.36: {}
 
-  nodemailer@7.0.13: {}
-
   nopt@7.2.1:
     dependencies:
       abbrev: 2.0.0
@@ -11716,14 +11692,6 @@ snapshots:
       boolbase: 1.0.0
 
   nuxt-define@1.0.0: {}
-
-  nuxt-nodemailer@1.1.4(magicast@0.5.2)(nodemailer@7.0.13):
-    dependencies:
-      '@nuxt/kit': 3.21.1(magicast@0.5.2)
-      '@types/nodemailer': 7.0.11
-      nodemailer: 7.0.13
-    transitivePeerDependencies:
-      - magicast
 
   nuxt@4.3.1(fe86906429e311219a9c8dc5305ffa2b):
     dependencies:

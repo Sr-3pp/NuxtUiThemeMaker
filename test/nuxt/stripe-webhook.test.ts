@@ -98,6 +98,7 @@ describe('stripe webhook handler', () => {
     expect(sendPricingPlanPurchaseConfirmationEmailMock).toHaveBeenCalledWith({
       billingInterval: 'monthly',
       email: 'buyer@example.com',
+      idempotencyKey: 'checkout:cs_test_123',
       name: 'Casey Buyer',
       planId: 'pro',
     })

@@ -192,6 +192,7 @@ export default defineEventHandler(async (event) => {
           await sendPricingPlanPurchaseConfirmationEmail({
             billingInterval: planInterval,
             email: String(updatedUser.email ?? user.email ?? ''),
+            idempotencyKey: `checkout:${checkoutSessionId}`,
             name: typeof updatedUser.name === 'string' ? updatedUser.name : typeof user.name === 'string' ? user.name : null,
             planId,
           })

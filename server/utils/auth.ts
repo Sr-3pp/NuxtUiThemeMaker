@@ -177,6 +177,7 @@ export async function getAuth() {
 
               await sendRegistrationConfirmationEmail({
                 email: user.email,
+                idempotencyKey: `registration:${user.id}`,
                 name: typeof user.name === 'string' ? user.name : null,
               })
 
