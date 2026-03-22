@@ -41,6 +41,7 @@ export default defineNuxtConfig({
     '@nuxt/image',
     '@nuxt/test-utils',
     '@nuxtjs/i18n',
+    '@vercel/analytics'
   ],
   i18n: {
     defaultLocale: 'en-US',
