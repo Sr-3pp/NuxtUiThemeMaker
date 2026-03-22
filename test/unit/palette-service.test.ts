@@ -48,7 +48,7 @@ describe('palette service', () => {
   })
 
   it('blocks free users at the palette limit during create', async () => {
-    countPalettesByUserIdMock.mockResolvedValueOnce(2)
+    countPalettesByUserIdMock.mockResolvedValueOnce(1)
 
     const { createPaletteForUser } = await import('../../server/services/palette-service')
 
@@ -66,7 +66,7 @@ describe('palette service', () => {
       }
     )).rejects.toMatchObject({
       statusCode: 403,
-      statusMessage: 'Free plan users can only save 2 palettes',
+      statusMessage: 'Free plan users can only save 1 palette',
     })
 
     expect(countPalettesByUserIdMock).toHaveBeenCalledWith('user-1')
@@ -146,7 +146,7 @@ describe('palette service', () => {
   })
 
   it('blocks pro users at the palette limit during create', async () => {
-    countPalettesByUserIdMock.mockResolvedValueOnce(10)
+    countPalettesByUserIdMock.mockResolvedValueOnce(20)
 
     const { createPaletteForUser } = await import('../../server/services/palette-service')
 
@@ -164,7 +164,7 @@ describe('palette service', () => {
       }
     )).rejects.toMatchObject({
       statusCode: 403,
-      statusMessage: 'Pro users can only save 10 palettes',
+      statusMessage: 'Pro users can only save 20 palettes',
     })
   })
 

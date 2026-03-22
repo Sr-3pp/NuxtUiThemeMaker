@@ -1,4 +1,5 @@
 import { createError } from 'h3'
+import { getPaletteSaveLimit } from '../../app/data/pricing'
 import type { PaletteDefinition } from '~/types/palette'
 import type { StoredPalette } from '~/types/palette-store'
 import type { PaletteUser } from '~~/server/types/palette-service'
@@ -12,19 +13,11 @@ import {
 import { normalizePaletteForStorage, toStoredPalette } from '~~/server/domain/palette'
 import { generateUniquePaletteSlug, parsePaletteObjectId } from '~~/server/services/palette-helpers'
 
-const FREE_PLAN_PALETTE_LIMIT = 2
-const PRO_PLAN_PALETTE_LIMIT = 10
+function getPaletteLimitMessage(plan: string | undefined, saveLimit: number) {
+  const planName = plan === 'pro' ? 'Pro' : 'Free plan'
+  const paletteLabel = saveLimit === 1 ? 'palette' : 'palettes'
 
-function getPaletteSaveLimit(plan: string | undefined) {
-  if (plan === 'pro') {
-    return PRO_PLAN_PALETTE_LIMIT
-  }
-
-  if (plan === 'studio') {
-    return null
-  }
-
-  return FREE_PLAN_PALETTE_LIMIT
+  return `${planName} users can only save ${saveLimit} ${paletteLabel}`
 }
 
 export async function getOwnedPaletteByIdOrThrow(id: string, userId: string) {
@@ -65,7 +58,7 @@ export async function createPaletteForUser(
     if (paletteCount >= saveLimit) {
       throw createError({
         statusCode: 403,
-        statusMessage: `${user.plan === 'pro' ? 'Pro' : 'Free plan'} users can only save ${saveLimit} palettes`,
+        statusMessage: getPaletteLimitMessage(user.plan, saveLimit),
       })
     }
   }

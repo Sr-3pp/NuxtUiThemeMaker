@@ -1,5 +1,24 @@
 export type BillingInterval = 'monthly' | 'yearly'
 
+export const FREE_PLAN_PALETTE_GENERATION_LIMIT = 3
+export const PRO_PLAN_PALETTE_GENERATION_LIMIT = 30
+export const STUDIO_PLAN_PALETTE_GENERATION_LIMIT = 100
+export const FREE_PLAN_PALETTE_SAVE_LIMIT = 1
+export const PRO_PLAN_PALETTE_SAVE_LIMIT = 20
+export const STUDIO_PLAN_PALETTE_SAVE_LIMIT = null
+
+function formatPaletteGenerationLimitFeature(limit: number) {
+  return `${limit} AI palette generations per month`
+}
+
+function formatPaletteSaveLimitFeature(limit: number | null) {
+  if (limit === null) {
+    return 'Unlimited palette saves'
+  }
+
+  return `Save up to ${limit} ${limit === 1 ? 'palette' : 'palettes'}`
+}
+
 export const pricingPlans = [
   {
     id: 'free',
@@ -8,9 +27,11 @@ export const pricingPlans = [
     monthlyPrice: 0,
     yearlyPrice: 0,
     currency: 'usd',
+    paletteGenerationLimit: FREE_PLAN_PALETTE_GENERATION_LIMIT,
+    paletteSaveLimit: FREE_PLAN_PALETTE_SAVE_LIMIT,
     features: [
-      '3 AI palette generations per month',
-      'Save up to 1 palette',
+      formatPaletteGenerationLimitFeature(FREE_PLAN_PALETTE_GENERATION_LIMIT),
+      formatPaletteSaveLimitFeature(FREE_PLAN_PALETTE_SAVE_LIMIT),
       'Export theme JSON',
     ],
   },
@@ -21,9 +42,11 @@ export const pricingPlans = [
     monthlyPrice: 15,
     yearlyPrice: 150,
     currency: 'usd',
+    paletteGenerationLimit: PRO_PLAN_PALETTE_GENERATION_LIMIT,
+    paletteSaveLimit: PRO_PLAN_PALETTE_SAVE_LIMIT,
     features: [
-      '30 AI palette generations per month',
-      'Save up to 20 palettes',
+      formatPaletteGenerationLimitFeature(PRO_PLAN_PALETTE_GENERATION_LIMIT),
+      formatPaletteSaveLimitFeature(PRO_PLAN_PALETTE_SAVE_LIMIT),
       'Priority generation access',
       'Advanced export options',
     ],
@@ -35,9 +58,11 @@ export const pricingPlans = [
     monthlyPrice: 29,
     yearlyPrice: 290,
     currency: 'usd',
+    paletteGenerationLimit: STUDIO_PLAN_PALETTE_GENERATION_LIMIT,
+    paletteSaveLimit: STUDIO_PLAN_PALETTE_SAVE_LIMIT,
     features: [
-      '100 AI palette generations per month',
-      'Unlimited palette saves',
+      formatPaletteGenerationLimitFeature(STUDIO_PLAN_PALETTE_GENERATION_LIMIT),
+      formatPaletteSaveLimitFeature(STUDIO_PLAN_PALETTE_SAVE_LIMIT),
       'Faster generation during peak usage',
       'Early access to new features',
     ],
@@ -63,6 +88,14 @@ export function isPaidPricingPlanId(value: unknown): value is PaidPricingPlan {
 
 export function getPricingPlanById(planId: PricingPlanId) {
   return pricingPlans.find(plan => plan.id === planId) ?? null
+}
+
+export function getPaletteSaveLimit(planId: string | undefined) {
+  return getPricingPlanById(planId as PricingPlanId)?.paletteSaveLimit ?? FREE_PLAN_PALETTE_SAVE_LIMIT
+}
+
+export function getPaletteGenerationLimit(planId: string | undefined) {
+  return getPricingPlanById(planId as PricingPlanId)?.paletteGenerationLimit ?? FREE_PLAN_PALETTE_GENERATION_LIMIT
 }
 
 export function getDefaultPaidPricingPlanId(): PaidPricingPlan {

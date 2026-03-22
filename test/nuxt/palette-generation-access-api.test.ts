@@ -57,14 +57,14 @@ describe('palette generation access api handler', () => {
       canGenerate: true,
       isPaidUnlimited: false,
       isAdminUnlimited: false,
-      freeLimit: 15,
-      freeRemaining: 11,
+      freeLimit: 30,
+      freeRemaining: 26,
       freeUsed: 4,
       reason: 'allowed',
     })
   })
 
-  it('returns paid unlimited access for active studio users', async () => {
+  it('returns capped paid access for active studio users', async () => {
     getOptionalAuthSessionMock.mockResolvedValueOnce({
       user: {
         id: 'user-1',
@@ -80,8 +80,11 @@ describe('palette generation access api handler', () => {
 
     expect(result).toMatchObject({
       canGenerate: true,
-      isPaidUnlimited: true,
+      isPaidUnlimited: false,
       isAdminUnlimited: false,
+      freeLimit: 100,
+      freeRemaining: 1,
+      freeUsed: 99,
       reason: 'allowed',
     })
   })

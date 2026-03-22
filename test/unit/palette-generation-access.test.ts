@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { vi } from 'vitest'
+import type { PricingPlanId } from '../../app/types/pricing'
+import {
+  FREE_PLAN_PALETTE_GENERATION_LIMIT,
+  PRO_PLAN_PALETTE_GENERATION_LIMIT,
+  STUDIO_PLAN_PALETTE_GENERATION_LIMIT,
+} from '../../app/data/pricing'
 
 vi.mock('h3', () => ({
   createError: (input: { statusCode: number, statusMessage: string }) =>
@@ -10,11 +16,7 @@ vi.mock('~~/server/db/repositories/user-repository', () => ({
   incrementAiPaletteGenerationsUsed: vi.fn(),
 }))
 
-import {
-  FREE_PALETTE_GENERATION_LIMIT,
-  PRO_PALETTE_GENERATION_LIMIT,
-  getPaletteGenerationAccess,
-} from '../../server/services/palette-generation-access'
+import { getPaletteGenerationAccess } from '../../server/services/palette-generation-access'
 
 function createSession(overrides: Partial<{
   isAdmin: boolean
@@ -39,9 +41,9 @@ describe('palette generation access', () => {
       canGenerate: false,
       isPaidUnlimited: false,
       isAdminUnlimited: false,
-      freeLimit: FREE_PALETTE_GENERATION_LIMIT,
+      freeLimit: FREE_PLAN_PALETTE_GENERATION_LIMIT,
       freeUsed: 0,
-      freeRemaining: FREE_PALETTE_GENERATION_LIMIT,
+      freeRemaining: FREE_PLAN_PALETTE_GENERATION_LIMIT,
       reason: 'unauthenticated',
     })
   })
@@ -51,7 +53,7 @@ describe('palette generation access', () => {
       canGenerate: true,
       isPaidUnlimited: false,
       isAdminUnlimited: false,
-      freeLimit: FREE_PALETTE_GENERATION_LIMIT,
+      freeLimit: FREE_PLAN_PALETTE_GENERATION_LIMIT,
       freeUsed: 2,
       freeRemaining: 1,
       reason: 'allowed',
@@ -63,7 +65,7 @@ describe('palette generation access', () => {
       canGenerate: false,
       isPaidUnlimited: false,
       isAdminUnlimited: false,
-      freeLimit: FREE_PALETTE_GENERATION_LIMIT,
+      freeLimit: FREE_PLAN_PALETTE_GENERATION_LIMIT,
       freeUsed: 3,
       freeRemaining: 0,
       reason: 'free_limit_reached',
@@ -80,8 +82,8 @@ describe('palette generation access', () => {
     expect(access.canGenerate).toBe(true)
     expect(access.isPaidUnlimited).toBe(false)
     expect(access.isAdminUnlimited).toBe(false)
-    expect(access.freeLimit).toBe(PRO_PALETTE_GENERATION_LIMIT)
-    expect(access.freeRemaining).toBe(10)
+    expect(access.freeLimit).toBe(PRO_PLAN_PALETTE_GENERATION_LIMIT)
+    expect(access.freeRemaining).toBe(25)
     expect(access.reason).toBe('allowed')
   })
 
@@ -89,13 +91,13 @@ describe('palette generation access', () => {
     const access = getPaletteGenerationAccess(createSession({
       plan: 'pro',
       planStatus: 'active',
-      aiPaletteGenerationsUsed: 15,
+      aiPaletteGenerationsUsed: 30,
     }))
 
     expect(access.canGenerate).toBe(false)
     expect(access.isPaidUnlimited).toBe(false)
     expect(access.isAdminUnlimited).toBe(false)
-    expect(access.freeLimit).toBe(PRO_PALETTE_GENERATION_LIMIT)
+    expect(access.freeLimit).toBe(PRO_PLAN_PALETTE_GENERATION_LIMIT)
     expect(access.freeRemaining).toBe(0)
     expect(access.reason).toBe('free_limit_reached')
   })
@@ -113,7 +115,7 @@ describe('palette generation access', () => {
     expect(access.reason).toBe('free_limit_reached')
   })
 
-  it('grants unlimited access to active studio users', () => {
+  it('grants capped access to active studio users', () => {
     const access = getPaletteGenerationAccess(createSession({
       plan: 'studio',
       planStatus: 'active',
@@ -121,8 +123,10 @@ describe('palette generation access', () => {
     }))
 
     expect(access.canGenerate).toBe(true)
-    expect(access.isPaidUnlimited).toBe(true)
+    expect(access.isPaidUnlimited).toBe(false)
     expect(access.isAdminUnlimited).toBe(false)
+    expect(access.freeLimit).toBe(STUDIO_PLAN_PALETTE_GENERATION_LIMIT)
+    expect(access.freeRemaining).toBe(1)
     expect(access.reason).toBe('allowed')
   })
 

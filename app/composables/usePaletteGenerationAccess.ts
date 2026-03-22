@@ -1,3 +1,5 @@
+import { FREE_PLAN_PALETTE_GENERATION_LIMIT } from '~/data/pricing'
+
 export function usePaletteGenerationAccess() {
   const { user } = useAuth()
   const { getPaletteGenerationAccess } = usePaletteApi()
@@ -7,9 +9,9 @@ export function usePaletteGenerationAccess() {
     canGenerate: false,
     isPaidUnlimited: false,
     isAdminUnlimited: false,
-    freeLimit: 3,
+    freeLimit: FREE_PLAN_PALETTE_GENERATION_LIMIT,
     freeUsed: 0,
-    freeRemaining: 3,
+    freeRemaining: FREE_PLAN_PALETTE_GENERATION_LIMIT,
     reason: 'unauthenticated',
   } as const))
   const isGuest = computed(() => !user.value)
@@ -28,7 +30,7 @@ export function usePaletteGenerationAccess() {
     }
 
     if (access.value.isPaidUnlimited) {
-      return 'Unlimited AI palette generations included with your plan.'
+      return 'Unlimited AI palette generations included with your access.'
     }
 
     if (access.value.reason === 'unauthenticated') {
@@ -37,13 +39,15 @@ export function usePaletteGenerationAccess() {
 
     if (access.value.reason === 'free_limit_reached') {
       return currentPlan === 'pro'
-        ? `You used all ${access.value.freeLimit} AI generations in your Pro plan. Upgrade to Unlimited for no cap.`
+        ? `You used all ${access.value.freeLimit} AI generations in your Pro plan. Upgrade for more access.`
         : `You used all ${access.value.freeLimit} free generations. Upgrade for more access.`
     }
 
     return currentPlan === 'pro'
       ? `${access.value.freeRemaining} AI generations left on your Pro plan`
-      : `${access.value.freeRemaining} free generations left`
+      : currentPlan === 'studio'
+        ? `${access.value.freeRemaining} AI generations left on your Studio plan`
+        : `${access.value.freeRemaining} free generations left`
   })
 
   const cta = computed(() => {

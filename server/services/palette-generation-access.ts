@@ -1,18 +1,15 @@
 import { createError } from 'h3'
-import { isPaidPricingPlanId } from '../../app/data/pricing'
+import {
+  FREE_PLAN_PALETTE_GENERATION_LIMIT,
+  getPaletteGenerationLimit,
+  isPaidPricingPlanId,
+} from '../../app/data/pricing'
 import type { PaletteGenerationAccess } from '~/types/palette-generation'
 import { incrementAiPaletteGenerationsUsed } from '~~/server/db/repositories/user-repository'
 import type { AuthSession, AuthSessionUser } from '~~/server/types/auth-session'
 
-export const FREE_PALETTE_GENERATION_LIMIT = 3
-export const PRO_PALETTE_GENERATION_LIMIT = 15
-
 function hasActivePaidPlan(user: AuthSessionUser) {
   return isPaidPricingPlanId(user.plan) && ['active', 'trialing'].includes(user.planStatus)
-}
-
-function hasPaidUnlimitedAccess(user: AuthSessionUser) {
-  return user.plan === 'studio' && ['active', 'trialing'].includes(user.planStatus)
 }
 
 function hasAdminUnlimitedAccess(user: AuthSessionUser) {
@@ -21,14 +18,10 @@ function hasAdminUnlimitedAccess(user: AuthSessionUser) {
 
 function getGenerationLimit(user: AuthSessionUser) {
   if (!hasActivePaidPlan(user)) {
-    return FREE_PALETTE_GENERATION_LIMIT
+    return FREE_PLAN_PALETTE_GENERATION_LIMIT
   }
 
-  if (user.plan === 'pro') {
-    return PRO_PALETTE_GENERATION_LIMIT
-  }
-
-  return null
+  return getPaletteGenerationLimit(user.plan)
 }
 
 export function getPaletteGenerationAccess(session: AuthSession | null): PaletteGenerationAccess {
@@ -37,14 +30,14 @@ export function getPaletteGenerationAccess(session: AuthSession | null): Palette
       canGenerate: false,
       isPaidUnlimited: false,
       isAdminUnlimited: false,
-      freeLimit: FREE_PALETTE_GENERATION_LIMIT,
+      freeLimit: FREE_PLAN_PALETTE_GENERATION_LIMIT,
       freeUsed: 0,
-      freeRemaining: FREE_PALETTE_GENERATION_LIMIT,
+      freeRemaining: FREE_PLAN_PALETTE_GENERATION_LIMIT,
       reason: 'unauthenticated',
     }
   }
 
-  const isPaidUnlimited = hasPaidUnlimitedAccess(session.user)
+  const isPaidUnlimited = false
   const isAdminUnlimited = hasAdminUnlimitedAccess(session.user)
   const used = session.user.aiPaletteGenerationsUsed ?? 0
   const limit = getGenerationLimit(session.user)
@@ -55,9 +48,9 @@ export function getPaletteGenerationAccess(session: AuthSession | null): Palette
       canGenerate: true,
       isPaidUnlimited,
       isAdminUnlimited,
-      freeLimit: limit ?? PRO_PALETTE_GENERATION_LIMIT,
+      freeLimit: limit ?? FREE_PLAN_PALETTE_GENERATION_LIMIT,
       freeUsed: used,
-      freeRemaining: remaining ?? PRO_PALETTE_GENERATION_LIMIT,
+      freeRemaining: remaining ?? FREE_PLAN_PALETTE_GENERATION_LIMIT,
       reason: 'allowed',
     }
   }
@@ -66,7 +59,7 @@ export function getPaletteGenerationAccess(session: AuthSession | null): Palette
     canGenerate: false,
     isPaidUnlimited: false,
     isAdminUnlimited: false,
-    freeLimit: limit ?? FREE_PALETTE_GENERATION_LIMIT,
+    freeLimit: limit ?? FREE_PLAN_PALETTE_GENERATION_LIMIT,
     freeUsed: used,
     freeRemaining: remaining ?? 0,
     reason: 'free_limit_reached',

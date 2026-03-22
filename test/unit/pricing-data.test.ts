@@ -16,4 +16,24 @@ describe('pricing config', () => {
       }),
     ]))
   })
+
+  it('centralizes palette generation and save limits on each plan', () => {
+    expect(pricingPlans).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'free',
+        paletteGenerationLimit: 3,
+        paletteSaveLimit: 1,
+      }),
+      expect.objectContaining({
+        id: 'pro',
+        paletteGenerationLimit: 30,
+        paletteSaveLimit: 20,
+      }),
+      expect.objectContaining({
+        id: 'studio',
+        paletteGenerationLimit: 100,
+        paletteSaveLimit: null,
+      }),
+    ]))
+  })
 })
