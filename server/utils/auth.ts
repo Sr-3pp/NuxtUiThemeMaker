@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth'
 import { mongodbAdapter } from 'better-auth/adapters/mongodb'
 import { z } from 'zod'
+import { isPricingPlanId } from '../../app/data/pricing'
 import {
   migrateLegacyUserAdminFields,
   updateEmailDeliveryForUser,
@@ -15,7 +16,7 @@ function createAuthInstance(options: Parameters<typeof betterAuth>[0]) {
 let authInstance: ReturnType<typeof createAuthInstance> | null = null
 let authSetupPromise: Promise<void> | null = null
 
-const planSchema = z.enum(['free', 'pro'])
+const planSchema = z.custom(isPricingPlanId, 'A valid pricing plan is required')
 const planStatusSchema = z.enum(['inactive', 'trialing', 'active', 'past_due', 'canceled'])
 const billingIntervalSchema = z.enum(['monthly', 'yearly'])
 

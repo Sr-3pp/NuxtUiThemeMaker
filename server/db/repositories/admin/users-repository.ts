@@ -1,3 +1,4 @@
+import { isPricingPlanId } from '../../../../app/data/pricing'
 import type { AdminUserListItem } from '~/types/admin-user'
 import { listUserDocuments } from '~~/server/db/repositories/user-repository'
 
@@ -50,7 +51,7 @@ export async function listAdminUsers(): Promise<AdminUserListItem[]> {
     email: typeof user.email === 'string' ? user.email : '',
     emailVerified: Boolean(user.emailVerified),
     isAdmin: Boolean(user.isAdmin),
-    plan: user.plan === 'pro' ? user.plan : 'free',
+    plan: isPricingPlanId(user.plan) ? user.plan : 'free',
     planStatus: user.planStatus === 'trialing'
       || user.planStatus === 'active'
       || user.planStatus === 'past_due'

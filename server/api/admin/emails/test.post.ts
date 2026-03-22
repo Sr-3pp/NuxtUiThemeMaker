@@ -1,5 +1,7 @@
 import { createError, defineEventHandler, readBody } from 'h3'
 import { z } from 'zod'
+import { isPaidPricingPlanId } from '../../../../app/data/pricing'
+import type { PaidPricingPlan } from '~/types/pricing'
 import { sendPricingPlanPurchaseConfirmationEmail, sendRegistrationConfirmationEmail } from '~~/server/services/email-service'
 import { requireAuthSession } from '~~/server/utils/auth-session'
 
@@ -13,7 +15,7 @@ const bodySchema = z.discriminatedUnion('template', [
     template: z.literal('purchase'),
     recipientEmail: z.email('A valid recipient email is required'),
     recipientName: z.string().trim().optional(),
-    planId: z.enum(['pro']),
+    planId: z.custom<PaidPricingPlan>(isPaidPricingPlanId, 'A valid paid pricing plan is required'),
     billingInterval: z.enum(['monthly', 'yearly']),
   }),
 ])

@@ -1,11 +1,12 @@
 import { defineEventHandler, readValidatedBody } from 'h3'
 import { z } from 'zod'
+import { isPaidPricingPlanId } from '../../../app/data/pricing'
 import type { StripeCheckoutRequest, StripeCheckoutResponse } from '~/types/stripe'
 import { createStripeCheckoutSession } from '~~/server/services/stripe-service'
 import { requireAuthSession } from '~~/server/utils/auth-session'
 
 const checkoutSchema = z.object({
-  planId: z.enum(['pro']),
+  planId: z.custom<StripeCheckoutRequest['planId']>(isPaidPricingPlanId, 'A valid paid pricing plan is required'),
   billingInterval: z.enum(['monthly', 'yearly']),
 })
 

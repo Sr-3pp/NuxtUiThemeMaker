@@ -39,12 +39,37 @@ describe('palette generation access api handler', () => {
     })
   })
 
-  it('returns paid unlimited access for active pro users', async () => {
+  it('returns capped paid access for active pro users', async () => {
     getOptionalAuthSessionMock.mockResolvedValueOnce({
       user: {
         id: 'user-1',
         isAdmin: false,
         plan: 'pro',
+        planStatus: 'active',
+        aiPaletteGenerationsUsed: 4,
+      },
+    })
+
+    const { default: handler } = await import('~~/server/api/palettes/generation-access.get')
+    const result = await handler(createGetEvent() as H3Event)
+
+    expect(result).toMatchObject({
+      canGenerate: true,
+      isPaidUnlimited: false,
+      isAdminUnlimited: false,
+      freeLimit: 15,
+      freeRemaining: 11,
+      freeUsed: 4,
+      reason: 'allowed',
+    })
+  })
+
+  it('returns paid unlimited access for active studio users', async () => {
+    getOptionalAuthSessionMock.mockResolvedValueOnce({
+      user: {
+        id: 'user-1',
+        isAdmin: false,
+        plan: 'studio',
         planStatus: 'active',
         aiPaletteGenerationsUsed: 99,
       },

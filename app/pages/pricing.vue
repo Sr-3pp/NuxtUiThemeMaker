@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { pricingPlans } from '~/data/pricing'
+import { isPaidPricingPlanId, pricingPlans } from '~/data/pricing'
 import type { BillingStatus } from '~/types/billing'
 import type { PaletteGenerationAccess } from '~/types/palette-generation'
+import type { PaidPricingPlan, PricingPlanId } from '~/types/pricing'
 
 const route = useRoute()
 const router = useRouter()
@@ -22,7 +23,7 @@ const { data: billingStatus, refresh: refreshBillingStatus } = await useFetch<Bi
 
 usePageSeo({
   title: 'Pricing',
-  description: 'Choose a monthly or yearly plan to unlock unlimited AI palette generations.',
+  description: 'Choose between a capped Pro plan and an Unlimited plan for heavier palette workflows.',
   path: '/pricing',
 })
 
@@ -77,7 +78,11 @@ watch(() => route.query.checkout, async (value) => {
   }
 }, { immediate: true })
 
-async function startCheckout(planId: 'pro') {
+async function startCheckout(planId: PricingPlanId) {
+  if (!isPaidPricingPlanId(planId)) {
+    return
+  }
+
   if (!user.value) {
     await navigateTo(`/register?redirect=${encodeURIComponent('/pricing')}`)
     return
@@ -100,7 +105,7 @@ async function startCheckout(planId: 'pro') {
   }
 }
 
-function getPlanBadge(planId: 'pro') {
+function getPlanBadge(planId: PricingPlanId) {
   if (billingStatus.value.isAdminUnlimited) {
     return {
       color: 'neutral' as const,
@@ -124,6 +129,27 @@ function getPlanBadge(planId: 'pro') {
     label: `Current plan · ${billingStatus.value.planStatus}`,
   }
 }
+
+function getPlanAction(planId: PricingPlanId) {
+  if (!user.value) {
+    return {
+      label: `Register for ${pricingPlans.find(plan => plan.id === planId)?.name ?? 'this plan'}`,
+      onClick: () => navigateTo(`/register?redirect=${encodeURIComponent('/pricing')}`),
+    }
+  }
+
+  if (!isPaidPricingPlanId(planId)) {
+    return {
+      label: 'Current free plan',
+      onClick: () => navigateTo('/'),
+    }
+  }
+
+  return {
+    label: billingStatus.value.plan === planId && billingStatus.value.hasActivePlan ? `Current ${pricingPlans.find(plan => plan.id === planId)?.name ?? 'Plan'} Plan` : `Choose ${pricingPlans.find(plan => plan.id === planId)?.name ?? 'Plan'}`,
+    onClick: () => startCheckout(planId as PaidPricingPlan),
+  }
+}
 </script>
 
 <template>
@@ -134,10 +160,10 @@ function getPlanBadge(planId: 'pro') {
           Pricing
         </p>
         <h1 class="text-4xl font-semibold tracking-tight sm:text-5xl">
-          Unlock unlimited AI palette generation
+          Pick the plan that matches your palette workload
         </h1>
         <p class="mx-auto max-w-2xl text-sm text-muted">
-          Every registered account starts with 3 free AI palette generations. Upgrade to a paid plan for unlimited monthly or yearly access.
+          Every registered account starts with limited usage, then paid plans unlock larger generation and save limits for heavier palette workflows.
         </p>
       </div>
 
@@ -166,7 +192,7 @@ function getPlanBadge(planId: 'pro') {
           </UButton>
       </div>
 
-      <div class="grid gap-6 lg:grid-cols-1">
+      <div class="grid gap-6 lg:grid-cols-3">
         <UCard
           v-for="plan in pricingPlans"
           :key="plan.id"
@@ -207,9 +233,9 @@ function getPlanBadge(planId: 'pro') {
               color="primary"
               :variant="billingStatus.plan === plan.id && billingStatus.hasActivePlan ? 'outline' : 'solid'"
               :loading="pendingPlanId === plan.id"
-              @click="startCheckout(plan.id)"
+              @click="getPlanAction(plan.id).onClick()"
             >
-              {{ user ? (billingStatus.plan === plan.id && billingStatus.hasActivePlan ? `Current ${plan.name} Plan` : `Choose ${plan.name}`) : `Register for ${plan.name}` }}
+              {{ getPlanAction(plan.id).label }}
             </UButton>
           </div>
         </UCard>

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod'
+import { getDefaultPaidPricingPlanId, isPaidPricingPlanId, paidPricingPlans } from '~/data/pricing'
+import type { PaidPricingPlan } from '~/types/pricing'
 
 definePageMeta({
   middleware: ['panel-admin'],
@@ -20,12 +22,10 @@ const templateOptions = [
   },
 ] as const
 
-const planOptions = [
-  {
-    label: 'Pro',
-    value: 'pro',
-  },
-] as const
+const planOptions = paidPricingPlans.map(plan => ({
+  label: plan.name,
+  value: plan.id,
+})) as { label: string, value: PaidPricingPlan }[]
 
 const billingIntervalOptions = [
   {
@@ -42,7 +42,7 @@ const formState = reactive({
   template: 'registration' as 'registration' | 'purchase',
   recipientEmail: '',
   recipientName: '',
-  planId: 'pro' as 'pro',
+  planId: getDefaultPaidPricingPlanId(),
   billingInterval: 'monthly' as 'monthly' | 'yearly',
 })
 
@@ -58,7 +58,7 @@ const schema = z.discriminatedUnion('template', [
     template: z.literal('purchase'),
     recipientEmail: z.email('A valid recipient email is required'),
     recipientName: z.string().trim().optional(),
-    planId: z.enum(['pro']),
+    planId: z.custom<PaidPricingPlan>(isPaidPricingPlanId, 'A valid paid pricing plan is required'),
     billingInterval: z.enum(['monthly', 'yearly']),
   }),
 ])

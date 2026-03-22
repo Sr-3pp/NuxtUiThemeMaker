@@ -1,7 +1,7 @@
-import type { BillingInterval, PricingPlanId } from '~/types/pricing'
+import type { BillingInterval, PaidPricingPlan } from '~/types/pricing'
 
 export interface StripeCheckoutRequest {
-  planId: PricingPlanId
+  planId: PaidPricingPlan
   billingInterval: BillingInterval
 }
 

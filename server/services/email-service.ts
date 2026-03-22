@@ -1,5 +1,5 @@
-import { pricingPlans } from '~/data/pricing'
-import type { BillingInterval, PricingPlanId } from '~/types/pricing'
+import { getPricingPlanById } from '../../app/data/pricing'
+import type { BillingInterval, PaidPricingPlan } from '~/types/pricing'
 import { createError } from 'h3'
 import { buildPurchaseConfirmationTemplate } from './email-templates/purchase-confirmation'
 import { buildRegistrationConfirmationTemplate } from './email-templates/registration-confirmation'
@@ -18,8 +18,8 @@ function getSiteConfig() {
   }
 }
 
-function getPlanDetails(planId: PricingPlanId, billingInterval: BillingInterval) {
-  const plan = pricingPlans.find(entry => entry.id === planId)
+function getPlanDetails(planId: PaidPricingPlan, billingInterval: BillingInterval) {
+  const plan = getPricingPlanById(planId)
 
   if (!plan) {
     throw new Error(`Unknown pricing plan: ${planId}`)
@@ -103,7 +103,7 @@ export async function sendPricingPlanPurchaseConfirmationEmail(input: {
   email: string
   idempotencyKey?: string
   name?: string | null
-  planId: PricingPlanId
+  planId: PaidPricingPlan
 }) {
   const { siteName, siteUrl } = getSiteConfig()
   const recipientName = formatGreeting(input.name, input.email)

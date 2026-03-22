@@ -108,4 +108,33 @@ describe('admin email test api handler', () => {
       message: 'pro yearly purchase email sent to buyer@example.com.',
     })
   })
+
+  it('sends a studio purchase test email for admins', async () => {
+    requireAuthSessionMock.mockResolvedValueOnce({
+      user: {
+        isAdmin: true,
+      },
+    })
+
+    const { default: handler } = await import('~~/server/api/admin/emails/test.post')
+
+    const result = await handler(createPostEvent({
+      template: 'purchase',
+      recipientEmail: 'studio@example.com',
+      recipientName: 'Studio Buyer',
+      planId: 'studio',
+      billingInterval: 'monthly',
+    }) as H3Event)
+
+    expect(sendPricingPlanPurchaseConfirmationEmailMock).toHaveBeenCalledWith({
+      billingInterval: 'monthly',
+      email: 'studio@example.com',
+      name: 'Studio Buyer',
+      planId: 'studio',
+    })
+    expect(result).toEqual({
+      ok: true,
+      message: 'studio monthly purchase email sent to studio@example.com.',
+    })
+  })
 })

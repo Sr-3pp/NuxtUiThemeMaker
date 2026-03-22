@@ -8,7 +8,8 @@ import {
 } from '~~/server/db/repositories/user-repository'
 import { sendPricingPlanPurchaseConfirmationEmail } from '~~/server/services/email-service'
 import { verifyStripeWebhookSignature } from '~~/server/services/stripe-service'
-import type { BillingInterval, PricingPlanId } from '~/types/pricing'
+import { getDefaultPaidPricingPlanId, isPaidPricingPlanId } from '../../../app/data/pricing'
+import type { BillingInterval, PaidPricingPlan, PricingPlanId } from '~/types/pricing'
 import type { PaidUserPlan, StripeEvent, UserPlan, UserPlanStatus } from '~~/server/types/stripe-webhook'
 
 function toDateFromUnix(timestamp: unknown) {
@@ -65,11 +66,11 @@ function getCustomerEmail(payload: Record<string, unknown>) {
 }
 
 function toPaidPlan(planId: unknown): PaidUserPlan {
-  if (planId === 'pro') {
-    return 'pro'
+  if (isPaidPricingPlanId(planId)) {
+    return planId
   }
 
-  return 'pro'
+  return getDefaultPaidPricingPlanId()
 }
 
 function toPlanForStatus(status: UserPlanStatus, planId: unknown): UserPlan {
@@ -181,7 +182,7 @@ export default defineEventHandler(async (event) => {
       if (
         checkoutSessionId
         && planInterval
-        && planId === 'pro'
+        && isPaidPricingPlanId(planId)
         && getLastPurchaseConfirmationId(user as Record<string, unknown>) !== checkoutSessionId
       ) {
         try {
@@ -270,7 +271,7 @@ export default defineEventHandler(async (event) => {
 
     if (stripeCustomerId && user) {
       const updatedUser = await updateBillingPlanForUser(String(user.id ?? user._id), {
-        plan: 'pro',
+        plan: isPaidPricingPlanId(user.plan) ? user.plan : getDefaultPaidPricingPlanId(),
         planStatus: 'past_due',
         planExpiresAt: user.planExpiresAt instanceof Date ? user.planExpiresAt : null,
         planInterval: user.planInterval ?? null,

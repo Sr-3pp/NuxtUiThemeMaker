@@ -12,12 +12,13 @@ vi.mock('~~/server/db/repositories/user-repository', () => ({
 
 import {
   FREE_PALETTE_GENERATION_LIMIT,
+  PRO_PALETTE_GENERATION_LIMIT,
   getPaletteGenerationAccess,
 } from '../../server/services/palette-generation-access'
 
 function createSession(overrides: Partial<{
   isAdmin: boolean
-  plan: 'free' | 'pro'
+  plan: PricingPlanId
   planStatus: 'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled'
   aiPaletteGenerationsUsed: number
 }> = {}) {
@@ -69,17 +70,34 @@ describe('palette generation access', () => {
     })
   })
 
-  it('grants unlimited access to paid users with active status', () => {
+  it('grants capped access to pro users with active status', () => {
     const access = getPaletteGenerationAccess(createSession({
       plan: 'pro',
       planStatus: 'active',
-      aiPaletteGenerationsUsed: 99,
+      aiPaletteGenerationsUsed: 5,
     }))
 
     expect(access.canGenerate).toBe(true)
-    expect(access.isPaidUnlimited).toBe(true)
+    expect(access.isPaidUnlimited).toBe(false)
     expect(access.isAdminUnlimited).toBe(false)
+    expect(access.freeLimit).toBe(PRO_PALETTE_GENERATION_LIMIT)
+    expect(access.freeRemaining).toBe(10)
     expect(access.reason).toBe('allowed')
+  })
+
+  it('blocks pro users after they reach the plan generation limit', () => {
+    const access = getPaletteGenerationAccess(createSession({
+      plan: 'pro',
+      planStatus: 'active',
+      aiPaletteGenerationsUsed: 15,
+    }))
+
+    expect(access.canGenerate).toBe(false)
+    expect(access.isPaidUnlimited).toBe(false)
+    expect(access.isAdminUnlimited).toBe(false)
+    expect(access.freeLimit).toBe(PRO_PALETTE_GENERATION_LIMIT)
+    expect(access.freeRemaining).toBe(0)
+    expect(access.reason).toBe('free_limit_reached')
   })
 
   it('falls back to free-tier limits when a paid plan is inactive', () => {
@@ -93,6 +111,19 @@ describe('palette generation access', () => {
     expect(access.isPaidUnlimited).toBe(false)
     expect(access.isAdminUnlimited).toBe(false)
     expect(access.reason).toBe('free_limit_reached')
+  })
+
+  it('grants unlimited access to active studio users', () => {
+    const access = getPaletteGenerationAccess(createSession({
+      plan: 'studio',
+      planStatus: 'active',
+      aiPaletteGenerationsUsed: 99,
+    }))
+
+    expect(access.canGenerate).toBe(true)
+    expect(access.isPaidUnlimited).toBe(true)
+    expect(access.isAdminUnlimited).toBe(false)
+    expect(access.reason).toBe('allowed')
   })
 
   it('grants unlimited access to admin users', () => {

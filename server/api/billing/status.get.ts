@@ -1,4 +1,5 @@
 import { defineEventHandler } from 'h3'
+import { isPaidPricingPlanId } from '../../../app/data/pricing'
 import type { BillingStatus } from '~/types/billing'
 import { getOptionalAuthSession } from '~~/server/utils/auth-session'
 
@@ -18,7 +19,7 @@ export default defineEventHandler(async (event) => {
   const isAdminUnlimited = session.user.isAdmin
   const hasActivePlan = isAdminUnlimited
     || (
-      session.user.plan === 'pro'
+      isPaidPricingPlanId(session.user.plan)
       && ['active', 'trialing'].includes(session.user.planStatus)
     )
 

@@ -13,6 +13,19 @@ import { normalizePaletteForStorage, toStoredPalette } from '~~/server/domain/pa
 import { generateUniquePaletteSlug, parsePaletteObjectId } from '~~/server/services/palette-helpers'
 
 const FREE_PLAN_PALETTE_LIMIT = 2
+const PRO_PLAN_PALETTE_LIMIT = 10
+
+function getPaletteSaveLimit(plan: string | undefined) {
+  if (plan === 'pro') {
+    return PRO_PLAN_PALETTE_LIMIT
+  }
+
+  if (plan === 'studio') {
+    return null
+  }
+
+  return FREE_PLAN_PALETTE_LIMIT
+}
 
 export async function getOwnedPaletteByIdOrThrow(id: string, userId: string) {
   const objectId = parsePaletteObjectId(id)
@@ -44,14 +57,15 @@ export async function createPaletteForUser(
   }
 ): Promise<StoredPalette> {
   const name = input.name.trim()
+  const saveLimit = getPaletteSaveLimit(user.plan)
 
-  if (user.plan === 'free') {
+  if (saveLimit !== null) {
     const paletteCount = await countPalettesByUserId(user.id)
 
-    if (paletteCount >= FREE_PLAN_PALETTE_LIMIT) {
+    if (paletteCount >= saveLimit) {
       throw createError({
         statusCode: 403,
-        statusMessage: `Free plan users can only save ${FREE_PLAN_PALETTE_LIMIT} palettes`,
+        statusMessage: `${user.plan === 'pro' ? 'Pro' : 'Free plan'} users can only save ${saveLimit} palettes`,
       })
     }
   }

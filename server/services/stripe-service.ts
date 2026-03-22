@@ -1,7 +1,7 @@
 import { createError } from 'h3'
 import { createHmac, timingSafeEqual } from 'node:crypto'
-import { pricingPlans } from '~/data/pricing'
-import type { BillingInterval, PricingPlan } from '~/types/pricing'
+import { getPricingPlanById } from '../../app/data/pricing'
+import type { BillingInterval, PaidPricingPlan, PricingPlan } from '~/types/pricing'
 
 const STRIPE_API_BASE_URL = 'https://api.stripe.com/v1'
 const STRIPE_WEBHOOK_TOLERANCE_SECONDS = 300
@@ -37,8 +37,8 @@ function getSiteUrl() {
   return config.public.siteUrl
 }
 
-function getPlanById(planId: PricingPlan['id']) {
-  const plan = pricingPlans.find(entry => entry.id === planId)
+function getPlanById(planId: PaidPricingPlan) {
+  const plan = getPricingPlanById(planId)
 
   if (!plan) {
     throw createError({
@@ -81,7 +81,7 @@ export async function createStripeCheckoutSession(input: {
   billingInterval: BillingInterval
   customerEmail: string
   existingCustomerId: string | null
-  planId: PricingPlan['id']
+  planId: PaidPricingPlan
   userId: string
 }) {
   const secretKey = getStripeSecretKey()
