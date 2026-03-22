@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { isPaidPricingPlanId, pricingPlans } from '~/data/pricing'
 import type { BillingStatus } from '~/types/billing'
-import type { PaletteGenerationAccess } from '~/types/palette-generation'
 import type { PaidPricingPlan, PricingPlanId } from '~/types/pricing'
 
 const route = useRoute()
@@ -23,7 +22,7 @@ const { data: billingStatus, refresh: refreshBillingStatus } = await useFetch<Bi
 
 usePageSeo({
   title: 'Pricing',
-  description: 'Choose between a capped Pro plan and an Unlimited plan for heavier palette workflows.',
+  description: 'Choose the plan with the generation and save limits that fit your palette workflow.',
   path: '/pricing',
 })
 
@@ -35,21 +34,13 @@ const checkoutBanner = ref<{
   title: string
 } | null>(null)
 
-async function hasPaidUnlimitedAccess() {
-  const access = await $fetch<PaletteGenerationAccess>('/api/palettes/generation-access', {
-    credentials: 'include',
-  })
-
-  return access.isPaidUnlimited || access.isAdminUnlimited
-}
-
 watch(() => route.query.checkout, async (value) => {
   if (value === 'success') {
     checkoutBanner.value = null
     await refetchSession()
     await refreshBillingStatus()
 
-    if (await hasPaidUnlimitedAccess()) {
+    if (billingStatus.value.hasActivePlan) {
       await navigateTo('/?checkout=success')
       return
     }

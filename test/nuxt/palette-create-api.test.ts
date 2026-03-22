@@ -43,7 +43,7 @@ describe('palette create api handler', () => {
     })
     createPaletteForUserMock.mockRejectedValueOnce(createError({
       statusCode: 403,
-      statusMessage: 'Free plan users can only save 2 palettes',
+      statusMessage: 'Free plan users can only save 1 palette',
     }))
 
     const { default: handler } = await import('~~/server/api/palettes/index.post')
@@ -60,7 +60,7 @@ describe('palette create api handler', () => {
       isPublic: false,
     }) as H3Event)).rejects.toMatchObject({
       statusCode: 403,
-      statusMessage: 'Free plan users can only save 2 palettes',
+      statusMessage: 'Free plan users can only save 1 palette',
     })
 
     expect(createPaletteForUserMock).toHaveBeenCalledWith(
