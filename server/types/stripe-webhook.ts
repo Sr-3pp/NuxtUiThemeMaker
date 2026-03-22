@@ -7,6 +7,7 @@ export interface StripeEvent {
   }
 }
 
+export type UserPlan = PricingPlanId
 export type UserPlanStatus = 'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled'
 export type PaidUserPlan = Exclude<PricingPlanId, 'free'>
 export type NullableBillingInterval = BillingInterval | null
