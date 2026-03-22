@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { vi } from 'vitest'
+import type { PricingPlanId } from '../../app/types/pricing'
 import {
   FREE_PLAN_PALETTE_GENERATION_LIMIT,
   PRO_PLAN_PALETTE_GENERATION_LIMIT,
