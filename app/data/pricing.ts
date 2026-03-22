@@ -14,17 +14,4 @@ export const pricingPlans: PricingPlan[] = [
       'Monthly or yearly billing support later',
     ],
   },
-  {
-    id: 'team',
-    name: 'Team',
-    description: 'For teams standardizing a shared color system.',
-    monthlyPrice: 49,
-    yearlyPrice: 490,
-    currency: 'usd',
-    features: [
-      'Unlimited AI palette generations',
-      'Built for multi-user workflows later',
-      'Monthly or yearly billing support later',
-    ],
-  },
 ]

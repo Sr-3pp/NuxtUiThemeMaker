@@ -150,7 +150,7 @@ export async function updateStripeCustomerForUser(userId: string, stripeCustomer
 export async function updateBillingPlanForUser(
   userId: string,
   input: {
-    plan: 'free' | 'pro' | 'team'
+    plan: 'free' | 'pro'
     planStatus: 'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled'
     planExpiresAt: Date | null
     planInterval?: 'monthly' | 'yearly' | null

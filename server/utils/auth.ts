@@ -15,7 +15,7 @@ function createAuthInstance(options: Parameters<typeof betterAuth>[0]) {
 let authInstance: ReturnType<typeof createAuthInstance> | null = null
 let authSetupPromise: Promise<void> | null = null
 
-const planSchema = z.enum(['free', 'pro', 'team'])
+const planSchema = z.enum(['free', 'pro'])
 const planStatusSchema = z.enum(['inactive', 'trialing', 'active', 'past_due', 'canceled'])
 const billingIntervalSchema = z.enum(['monthly', 'yearly'])
 

@@ -5,7 +5,7 @@ type RawAuthSession = NonNullable<Awaited<ReturnType<Awaited<ReturnType<typeof g
 
 export type AuthSessionUser = RawAuthSession['user'] & {
   isAdmin: boolean
-  plan: 'free' | 'pro' | 'team'
+  plan: 'free' | 'pro'
   planStatus: 'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled'
   stripeCustomerId: string | null
   stripeSubscriptionId: string | null

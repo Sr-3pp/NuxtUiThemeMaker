@@ -6,7 +6,7 @@ import type { AuthSession, AuthSessionUser } from '~~/server/types/auth-session'
 export const FREE_PALETTE_GENERATION_LIMIT = 3
 
 function hasPaidUnlimitedAccess(user: AuthSessionUser) {
-  return ['pro', 'team'].includes(user.plan) && ['active', 'trialing'].includes(user.planStatus)
+  return user.plan === 'pro' && ['active', 'trialing'].includes(user.planStatus)
 }
 
 function hasAdminUnlimitedAccess(user: AuthSessionUser) {

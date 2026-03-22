@@ -93,7 +93,7 @@ describe('admin email test api handler', () => {
       template: 'purchase',
       recipientEmail: 'buyer@example.com',
       recipientName: 'Buyer',
-      planId: 'team',
+      planId: 'pro',
       billingInterval: 'yearly',
     }) as H3Event)
 
@@ -101,11 +101,11 @@ describe('admin email test api handler', () => {
       billingInterval: 'yearly',
       email: 'buyer@example.com',
       name: 'Buyer',
-      planId: 'team',
+      planId: 'pro',
     })
     expect(result).toEqual({
       ok: true,
-      message: 'team yearly purchase email sent to buyer@example.com.',
+      message: 'pro yearly purchase email sent to buyer@example.com.',
     })
   })
 })

@@ -1,4 +1,4 @@
-export type PricingPlanId = 'pro' | 'team'
+export type PricingPlanId = 'pro'
 export type BillingInterval = 'monthly' | 'yearly'
 
 export interface PricingPlan {

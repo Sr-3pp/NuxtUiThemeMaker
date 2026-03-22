@@ -7,7 +7,7 @@ export interface StripeEvent {
   }
 }
 
-export type UserPlan = 'free' | 'pro' | 'team'
+export type UserPlan = 'free' | 'pro'
 export type UserPlanStatus = 'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled'
 export type PaidUserPlan = Exclude<UserPlan, 'free'>
 export type NullableBillingInterval = BillingInterval | null

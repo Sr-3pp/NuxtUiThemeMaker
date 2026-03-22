@@ -13,7 +13,7 @@ const bodySchema = z.discriminatedUnion('template', [
     template: z.literal('purchase'),
     recipientEmail: z.email('A valid recipient email is required'),
     recipientName: z.string().trim().optional(),
-    planId: z.enum(['pro', 'team']),
+    planId: z.enum(['pro']),
     billingInterval: z.enum(['monthly', 'yearly']),
   }),
 ])

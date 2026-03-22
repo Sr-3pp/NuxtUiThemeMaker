@@ -77,7 +77,7 @@ watch(() => route.query.checkout, async (value) => {
   }
 }, { immediate: true })
 
-async function startCheckout(planId: 'pro' | 'team') {
+async function startCheckout(planId: 'pro') {
   if (!user.value) {
     await navigateTo(`/register?redirect=${encodeURIComponent('/pricing')}`)
     return
@@ -100,7 +100,7 @@ async function startCheckout(planId: 'pro' | 'team') {
   }
 }
 
-function getPlanBadge(planId: 'pro' | 'team') {
+function getPlanBadge(planId: 'pro') {
   if (billingStatus.value.isAdminUnlimited) {
     return {
       color: 'neutral' as const,
@@ -166,7 +166,7 @@ function getPlanBadge(planId: 'pro' | 'team') {
           </UButton>
       </div>
 
-      <div class="grid gap-6 lg:grid-cols-2">
+      <div class="grid gap-6 lg:grid-cols-1">
         <UCard
           v-for="plan in pricingPlans"
           :key="plan.id"

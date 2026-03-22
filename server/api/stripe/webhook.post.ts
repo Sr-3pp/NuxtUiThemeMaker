@@ -64,24 +64,20 @@ function getCustomerEmail(payload: Record<string, unknown>) {
   return null
 }
 
-function toPaidPlan(planId: unknown, fallback: UserPlan = 'pro'): PaidUserPlan {
-  if (planId === 'team') {
-    return 'team'
-  }
-
+function toPaidPlan(planId: unknown): PaidUserPlan {
   if (planId === 'pro') {
     return 'pro'
   }
 
-  return fallback === 'team' ? 'team' : 'pro'
+  return 'pro'
 }
 
-function toPlanForStatus(status: UserPlanStatus, planId: unknown, fallback: UserPlan = 'pro'): UserPlan {
+function toPlanForStatus(status: UserPlanStatus, planId: unknown): UserPlan {
   if (status === 'inactive' || status === 'canceled') {
     return 'free'
   }
 
-  return toPaidPlan(planId, fallback === 'team' ? 'team' : 'pro')
+  return toPaidPlan(planId)
 }
 
 async function resolveUserForCheckoutSession(payload: Record<string, unknown>) {
@@ -185,7 +181,7 @@ export default defineEventHandler(async (event) => {
       if (
         checkoutSessionId
         && planInterval
-        && (planId === 'pro' || planId === 'team')
+        && planId === 'pro'
         && getLastPurchaseConfirmationId(user as Record<string, unknown>) !== checkoutSessionId
       ) {
         try {
@@ -232,7 +228,7 @@ export default defineEventHandler(async (event) => {
       const planInterval = toBillingInterval(getMetadataValue(metadata, 'billingInterval')) ?? user.planInterval ?? null
       const status = toPlanStatus(payload.status)
       const updatedUser = await updateBillingPlanForUser(String(user.id ?? user._id), {
-        plan: toPlanForStatus(status, planId, user.plan === 'team' ? 'team' : 'pro'),
+        plan: toPlanForStatus(status, planId),
         planStatus: status,
         planExpiresAt: toDateFromUnix(payload.current_period_end),
         planInterval,
@@ -273,9 +269,8 @@ export default defineEventHandler(async (event) => {
     const user = await resolveUserForSubscriptionEvent(payload)
 
     if (stripeCustomerId && user) {
-      const currentPlan = user.plan === 'team' ? 'team' : 'pro'
       const updatedUser = await updateBillingPlanForUser(String(user.id ?? user._id), {
-        plan: currentPlan,
+        plan: 'pro',
         planStatus: 'past_due',
         planExpiresAt: user.planExpiresAt instanceof Date ? user.planExpiresAt : null,
         planInterval: user.planInterval ?? null,

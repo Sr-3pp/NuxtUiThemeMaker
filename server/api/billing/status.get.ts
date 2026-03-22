@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
   const isAdminUnlimited = session.user.isAdmin
   const hasActivePlan = isAdminUnlimited
     || (
-      ['pro', 'team'].includes(session.user.plan)
+      session.user.plan === 'pro'
       && ['active', 'trialing'].includes(session.user.planStatus)
     )
 

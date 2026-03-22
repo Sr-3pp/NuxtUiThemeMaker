@@ -50,7 +50,7 @@ export async function listAdminUsers(): Promise<AdminUserListItem[]> {
     email: typeof user.email === 'string' ? user.email : '',
     emailVerified: Boolean(user.emailVerified),
     isAdmin: Boolean(user.isAdmin),
-    plan: user.plan === 'pro' || user.plan === 'team' ? user.plan : 'free',
+    plan: user.plan === 'pro' ? user.plan : 'free',
     planStatus: user.planStatus === 'trialing'
       || user.planStatus === 'active'
       || user.planStatus === 'past_due'

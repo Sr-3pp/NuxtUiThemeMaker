@@ -5,7 +5,7 @@ import { createStripeCheckoutSession } from '~~/server/services/stripe-service'
 import { requireAuthSession } from '~~/server/utils/auth-session'
 
 const checkoutSchema = z.object({
-  planId: z.enum(['pro', 'team']),
+  planId: z.enum(['pro']),
   billingInterval: z.enum(['monthly', 'yearly']),
 })
 

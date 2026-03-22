@@ -25,10 +25,6 @@ const planOptions = [
     label: 'Pro',
     value: 'pro',
   },
-  {
-    label: 'Team',
-    value: 'team',
-  },
 ] as const
 
 const billingIntervalOptions = [
@@ -46,7 +42,7 @@ const formState = reactive({
   template: 'registration' as 'registration' | 'purchase',
   recipientEmail: '',
   recipientName: '',
-  planId: 'pro' as 'pro' | 'team',
+  planId: 'pro' as 'pro',
   billingInterval: 'monthly' as 'monthly' | 'yearly',
 })
 
@@ -62,7 +58,7 @@ const schema = z.discriminatedUnion('template', [
     template: z.literal('purchase'),
     recipientEmail: z.email('A valid recipient email is required'),
     recipientName: z.string().trim().optional(),
-    planId: z.enum(['pro', 'team']),
+    planId: z.enum(['pro']),
     billingInterval: z.enum(['monthly', 'yearly']),
   }),
 ])

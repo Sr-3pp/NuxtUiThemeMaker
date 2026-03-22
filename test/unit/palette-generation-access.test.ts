@@ -17,7 +17,7 @@ import {
 
 function createSession(overrides: Partial<{
   isAdmin: boolean
-  plan: 'free' | 'pro' | 'team'
+  plan: 'free' | 'pro'
   planStatus: 'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled'
   aiPaletteGenerationsUsed: number
 }> = {}) {
@@ -84,7 +84,7 @@ describe('palette generation access', () => {
 
   it('falls back to free-tier limits when a paid plan is inactive', () => {
     const access = getPaletteGenerationAccess(createSession({
-      plan: 'team',
+      plan: 'pro',
       planStatus: 'canceled',
       aiPaletteGenerationsUsed: 3,
     }))
