@@ -20,14 +20,17 @@ vi.mock('~~/server/db/repositories/palette-repository', () => ({
   createPalette: createPaletteMock,
   deletePaletteById: deletePaletteByIdMock,
   findPaletteById: findPaletteByIdMock,
-  generateUniquePaletteSlug: generateUniquePaletteSlugMock,
-  parsePaletteObjectId: parsePaletteObjectIdMock,
   updatePaletteById: updatePaletteByIdMock,
 }))
 
 vi.mock('~~/server/domain/palette', () => ({
   normalizePaletteForStorage: normalizePaletteForStorageMock,
   toStoredPalette: toStoredPaletteMock,
+}))
+
+vi.mock('~~/server/services/palette-helpers', () => ({
+  generateUniquePaletteSlug: generateUniquePaletteSlugMock,
+  parsePaletteObjectId: parsePaletteObjectIdMock,
 }))
 
 describe('palette service', () => {
@@ -140,6 +143,29 @@ describe('palette service', () => {
       updatedAt: expect.any(Date),
     })
     expect(result).toEqual(storedPalette)
+  })
+
+  it('blocks pro users at the palette limit during create', async () => {
+    countPalettesByUserIdMock.mockResolvedValueOnce(10)
+
+    const { createPaletteForUser } = await import('../../server/services/palette-service')
+
+    await expect(createPaletteForUser(
+      { id: 'user-1', plan: 'pro' },
+      {
+        name: 'Forest Glow',
+        palette: {
+          name: 'Forest Glow',
+          modes: {
+            light: {},
+            dark: {},
+          },
+        },
+      }
+    )).rejects.toMatchObject({
+      statusCode: 403,
+      statusMessage: 'Pro users can only save 10 palettes',
+    })
   })
 
   it('rejects visibility changes for a non-owner', async () => {

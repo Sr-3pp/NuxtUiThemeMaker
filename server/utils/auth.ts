@@ -1,7 +1,12 @@
 import { betterAuth } from 'better-auth'
 import { mongodbAdapter } from 'better-auth/adapters/mongodb'
 import { z } from 'zod'
-import { migrateLegacyUserAdminFields } from '~~/server/db/repositories/user-repository'
+import { isPricingPlanId } from '../../app/data/pricing'
+import {
+  migrateLegacyUserAdminFields,
+  updateEmailDeliveryForUser,
+} from '~~/server/db/repositories/user-repository'
+import { sendRegistrationConfirmationEmail } from '~~/server/services/email-service'
 import { getMongoClient, getMongoDb } from './mongodb'
 
 function createAuthInstance(options: Parameters<typeof betterAuth>[0]) {
@@ -11,7 +16,7 @@ function createAuthInstance(options: Parameters<typeof betterAuth>[0]) {
 let authInstance: ReturnType<typeof createAuthInstance> | null = null
 let authSetupPromise: Promise<void> | null = null
 
-const planSchema = z.enum(['free', 'pro', 'team'])
+const planSchema = z.custom(isPricingPlanId, 'A valid pricing plan is required')
 const planStatusSchema = z.enum(['inactive', 'trialing', 'active', 'past_due', 'canceled'])
 const billingIntervalSchema = z.enum(['monthly', 'yearly'])
 
@@ -139,11 +144,58 @@ export async function getAuth() {
             output: z.number().int().min(0),
           },
         },
+        registrationConfirmationSentAt: {
+          type: 'date',
+          required: false,
+          defaultValue: null,
+          input: false,
+          validator: {
+            output: z.nullable(z.date()),
+          },
+        },
+        lastPurchaseConfirmationId: {
+          type: 'string',
+          required: false,
+          defaultValue: null,
+          input: false,
+          validator: {
+            output: z.nullable(z.string()),
+          },
+        },
       },
     },
     database: mongodbAdapter(db, {
       client,
     }),
+    databaseHooks: {
+      user: {
+        create: {
+          async after(user) {
+            try {
+              if (!user?.email || !user?.id) {
+                return
+              }
+
+              await sendRegistrationConfirmationEmail({
+                email: user.email,
+                idempotencyKey: `registration:${user.id}`,
+                name: typeof user.name === 'string' ? user.name : null,
+              })
+
+              await updateEmailDeliveryForUser(String(user.id), {
+                registrationConfirmationSentAt: new Date(),
+              })
+            } catch (error) {
+              console.error('[auth] failed to send registration confirmation email', {
+                userId: user?.id ?? null,
+                email: user?.email ?? null,
+                error,
+              })
+            }
+          },
+        },
+      },
+    },
     rateLimit: {
       enabled: true,
     },

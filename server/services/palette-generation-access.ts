@@ -1,16 +1,34 @@
 import { createError } from 'h3'
+import { isPaidPricingPlanId } from '../../app/data/pricing'
 import type { PaletteGenerationAccess } from '~/types/palette-generation'
 import { incrementAiPaletteGenerationsUsed } from '~~/server/db/repositories/user-repository'
 import type { AuthSession, AuthSessionUser } from '~~/server/types/auth-session'
 
 export const FREE_PALETTE_GENERATION_LIMIT = 3
+export const PRO_PALETTE_GENERATION_LIMIT = 15
+
+function hasActivePaidPlan(user: AuthSessionUser) {
+  return isPaidPricingPlanId(user.plan) && ['active', 'trialing'].includes(user.planStatus)
+}
 
 function hasPaidUnlimitedAccess(user: AuthSessionUser) {
-  return ['pro', 'team'].includes(user.plan) && ['active', 'trialing'].includes(user.planStatus)
+  return user.plan === 'studio' && ['active', 'trialing'].includes(user.planStatus)
 }
 
 function hasAdminUnlimitedAccess(user: AuthSessionUser) {
   return user.isAdmin
+}
+
+function getGenerationLimit(user: AuthSessionUser) {
+  if (!hasActivePaidPlan(user)) {
+    return FREE_PALETTE_GENERATION_LIMIT
+  }
+
+  if (user.plan === 'pro') {
+    return PRO_PALETTE_GENERATION_LIMIT
+  }
+
+  return null
 }
 
 export function getPaletteGenerationAccess(session: AuthSession | null): PaletteGenerationAccess {
@@ -28,17 +46,18 @@ export function getPaletteGenerationAccess(session: AuthSession | null): Palette
 
   const isPaidUnlimited = hasPaidUnlimitedAccess(session.user)
   const isAdminUnlimited = hasAdminUnlimitedAccess(session.user)
-  const freeUsed = session.user.aiPaletteGenerationsUsed ?? 0
-  const freeRemaining = Math.max(FREE_PALETTE_GENERATION_LIMIT - freeUsed, 0)
+  const used = session.user.aiPaletteGenerationsUsed ?? 0
+  const limit = getGenerationLimit(session.user)
+  const remaining = limit === null ? null : Math.max(limit - used, 0)
 
-  if (isPaidUnlimited || isAdminUnlimited || freeRemaining > 0) {
+  if (isPaidUnlimited || isAdminUnlimited || (remaining !== null && remaining > 0)) {
     return {
       canGenerate: true,
       isPaidUnlimited,
       isAdminUnlimited,
-      freeLimit: FREE_PALETTE_GENERATION_LIMIT,
-      freeUsed,
-      freeRemaining,
+      freeLimit: limit ?? PRO_PALETTE_GENERATION_LIMIT,
+      freeUsed: used,
+      freeRemaining: remaining ?? PRO_PALETTE_GENERATION_LIMIT,
       reason: 'allowed',
     }
   }
@@ -47,9 +66,9 @@ export function getPaletteGenerationAccess(session: AuthSession | null): Palette
     canGenerate: false,
     isPaidUnlimited: false,
     isAdminUnlimited: false,
-    freeLimit: FREE_PALETTE_GENERATION_LIMIT,
-    freeUsed,
-    freeRemaining,
+    freeLimit: limit ?? FREE_PALETTE_GENERATION_LIMIT,
+    freeUsed: used,
+    freeRemaining: remaining ?? 0,
     reason: 'free_limit_reached',
   }
 }
@@ -67,7 +86,7 @@ export function assertPaletteGenerationAllowed(session: AuthSession | null) {
   if (!access.canGenerate) {
     throw createError({
       statusCode: 403,
-      statusMessage: `Free users can only generate ${FREE_PALETTE_GENERATION_LIMIT} palettes`,
+      statusMessage: `Your plan only includes ${access.freeLimit} AI palette generations`,
     })
   }
 

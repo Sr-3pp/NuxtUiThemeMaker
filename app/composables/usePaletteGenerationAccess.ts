@@ -21,6 +21,8 @@ export function usePaletteGenerationAccess() {
   })
 
   const helperText = computed(() => {
+    const currentPlan = user.value?.plan ?? 'free'
+
     if (access.value.isAdminUnlimited) {
       return 'Unlimited AI palette generations enabled for admin accounts.'
     }
@@ -34,10 +36,14 @@ export function usePaletteGenerationAccess() {
     }
 
     if (access.value.reason === 'free_limit_reached') {
-      return `You used all ${access.value.freeLimit} free generations. Upgrade for unlimited access.`
+      return currentPlan === 'pro'
+        ? `You used all ${access.value.freeLimit} AI generations in your Pro plan. Upgrade to Unlimited for no cap.`
+        : `You used all ${access.value.freeLimit} free generations. Upgrade for more access.`
     }
 
-    return `${access.value.freeRemaining} free generations left`
+    return currentPlan === 'pro'
+      ? `${access.value.freeRemaining} AI generations left on your Pro plan`
+      : `${access.value.freeRemaining} free generations left`
   })
 
   const cta = computed(() => {

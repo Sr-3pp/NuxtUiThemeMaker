@@ -4,9 +4,12 @@ import {
   findUserById,
   findUserByStripeCustomerId,
   updateBillingPlanForUser,
+  updateEmailDeliveryForUser,
 } from '~~/server/db/repositories/user-repository'
+import { sendPricingPlanPurchaseConfirmationEmail } from '~~/server/services/email-service'
 import { verifyStripeWebhookSignature } from '~~/server/services/stripe-service'
-import type { BillingInterval, PricingPlanId } from '~/types/pricing'
+import { getDefaultPaidPricingPlanId, isPaidPricingPlanId } from '../../../app/data/pricing'
+import type { BillingInterval, PaidPricingPlan, PricingPlanId } from '~/types/pricing'
 import type { PaidUserPlan, StripeEvent, UserPlan, UserPlanStatus } from '~~/server/types/stripe-webhook'
 
 function toDateFromUnix(timestamp: unknown) {
@@ -62,24 +65,20 @@ function getCustomerEmail(payload: Record<string, unknown>) {
   return null
 }
 
-function toPaidPlan(planId: unknown, fallback: UserPlan = 'pro'): PaidUserPlan {
-  if (planId === 'team') {
-    return 'team'
+function toPaidPlan(planId: unknown): PaidUserPlan {
+  if (isPaidPricingPlanId(planId)) {
+    return planId
   }
 
-  if (planId === 'pro') {
-    return 'pro'
-  }
-
-  return fallback === 'team' ? 'team' : 'pro'
+  return getDefaultPaidPricingPlanId()
 }
 
-function toPlanForStatus(status: UserPlanStatus, planId: unknown, fallback: UserPlan = 'pro'): UserPlan {
+function toPlanForStatus(status: UserPlanStatus, planId: unknown): UserPlan {
   if (status === 'inactive' || status === 'canceled') {
     return 'free'
   }
 
-  return toPaidPlan(planId, fallback === 'team' ? 'team' : 'pro')
+  return toPaidPlan(planId)
 }
 
 async function resolveUserForCheckoutSession(payload: Record<string, unknown>) {
@@ -126,6 +125,10 @@ async function resolveUserForSubscriptionEvent(payload: Record<string, unknown>)
   return null
 }
 
+function getLastPurchaseConfirmationId(user: Record<string, unknown> | null | undefined) {
+  return typeof user?.lastPurchaseConfirmationId === 'string' ? user.lastPurchaseConfirmationId : null
+}
+
 export default defineEventHandler(async (event) => {
   const rawBody = await readRawBody(event, 'utf8')
 
@@ -145,6 +148,7 @@ export default defineEventHandler(async (event) => {
     : 'unknown'
 
   if (stripeEvent.type === 'checkout.session.completed') {
+    const checkoutSessionId = typeof payload.id === 'string' ? payload.id : null
     const stripeCustomerId = typeof payload.customer === 'string' ? payload.customer : null
     const stripeSubscriptionId = typeof payload.subscription === 'string' ? payload.subscription : null
     const metadata = getPayloadMetadata(payload)
@@ -175,6 +179,34 @@ export default defineEventHandler(async (event) => {
         })
       }
 
+      if (
+        checkoutSessionId
+        && planInterval
+        && isPaidPricingPlanId(planId)
+        && getLastPurchaseConfirmationId(user as Record<string, unknown>) !== checkoutSessionId
+      ) {
+        try {
+          await sendPricingPlanPurchaseConfirmationEmail({
+            billingInterval: planInterval,
+            email: String(updatedUser.email ?? user.email ?? ''),
+            idempotencyKey: `checkout:${checkoutSessionId}`,
+            name: typeof updatedUser.name === 'string' ? updatedUser.name : typeof user.name === 'string' ? user.name : null,
+            planId,
+          })
+
+          await updateEmailDeliveryForUser(String(updatedUser.id ?? updatedUser._id ?? user.id ?? user._id), {
+            lastPurchaseConfirmationId: checkoutSessionId,
+          })
+        } catch (error) {
+          console.error('[stripe webhook] failed to send purchase confirmation email', {
+            stripeEventId,
+            checkoutSessionId,
+            userId: String(updatedUser.id ?? updatedUser._id ?? user.id ?? user._id),
+            error,
+          })
+        }
+      }
+
       return { received: true }
     }
 
@@ -197,7 +229,7 @@ export default defineEventHandler(async (event) => {
       const planInterval = toBillingInterval(getMetadataValue(metadata, 'billingInterval')) ?? user.planInterval ?? null
       const status = toPlanStatus(payload.status)
       const updatedUser = await updateBillingPlanForUser(String(user.id ?? user._id), {
-        plan: toPlanForStatus(status, planId, user.plan === 'team' ? 'team' : 'pro'),
+        plan: toPlanForStatus(status, planId),
         planStatus: status,
         planExpiresAt: toDateFromUnix(payload.current_period_end),
         planInterval,
@@ -238,9 +270,8 @@ export default defineEventHandler(async (event) => {
     const user = await resolveUserForSubscriptionEvent(payload)
 
     if (stripeCustomerId && user) {
-      const currentPlan = user.plan === 'team' ? 'team' : 'pro'
       const updatedUser = await updateBillingPlanForUser(String(user.id ?? user._id), {
-        plan: currentPlan,
+        plan: isPaidPricingPlanId(user.plan) ? user.plan : getDefaultPaidPricingPlanId(),
         planStatus: 'past_due',
         planExpiresAt: user.planExpiresAt instanceof Date ? user.planExpiresAt : null,
         planInterval: user.planInterval ?? null,

@@ -10,6 +10,8 @@ export default defineNuxtConfig({
     mongodbDbName: process.env.NUXT_MONGODB_DB_NAME || '',
     mongodbUri: process.env.NUXT_MONGODB_URI || '',
     geminiApiKey: process.env.NUXT_GEMINI_API_KEY || '',
+    resendApiKey: process.env.NUXT_RESEND_API_KEY || '',
+    resendFrom: process.env.NUXT_RESEND_FROM || '"Nuxt UI Theme Builder" <onboarding@resend.dev>',
     stripePublicKey: process.env.NUXT_STRIPE_PUBLIC_KEY || '',
     stripeSecretKey: process.env.NUXT_STRIPE_SECRET_KEY || '',
     stripeWebhookSecret: process.env.NUXT_STRIPE_WEBHOOK_SECRET || '',
@@ -38,7 +40,7 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxt/image',
     '@nuxt/test-utils',
-    '@nuxtjs/i18n'
+    '@nuxtjs/i18n',
   ],
   i18n: {
     defaultLocale: 'en-US',

@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb'
+import { PricingPlanId } from '~/types/pricing'
 import { getMongoDb } from '~~/server/utils/mongodb'
 
 export const USER_COLLECTIONS = ['user', 'users'] as const
@@ -150,7 +151,7 @@ export async function updateStripeCustomerForUser(userId: string, stripeCustomer
 export async function updateBillingPlanForUser(
   userId: string,
   input: {
-    plan: 'free' | 'pro' | 'team'
+    plan: PricingPlanId
     planStatus: 'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled'
     planExpiresAt: Date | null
     planInterval?: 'monthly' | 'yearly' | null
@@ -165,6 +166,19 @@ export async function updateBillingPlanForUser(
     ...(input.planInterval !== undefined ? { planInterval: input.planInterval } : {}),
     ...(input.stripeCustomerId !== undefined ? { stripeCustomerId: input.stripeCustomerId } : {}),
     ...(input.stripeSubscriptionId !== undefined ? { stripeSubscriptionId: input.stripeSubscriptionId } : {}),
+  })
+}
+
+export async function updateEmailDeliveryForUser(
+  userId: string,
+  input: {
+    lastPurchaseConfirmationId?: string | null
+    registrationConfirmationSentAt?: Date | null
+  },
+) {
+  return updateUserAcrossCollections(userId, {
+    ...(input.lastPurchaseConfirmationId !== undefined ? { lastPurchaseConfirmationId: input.lastPurchaseConfirmationId } : {}),
+    ...(input.registrationConfirmationSentAt !== undefined ? { registrationConfirmationSentAt: input.registrationConfirmationSentAt } : {}),
   })
 }
 
