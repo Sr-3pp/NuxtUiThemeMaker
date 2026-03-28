@@ -96,16 +96,14 @@ function importPaletteFromTextarea() {
           Upload JSON file
         </UButton>
 
-        <div class="space-y-2">
-          <p class="text-sm font-medium">
-            Paste palette JSON
-          </p>
+        <UFormField label="Paste palette JSON">
           <UTextarea
+            class="w-full"
             v-model="pastedPaletteJson"
             :rows="12"
             placeholder="{&#10;  &quot;name&quot;: &quot;My Palette&quot;,&#10;  &quot;modes&quot;: { ... }&#10;}"
           />
-        </div>
+        </UFormField>
 
         <UButton
           block
