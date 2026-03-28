@@ -120,6 +120,67 @@ describe('palette generate api handler', () => {
     expect(incrementPaletteGenerationUsageIfNeededMock).toHaveBeenCalledWith(session, access)
   })
 
+  it('sends WCAG accessibility instructions to Gemini', async () => {
+    const session = {
+      user: {
+        id: 'user-1',
+        isAdmin: false,
+        plan: 'free',
+        planStatus: 'inactive',
+        aiPaletteGenerationsUsed: 0,
+      },
+    }
+
+    getOptionalAuthSessionMock.mockResolvedValueOnce(session)
+    assertPaletteGenerationAllowedMock.mockReturnValueOnce({
+      canGenerate: true,
+      isPaidUnlimited: false,
+      isAdminUnlimited: false,
+      freeLimit: 3,
+      freeUsed: 0,
+      freeRemaining: 3,
+      reason: 'allowed',
+    })
+    generateContentMock.mockResolvedValueOnce({
+      text: JSON.stringify({
+        name: 'Harbor Signal',
+        modes: {
+          light: {
+            color: { primary: '#0056B3', secondary: '#6C757D', success: '#28A745', info: '#17A2B8', warning: '#FFC107', error: '#DC3545' },
+            text: { default: '#212529', dimmed: '#6C757D', muted: '#ADB5BD', toned: '#495057', highlighted: '#0056B3', inverted: '#FFFFFF' },
+            bg: { default: '#F8F9FA', muted: '#E9ECEF', elevated: '#FFFFFF', accented: '#DEE2E6', inverted: '#002D62' },
+            ui: { border: '#CED4DA', 'border-muted': '#E0E0E0', 'border-accented': '#0056B3', ring: '#80BDFF' },
+            radius: { default: '4px', sm: '2px', md: '6px', lg: '8px', xl: '12px' },
+          },
+          dark: {
+            color: { primary: '#4DA6FF', secondary: '#A0AEC0', success: '#69F0AE', info: '#4DD0E1', warning: '#FFD54F', error: '#EF5350' },
+            text: { default: '#E2E8F0', dimmed: '#CBD5E0', muted: '#A0AEC0', toned: '#718096', highlighted: '#4DA6FF', inverted: '#1A202C' },
+            bg: { default: '#1A202C', muted: '#2D3748', elevated: '#4A5568', accented: '#2C3E50', inverted: '#F8F9FA' },
+            ui: { border: '#4A5568', 'border-muted': '#2D3748', 'border-accented': '#4DA6FF', ring: '#80BDFF' },
+            radius: { default: '4px', sm: '2px', md: '6px', lg: '8px', xl: '12px' },
+          },
+        },
+      }),
+    })
+
+    const { default: handler } = await import('~~/server/api/palettes/generate')
+
+    await handler(createPostEvent({ prompt: 'Accessible fintech dashboard' }) as H3Event)
+
+    expect(generateContentMock).toHaveBeenCalledWith(expect.objectContaining({
+      contents: [expect.stringContaining('Choose colors that are accessible and WCAG-conscious.')],
+    }))
+    expect(generateContentMock).toHaveBeenCalledWith(expect.objectContaining({
+      contents: [expect.stringContaining('Target at least WCAG AA contrast for normal text where applicable')],
+    }))
+    expect(generateContentMock).toHaveBeenCalledWith(expect.objectContaining({
+      contents: [expect.stringContaining('This palette will be used by Nuxt UI semantic theme tokens.')],
+    }))
+    expect(generateContentMock).toHaveBeenCalledWith(expect.objectContaining({
+      contents: [expect.stringContaining('Choose colors with common Nuxt UI combinations in mind')],
+    }))
+  })
+
   it('does not increment usage when Gemini generation fails', async () => {
     const session = {
       user: {
