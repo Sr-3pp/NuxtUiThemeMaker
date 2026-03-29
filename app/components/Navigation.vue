@@ -53,7 +53,7 @@ const handleGenertion = async () => {
                 </span>
             </p>
             <p class="text-xs text-muted hidden sm:block">
-            Created by <NuxtLink to="https://github.com/sr-3pp" target="_blank">Sr.3pp</NuxtLink>
+            Created by <NuxtLink to="https://sr3pp.dev" target="_blank">Sr.3pp</NuxtLink>
             </p>
         </div>
 
