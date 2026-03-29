@@ -145,6 +145,62 @@ describe('palette service', () => {
     expect(result).toEqual(storedPalette)
   })
 
+  it('allows admin users to create palettes without applying save limits', async () => {
+    const document = {
+      _id: 'palette-id',
+      userId: 'admin-1',
+      slug: 'forest-glow',
+      name: 'Forest Glow',
+      palette: {
+        name: 'Forest Glow',
+        modes: {
+          light: {},
+          dark: {},
+        },
+      },
+      isPublic: false,
+      createdAt: new Date('2026-03-15T12:00:00.000Z'),
+      updatedAt: new Date('2026-03-15T12:00:00.000Z'),
+    }
+    const storedPalette = {
+      _id: 'palette-id',
+      userId: 'admin-1',
+      slug: 'forest-glow',
+      name: 'Forest Glow',
+      palette: document.palette,
+      isPublic: false,
+      createdAt: '2026-03-15T12:00:00.000Z',
+      updatedAt: '2026-03-15T12:00:00.000Z',
+    }
+
+    generateUniquePaletteSlugMock.mockResolvedValueOnce('forest-glow')
+    normalizePaletteForStorageMock.mockImplementationOnce((name, palette) => ({
+      ...palette,
+      name,
+    }))
+    createPaletteMock.mockResolvedValueOnce(document)
+    toStoredPaletteMock.mockReturnValueOnce(storedPalette)
+
+    const { createPaletteForUser } = await import('../../server/services/palette-service')
+
+    const result = await createPaletteForUser(
+      { id: 'admin-1', plan: 'free', isAdmin: true },
+      {
+        name: 'Forest Glow',
+        palette: {
+          name: 'Draft',
+          modes: {
+            light: {},
+            dark: {},
+          },
+        },
+      }
+    )
+
+    expect(countPalettesByUserIdMock).not.toHaveBeenCalled()
+    expect(result).toEqual(storedPalette)
+  })
+
   it('blocks pro users at the palette limit during create', async () => {
     countPalettesByUserIdMock.mockResolvedValueOnce(20)
 

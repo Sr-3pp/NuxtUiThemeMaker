@@ -50,7 +50,7 @@ export async function createPaletteForUser(
   }
 ): Promise<StoredPalette> {
   const name = input.name.trim()
-  const saveLimit = getPaletteSaveLimit(user.plan)
+  const saveLimit = user.isAdmin ? null : getPaletteSaveLimit(user.plan)
 
   if (saveLimit !== null) {
     const paletteCount = await countPalettesByUserId(user.id)
