@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import type { ButtonColor, ButtonVariant, PreviewInteractiveProps } from '~/types/theme-preview'
+import { getPreviewButtonStyle } from '~/utils/preview-overrides'
 
 const props = defineProps<PreviewInteractiveProps>()
 
 const buttonColors: ButtonColor[] = ['primary', 'secondary', 'success', 'info', 'warning', 'error', 'neutral']
 const buttonVariants: ButtonVariant[] = ['solid', 'outline', 'soft', 'subtle', 'ghost', 'link']
 const badgeVariants = ['solid', 'outline', 'soft', 'subtle'] as const
+
+function buttonStyle(variant: ButtonVariant, color: ButtonColor) {
+  return getPreviewButtonStyle(props.palette, variant, color)
+}
 </script>
 
 <template>
@@ -47,6 +52,7 @@ const badgeVariants = ['solid', 'outline', 'soft', 'subtle'] as const
               :variant="variant"
               :disabled="props.disableInteractive"
               class="justify-center"
+              :style="buttonStyle(variant, color)"
             >
               {{ variant }}
             </UButton>
@@ -64,25 +70,25 @@ const badgeVariants = ['solid', 'outline', 'soft', 'subtle'] as const
 
         <div class="space-y-3">
           <div class="flex flex-wrap gap-3">
-            <UButton color="primary" icon="i-lucide-sparkles">
+            <UButton color="primary" icon="i-lucide-sparkles" :style="buttonStyle('solid', 'primary')">
               Default
             </UButton>
-            <UButton color="primary" variant="outline" leading-icon="i-lucide-arrow-left">
+            <UButton color="primary" variant="outline" leading-icon="i-lucide-arrow-left" :style="buttonStyle('outline', 'primary')">
               Leading icon
             </UButton>
-            <UButton color="secondary" variant="soft" trailing-icon="i-lucide-arrow-right">
+            <UButton color="secondary" variant="soft" trailing-icon="i-lucide-arrow-right" :style="buttonStyle('soft', 'secondary')">
               Trailing icon
             </UButton>
           </div>
 
           <div class="flex flex-wrap gap-3">
-            <UButton color="info" variant="subtle" loading>
+            <UButton color="info" variant="subtle" loading :style="buttonStyle('subtle', 'info')">
               Loading
             </UButton>
-            <UButton color="neutral" variant="outline" disabled>
+            <UButton color="neutral" variant="outline" disabled :style="buttonStyle('outline', 'neutral')">
               Disabled
             </UButton>
-            <UButton color="success" variant="solid" icon="i-lucide-check" square aria-label="Approve" />
+            <UButton color="success" variant="solid" icon="i-lucide-check" square aria-label="Approve" :style="buttonStyle('solid', 'success')" />
           </div>
 
           <div class="rounded-2xl border border-default bg-muted/60 p-3">

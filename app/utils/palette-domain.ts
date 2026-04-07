@@ -10,8 +10,8 @@ import type {
   PaletteComponentThemes,
   PaletteDefinition,
   PaletteTokenValue,
-} from '~/types/palette'
-import { paletteScaleSteps } from '~/types/palette'
+} from '../types/palette'
+import { paletteScaleSteps } from '../types/palette'
 import type { StoredPalette } from '~/types/palette-store'
 
 function clonePaletteMode(mode: PaletteDefinition['modes']['light']) {
