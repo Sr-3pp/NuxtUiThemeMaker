@@ -1,5 +1,12 @@
 import type { EditablePalette, UpdateEditablePaletteTokenPayload } from '~/types/palette-editor'
-import type { PaletteDefinition } from '~/types/palette'
+import type {
+  PaletteColorScale,
+  PaletteColorScales,
+  PaletteComponentThemes,
+  PaletteDefinition,
+  PaletteTokenValue,
+} from '~/types/palette'
+import { paletteScaleSteps } from '~/types/palette'
 import type { StoredPalette } from '~/types/palette-store'
 
 function clonePaletteMode(mode: PaletteDefinition['modes']['light']) {
@@ -8,14 +15,93 @@ function clonePaletteMode(mode: PaletteDefinition['modes']['light']) {
   )
 }
 
-export function clonePaletteDefinition(palette: PaletteDefinition): PaletteDefinition {
+function createEmptyColorScale(): PaletteColorScale {
+  return Object.fromEntries(
+    paletteScaleSteps.map(step => [step, null])
+  ) as PaletteColorScale
+}
+
+function cloneColorScales(colors?: PaletteColorScales) {
+  if (!colors) {
+    return {}
+  }
+
+  return Object.fromEntries(
+    Object.entries(colors).map(([colorKey, scale]) => [colorKey, { ...scale }])
+  )
+}
+
+function cloneComponentThemes(components?: PaletteComponentThemes) {
+  if (!components) {
+    return {}
+  }
+
+  return JSON.parse(JSON.stringify(components)) as PaletteComponentThemes
+}
+
+function deriveColorScales(palette: PaletteDefinition): PaletteColorScales {
+  const colors = cloneColorScales(palette.colors)
+
+  ;(['light', 'dark'] as const).forEach((modeKey) => {
+    const semanticColors = palette.modes[modeKey].color ?? {}
+
+    Object.entries(semanticColors).forEach(([tokenKey, tokenValue]) => {
+      if (!colors[tokenKey]) {
+        colors[tokenKey] = createEmptyColorScale()
+      }
+
+      if (colors[tokenKey]['500'] == null) {
+        colors[tokenKey]['500'] = tokenValue
+      }
+    })
+  })
+
+  return colors
+}
+
+function deriveAliases(palette: PaletteDefinition) {
+  const aliases = {
+    primary: 'primary',
+    secondary: 'secondary',
+    neutral: 'neutral',
+    success: 'success',
+    info: 'info',
+    warning: 'warning',
+    error: 'error',
+    ...palette.aliases,
+  }
+
+  return aliases
+}
+
+function normalizePaletteMetadata(palette: PaletteDefinition) {
   return {
-    name: palette.name,
+    version: 2,
+    normalizedAt: palette.metadata?.normalizedAt ?? null,
+  }
+}
+
+export function normalizePaletteDefinition(palette: PaletteDefinition): PaletteDefinition {
+  const hydratedPalette = hydratePaletteDefinition({
+    ...palette,
     modes: {
       light: clonePaletteMode(palette.modes.light),
       dark: clonePaletteMode(palette.modes.dark),
     },
+  })
+
+  return {
+    name: hydratedPalette.name,
+    modes: hydratedPalette.modes,
+    colors: deriveColorScales(hydratedPalette),
+    aliases: deriveAliases(hydratedPalette),
+    components: cloneComponentThemes(hydratedPalette.components),
+    metadata: normalizePaletteMetadata(hydratedPalette),
   }
+}
+
+export function clonePaletteDefinition(palette: PaletteDefinition): PaletteDefinition {
+  return normalizePaletteDefinition(palette)
 }
 
 export function toEditablePalette(palette: PaletteDefinition | StoredPalette): EditablePalette {
@@ -62,6 +148,11 @@ export function hydratePaletteDefinition(palette: PaletteDefinition) {
     }
   })
 
+  palette.colors = deriveColorScales(palette)
+  palette.aliases = deriveAliases(palette)
+  palette.components = cloneComponentThemes(palette.components)
+  palette.metadata = normalizePaletteMetadata(palette)
+
   return palette
 }
 
@@ -90,6 +181,16 @@ export function updateEditablePaletteToken(
     }
 
     semanticSection[token] = value
+
+    if (!palette.colors) {
+      palette.colors = {}
+    }
+
+    if (!palette.colors[token]) {
+      palette.colors[token] = createEmptyColorScale()
+    }
+
+    palette.colors[token]['500'] = value as PaletteTokenValue
   }
 
   return palette

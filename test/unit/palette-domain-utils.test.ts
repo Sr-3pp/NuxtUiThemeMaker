@@ -3,6 +3,7 @@ import {
   clonePaletteDefinition,
   createEditablePalette,
   hydratePaletteDefinition,
+  normalizePaletteDefinition,
   updateEditablePaletteToken,
 } from '../../app/utils/palette-domain'
 import type { PaletteDefinition } from '../../app/types/palette'
@@ -73,6 +74,33 @@ describe('palette domain utils', () => {
       error: '#ff3355',
     })
     expect(hydrated.modes.dark.color?.error).toBe('#ff6677')
+    expect(hydrated.colors?.primary?.['500']).toBe('#11aa55')
+    expect(hydrated.aliases?.primary).toBe('primary')
+    expect(hydrated.metadata?.version).toBe(2)
+  })
+
+  it('normalizes legacy palettes into the expanded phase 1 shape', () => {
+    const normalized = normalizePaletteDefinition(createPalette())
+
+    expect(normalized.colors?.primary).toEqual({
+      '50': null,
+      '100': null,
+      '200': null,
+      '300': null,
+      '400': null,
+      '500': '#11aa55',
+      '600': null,
+      '700': null,
+      '800': null,
+      '900': null,
+      '950': null,
+    })
+    expect(normalized.aliases?.warning).toBe('warning')
+    expect(normalized.components).toEqual({})
+    expect(normalized.metadata).toEqual({
+      version: 2,
+      normalizedAt: null,
+    })
   })
 
   it('creates editable palettes from stored palettes and keeps metadata', () => {
@@ -104,5 +132,6 @@ describe('palette domain utils', () => {
 
     expect(editable.modes.light.color?.primary).toBe('#ffffff')
     expect(editable.modes.light.ui.primary).toBe('#ffffff')
+    expect(editable.colors?.primary?.['500']).toBe('#ffffff')
   })
 })

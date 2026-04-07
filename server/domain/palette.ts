@@ -1,6 +1,7 @@
 import type { StoredPalette } from '~/types/palette-store'
 import type { PaletteDefinition } from '~/types/palette'
-import type { PaletteDocument } from '~~/server/db/collections/palettes'
+import { normalizePaletteDefinition } from '~/utils/palette-domain'
+import type { PaletteDocument } from '~~/server/types/palette-document'
 
 export function toStoredPalette(document: PaletteDocument): StoredPalette {
   if (!document._id) {
@@ -20,10 +21,10 @@ export function toStoredPalette(document: PaletteDocument): StoredPalette {
 }
 
 export function normalizePaletteForStorage(name: string, palette: PaletteDefinition): PaletteDefinition {
-  return {
+  return normalizePaletteDefinition({
     ...palette,
     name,
-  }
+  })
 }
 
 export function createSlugBase(name: string) {
