@@ -46,6 +46,13 @@ export function exportPaletteTs(palette: PaletteDefinition) {
   ].join('\n')
 }
 
+export function exportPaletteComponentsTs(palette: PaletteDefinition) {
+  return [
+    'export const components = ',
+    `${JSON.stringify(palette.components ?? {}, null, 2)}`,
+  ].join('\n')
+}
+
 export function exportPaletteAppConfig(_palette: PaletteDefinition) {
   return [
     "import { components, theme } from './theme'",
@@ -56,5 +63,21 @@ export function exportPaletteAppConfig(_palette: PaletteDefinition) {
     '    ...components',
     '  }',
     '})'
+  ].join('\n')
+}
+
+export function exportPaletteInstallSnippet(_palette: PaletteDefinition) {
+  return [
+    '// 1. Save the generated files as theme.ts and app.config.ts',
+    '// 2. Keep both exports in your Nuxt app root or adjust the import path',
+    '',
+    "import { components, theme } from './theme'",
+    '',
+    'export default defineAppConfig({',
+    '  ui: {',
+    '    theme,',
+    '    ...components',
+    '  }',
+    '})',
   ].join('\n')
 }

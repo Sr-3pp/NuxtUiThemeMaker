@@ -3,6 +3,8 @@ import type { PaletteDefinition } from '~/types/palette'
 import {
   exportPaletteAppConfig,
   exportPaletteCss,
+  exportPaletteComponentsTs,
+  exportPaletteInstallSnippet,
   exportPaletteJson,
   exportPaletteTs
 } from '~/utils/paletteExport'
@@ -12,15 +14,46 @@ const props = defineProps<{
 }>()
 
 const open = defineModel<boolean>('open', { default: false })
-const selectedExport = ref<'json' | 'appConfig' | 'ts' | 'js' | 'css'>('json')
+const selectedExport = ref<'json' | 'appConfig' | 'ts' | 'components' | 'snippet' | 'js' | 'css'>('json')
+const copyState = ref<'idle' | 'copied' | 'error'>('idle')
 
 const exportOptions = [
   { label: 'JSON', value: 'json', description: 'Full palette definition for import/export.' },
   { label: 'app.config.ts', value: 'appConfig', description: 'Nuxt app config wrapper for the theme export.' },
   { label: 'theme.ts', value: 'ts', description: 'TypeScript theme object export.' },
+  { label: 'components.ts', value: 'components', description: 'Only the component override layer for Nuxt UI.' },
+  { label: 'Install snippet', value: 'snippet', description: 'Copy-paste Nuxt setup snippet for quick installation.' },
   { label: 'theme.js', value: 'js', description: 'JavaScript theme object export.' },
   { label: 'theme.css', value: 'css', description: 'CSS custom properties for light and dark modes.' },
 ] as const
+
+const exportsByType = computed(() => {
+  if (!props.palette) {
+    return {
+      json: '',
+      appConfig: '',
+      ts: '',
+      components: '',
+      snippet: '',
+      js: '',
+      css: '',
+    }
+  }
+
+  return {
+    json: exportPaletteJson(props.palette),
+    appConfig: exportPaletteAppConfig(props.palette),
+    ts: exportPaletteTs(props.palette),
+    components: exportPaletteComponentsTs(props.palette),
+    snippet: exportPaletteInstallSnippet(props.palette),
+    js: exportPaletteTs(props.palette),
+    css: exportPaletteCss(props.palette),
+  }
+})
+
+const activeExport = computed(() => {
+  return exportsByType.value[selectedExport.value]
+})
 
 function formatPaletteFileName(name: string) {
   const normalized = name
@@ -38,17 +71,13 @@ function exportCurrentPalette() {
   }
 
   const exportValue = exportOptions.find(option => option.value === selectedExport.value)?.value ?? 'json'
-  const fileContents = {
-    json: exportPaletteJson(props.palette),
-    appConfig: exportPaletteAppConfig(props.palette),
-    ts: exportPaletteTs(props.palette),
-    js: exportPaletteTs(props.palette),
-    css: exportPaletteCss(props.palette),
-  }[exportValue]
+  const fileContents = activeExport.value
   const fileName = {
     json: `${formatPaletteFileName(props.palette.name)}.json`,
     appConfig: 'app.config.ts',
     ts: 'theme.ts',
+    components: 'components.ts',
+    snippet: 'install-snippet.ts',
     js: 'theme.js',
     css: 'theme.css',
   }[exportValue]
@@ -63,6 +92,24 @@ function exportCurrentPalette() {
 
   URL.revokeObjectURL(url)
   open.value = false
+}
+
+async function copyCurrentExport() {
+  if (!activeExport.value || !import.meta.client) {
+    return
+  }
+
+  try {
+    await navigator.clipboard.writeText(activeExport.value)
+    copyState.value = 'copied'
+  }
+  catch {
+    copyState.value = 'error'
+  }
+
+  window.setTimeout(() => {
+    copyState.value = 'idle'
+  }, 2000)
 }
 </script>
 
@@ -91,6 +138,27 @@ function exportCurrentPalette() {
             </p>
           </button>
         </div>
+
+        <div class="rounded-xl border border-white/8 bg-black/80 p-3">
+          <p class="mb-2 text-xs uppercase tracking-[0.18em] text-white/40">
+            Preview
+          </p>
+          <textarea
+            :value="activeExport"
+            readonly
+            class="min-h-[280px] w-full rounded-xl border border-white/8 bg-black/70 px-4 py-3 font-mono text-xs leading-6 text-white/70 outline-none"
+          />
+        </div>
+
+        <UButton
+          block
+          color="neutral"
+          variant="outline"
+          :disabled="!props.palette"
+          @click="copyCurrentExport()"
+        >
+          {{ copyState === 'copied' ? 'Copied' : copyState === 'error' ? 'Copy failed' : 'Copy export' }}
+        </UButton>
 
         <UButton
           block

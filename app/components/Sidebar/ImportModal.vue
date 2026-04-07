@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PaletteDefinition } from '~/types/palette'
-import { normalizeImportedPalette } from '~/utils/palette-io'
+import { normalizeImportedPaletteFromText } from '~/utils/palette-io'
 
 const open = defineModel<boolean>('open', { default: false })
 
@@ -13,8 +13,7 @@ const pastedPaletteJson = ref('')
 
 function importPaletteFromContent(content: string) {
   try {
-    const parsed = JSON.parse(content) as unknown
-    const normalizedPalette = normalizeImportedPalette(parsed)
+    const normalizedPalette = normalizeImportedPaletteFromText(content)
 
     emit('import', normalizedPalette)
     open.value = false
@@ -22,7 +21,7 @@ function importPaletteFromContent(content: string) {
   }
   catch {
     if (import.meta.client) {
-      window.alert('Invalid palette file. Please import a valid palette JSON export.')
+      window.alert('Invalid palette input. Import a valid palette JSON export or CSS variables with :root/.dark blocks.')
     }
   }
 }
@@ -57,14 +56,14 @@ function importPaletteFromTextarea() {
   <input
     ref="importInput"
     type="file"
-    accept="application/json,.json"
+    accept="application/json,.json,text/css,.css,text/plain,.txt"
     class="hidden"
     @change="handlePaletteImport"
   >
   <UModal
     v-model:open="open"
     title="Import palette"
-    description="Upload a palette JSON file or paste palette JSON directly."
+    description="Upload or paste palette JSON, or CSS variables with :root and optional .dark blocks."
   >
     <template #body>
       <div class="space-y-4">
@@ -83,7 +82,7 @@ function importPaletteFromTextarea() {
             class="w-full"
             v-model="pastedPaletteJson"
             :rows="12"
-            placeholder="{&#10;  &quot;name&quot;: &quot;My Palette&quot;,&#10;  &quot;modes&quot;: { ... }&#10;}"
+            placeholder="{&#10;  &quot;name&quot;: &quot;My Palette&quot;,&#10;  &quot;modes&quot;: { ... }&#10;}&#10;&#10;or&#10;&#10;:root {&#10;  --ui-primary: #11aa55;&#10;}"
           />
         </UFormField>
 
@@ -93,7 +92,7 @@ function importPaletteFromTextarea() {
           :disabled="!pastedPaletteJson.trim()"
           @click="importPaletteFromTextarea()"
         >
-          Import pasted JSON
+          Import pasted content
         </UButton>
       </div>
     </template>
