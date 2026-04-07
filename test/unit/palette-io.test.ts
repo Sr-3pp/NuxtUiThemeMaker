@@ -143,4 +143,39 @@ describe('palette io', () => {
     expect(palette.modes.light.ui?.border).toBe('#cbd5e1')
     expect(palette.components?.button?.variants?.solid?.primary?.bg).toBe('var(--ui-primary)')
   })
+
+  it('imports palettes from inline app.config.ts modules', () => {
+    const palette = normalizeImportedPaletteFromText(`
+      export default defineAppConfig({
+        ui: {
+          theme: {
+            light: {
+              "--ui-primary": "#11aa55",
+              "--ui-text": "#111111",
+              "--ui-bg": "#f8fafc"
+            },
+            dark: {
+              "--ui-primary": "#44dd88",
+              "--ui-text": "#f5f5f5",
+              "--ui-bg": "#020617"
+            }
+          },
+          button: {
+            variants: {
+              solid: {
+                primary: {
+                  bg: "var(--ui-primary)"
+                }
+              }
+            }
+          }
+        }
+      })
+    `)
+
+    expect(palette.modes.light.color?.primary).toBe('#11aa55')
+    expect(palette.modes.dark.text?.default).toBe('#f5f5f5')
+    expect(palette.modes.light.bg?.default).toBe('#f8fafc')
+    expect(palette.components?.button?.variants?.solid?.primary?.bg).toBe('var(--ui-primary)')
+  })
 })

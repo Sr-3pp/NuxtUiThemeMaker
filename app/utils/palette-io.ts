@@ -17,6 +17,16 @@ interface ExportedThemeModule {
   components?: PaletteDefinition['components']
 }
 
+interface ParsedAppConfigModule {
+  ui?: {
+    theme?: {
+      light?: Record<string, string>
+      dark?: Record<string, string>
+    }
+    [key: string]: unknown
+  }
+}
+
 function parseThemeTokenName(tokenName: string): ParsedThemeTokenTarget | null {
   const normalized = tokenName.trim()
 
@@ -261,6 +271,42 @@ function paletteFromExportedThemeModule(content: string): PaletteDefinition | nu
   }
 }
 
+function parseAppConfigModule(content: string): ParsedAppConfigModule | null {
+  const appConfigIndex = content.indexOf('defineAppConfig')
+
+  if (appConfigIndex === -1) {
+    return null
+  }
+
+  const appConfigLiteral = extractBalancedObjectLiteral(content, appConfigIndex)
+
+  if (!appConfigLiteral) {
+    return null
+  }
+
+  return parseJsonLikeObjectLiteral(appConfigLiteral) as ParsedAppConfigModule
+}
+
+function paletteFromAppConfigModule(content: string): PaletteDefinition | null {
+  const appConfig = parseAppConfigModule(content)
+  const uiConfig = appConfig?.ui
+
+  if (!uiConfig?.theme) {
+    return null
+  }
+
+  const { theme, ...componentConfig } = uiConfig
+
+  return {
+    name: 'Imported App Config Theme',
+    modes: {
+      light: parseThemeVariablesToMode(theme.light),
+      dark: parseThemeVariablesToMode(theme.dark),
+    },
+    components: componentConfig as PaletteDefinition['components'],
+  }
+}
+
 export function isPaletteDefinitionLike(value: unknown): value is PaletteDefinition {
   if (!value || typeof value !== 'object') {
     return false
@@ -300,6 +346,12 @@ export function normalizeImportedPaletteFromText(content: string): PaletteDefini
 
     if (exportedThemePalette) {
       return normalizePaletteDefinition(exportedThemePalette)
+    }
+
+    const appConfigPalette = paletteFromAppConfigModule(trimmedContent)
+
+    if (appConfigPalette) {
+      return normalizePaletteDefinition(appConfigPalette)
     }
 
     const cssPalette = paletteFromCssVariables(trimmedContent)
