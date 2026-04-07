@@ -7,6 +7,8 @@ export type PreviewAreaKey =
   | 'dataDisplay'
   | 'feedback'
   | 'systemStates'
+  | 'commandCenter'
+  | 'notifications'
   | 'typography'
 
 export interface PreviewAreaDefinition {
@@ -82,6 +84,22 @@ export const previewAreaDefinitions: PreviewAreaDefinition[] = [
     components: ['UEmpty', 'UTimeline'],
     tokens: ['empty state CTA', 'icon emphasis', 'step progression'],
     description: 'Empty states and step-based communication patterns for dashboard and workflow screens.',
+  },
+  {
+    value: 'commandCenter',
+    label: 'Command Palette',
+    tab: 'surfaces',
+    components: ['UCommandPalette', 'UKbd'],
+    tokens: ['search state', 'group labels', 'kbd hints'],
+    description: 'Grouped search and command density for app-level command palette interactions.',
+  },
+  {
+    value: 'notifications',
+    label: 'Notifications',
+    tab: 'surfaces',
+    components: ['UToast'],
+    tokens: ['toast surfaces', 'semantic feedback', 'horizontal actions'],
+    description: 'Toast messaging for save confirmations, warnings and lightweight status updates.',
   },
   {
     value: 'typography',

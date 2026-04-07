@@ -14,5 +14,9 @@ const props = defineProps<PreviewPanelContentProps>()
     <PreviewFeedback :disable-interactive="props.disableInteractive" :palette="props.palette" />
     <PreviewInspectLegend v-if="props.inspectTokens" area="systemStates" />
     <PreviewSystemStates :disable-interactive="props.disableInteractive" :palette="props.palette" />
+    <PreviewInspectLegend v-if="props.inspectTokens" area="commandCenter" />
+    <PreviewCommandCenter :disable-interactive="props.disableInteractive" :palette="props.palette" />
+    <PreviewInspectLegend v-if="props.inspectTokens" area="notifications" />
+    <PreviewNotifications :disable-interactive="props.disableInteractive" :palette="props.palette" />
   </div>
 </template>

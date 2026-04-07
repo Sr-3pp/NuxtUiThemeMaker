@@ -106,6 +106,16 @@ watchEffect(() => {
         :disable-interactive="props.disableInteractive"
         :palette="props.palette"
       />
+      <PreviewCommandCenter
+        v-else-if="activeArea.value === 'commandCenter'"
+        :disable-interactive="props.disableInteractive"
+        :palette="props.palette"
+      />
+      <PreviewNotifications
+        v-else-if="activeArea.value === 'notifications'"
+        :disable-interactive="props.disableInteractive"
+        :palette="props.palette"
+      />
       <PreviewTypography
         v-else
         :disable-interactive="props.disableInteractive"
