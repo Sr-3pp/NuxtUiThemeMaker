@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   exportPaletteAppConfig,
+  exportPaletteBundleTs,
   exportPaletteComponentsTs,
   exportPaletteInstallSnippet,
   exportPaletteTs,
@@ -103,6 +104,38 @@ describe('palette export', () => {
 
     expect(output).toContain('defineAppConfig')
     expect(output).toContain('theme,')
+    expect(output).toContain('...components')
+  })
+
+  it('exports a self-contained Nuxt bundle', () => {
+    const output = exportPaletteBundleTs({
+      name: 'Forest Glow',
+      modes: {
+        light: {
+          color: { primary: '#11aa55' },
+          ui: { primary: '#11aa55' },
+        },
+        dark: {
+          color: { primary: '#44dd88' },
+          ui: { primary: '#44dd88' },
+        },
+      },
+      components: {
+        button: {
+          variants: {
+            solid: {
+              primary: {
+                bg: 'var(--ui-primary)',
+              },
+            },
+          },
+        },
+      },
+    })
+
+    expect(output).toContain('export const theme = {')
+    expect(output).toContain('export const components =')
+    expect(output).toContain('export default defineAppConfig({')
     expect(output).toContain('...components')
   })
 })

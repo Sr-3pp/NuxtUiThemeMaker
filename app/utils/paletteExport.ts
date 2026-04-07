@@ -81,3 +81,26 @@ export function exportPaletteInstallSnippet(_palette: PaletteDefinition) {
     '})',
   ].join('\n')
 }
+
+export function exportPaletteBundleTs(palette: PaletteDefinition) {
+  const lightTheme = themeBuilder(palette.modes.light)
+  const darkTheme = themeBuilder(palette.modes.dark)
+  const components = palette.components ?? {}
+
+  return [
+    'export const theme = {',
+    `  light: ${JSON.stringify(lightTheme, null, 2).replace(/\n/g, '\n  ')},`,
+    `  dark: ${JSON.stringify(darkTheme, null, 2).replace(/\n/g, '\n  ')}`,
+    '}',
+    '',
+    'export const components = ',
+    `${JSON.stringify(components, null, 2)}`,
+    '',
+    'export default defineAppConfig({',
+    '  ui: {',
+    '    theme,',
+    '    ...components',
+    '  }',
+    '})',
+  ].join('\n')
+}

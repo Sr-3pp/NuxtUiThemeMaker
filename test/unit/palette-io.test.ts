@@ -178,4 +178,39 @@ describe('palette io', () => {
     expect(palette.modes.light.bg?.default).toBe('#f8fafc')
     expect(palette.components?.button?.variants?.solid?.primary?.bg).toBe('var(--ui-primary)')
   })
+
+  it('imports palettes from self-contained Nuxt bundles', () => {
+    const palette = normalizeImportedPaletteFromText(`
+      export const theme = {
+        light: {
+          "--ui-primary": "#11aa55",
+          "--ui-text": "#111111"
+        },
+        dark: {
+          "--ui-primary": "#44dd88",
+          "--ui-text": "#f5f5f5"
+        }
+      }
+
+      export const components =
+      {
+        "input": {
+          "base": {
+            "border": "var(--ui-border)"
+          }
+        }
+      }
+
+      export default defineAppConfig({
+        ui: {
+          theme,
+          ...components
+        }
+      })
+    `)
+
+    expect(palette.modes.light.color?.primary).toBe('#11aa55')
+    expect(palette.modes.dark.text?.default).toBe('#f5f5f5')
+    expect(palette.components?.input?.base?.border).toBe('var(--ui-border)')
+  })
 })

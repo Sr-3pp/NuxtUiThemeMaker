@@ -2,6 +2,7 @@
 import type { PaletteDefinition } from '~/types/palette'
 import {
   exportPaletteAppConfig,
+  exportPaletteBundleTs,
   exportPaletteCss,
   exportPaletteComponentsTs,
   exportPaletteInstallSnippet,
@@ -14,11 +15,12 @@ const props = defineProps<{
 }>()
 
 const open = defineModel<boolean>('open', { default: false })
-const selectedExport = ref<'json' | 'appConfig' | 'ts' | 'components' | 'snippet' | 'js' | 'css'>('json')
+const selectedExport = ref<'json' | 'bundle' | 'appConfig' | 'ts' | 'components' | 'snippet' | 'js' | 'css'>('json')
 const copyState = ref<'idle' | 'copied' | 'error'>('idle')
 
 const exportOptions = [
   { label: 'JSON', value: 'json', description: 'Full palette definition for import/export.' },
+  { label: 'Nuxt bundle', value: 'bundle', description: 'Single self-contained file with theme, components and defineAppConfig.' },
   { label: 'app.config.ts', value: 'appConfig', description: 'Nuxt app config wrapper for the theme export.' },
   { label: 'theme.ts', value: 'ts', description: 'TypeScript theme object export.' },
   { label: 'components.ts', value: 'components', description: 'Only the component override layer for Nuxt UI.' },
@@ -31,6 +33,7 @@ const exportsByType = computed(() => {
   if (!props.palette) {
     return {
       json: '',
+      bundle: '',
       appConfig: '',
       ts: '',
       components: '',
@@ -42,6 +45,7 @@ const exportsByType = computed(() => {
 
   return {
     json: exportPaletteJson(props.palette),
+    bundle: exportPaletteBundleTs(props.palette),
     appConfig: exportPaletteAppConfig(props.palette),
     ts: exportPaletteTs(props.palette),
     components: exportPaletteComponentsTs(props.palette),
@@ -74,6 +78,7 @@ function exportCurrentPalette() {
   const fileContents = activeExport.value
   const fileName = {
     json: `${formatPaletteFileName(props.palette.name)}.json`,
+    bundle: 'nuxt-ui-theme.bundle.ts',
     appConfig: 'app.config.ts',
     ts: 'theme.ts',
     components: 'components.ts',
