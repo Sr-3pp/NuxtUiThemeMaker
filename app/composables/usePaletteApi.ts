@@ -1,7 +1,7 @@
 import type { EditablePalette } from '~/types/palette-editor'
 import type { StoredPalette, UpdatePalettePayload, UpdatePaletteVisibilityPayload } from '~/types/palette-store'
 import type { PaletteGenerationAccess } from '~/types/palette-generation'
-import { FREE_PLAN_PALETTE_GENERATION_LIMIT } from '~/data/pricing'
+import { FREE_PLAN_PALETTE_GENERATION_LIMIT } from '../data/pricing'
 import { clonePaletteDefinition } from '~/utils/palette-domain'
 
 export function usePaletteApi() {

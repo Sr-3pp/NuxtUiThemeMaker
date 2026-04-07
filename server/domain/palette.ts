@@ -1,6 +1,6 @@
 import type { StoredPalette } from '~/types/palette-store'
 import type { PaletteDefinition } from '~/types/palette'
-import { normalizePaletteDefinition } from '~/utils/palette-domain'
+import { normalizePaletteDefinition } from '../../app/utils/palette-domain'
 import type { PaletteDocument } from '~~/server/types/palette-document'
 
 export function toStoredPalette(document: PaletteDocument): StoredPalette {

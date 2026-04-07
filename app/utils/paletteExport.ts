@@ -1,6 +1,6 @@
 import type { PaletteDefinition } from '~/types/palette'
-import { serializePaletteExport } from '~/utils/palette-io'
-import themeBuilder from '~/utils/theme-builder'
+import { serializePaletteExport } from './palette-io'
+import themeBuilder from './theme-builder'
 
 function formatThemeBlock(selector: string, tokens: Record<string, string>) {
   const entries = Object.entries(tokens)
@@ -33,22 +33,27 @@ export function exportPaletteCss(palette: PaletteDefinition) {
 export function exportPaletteTs(palette: PaletteDefinition) {
   const lightTheme = themeBuilder(palette.modes.light)
   const darkTheme = themeBuilder(palette.modes.dark)
+  const components = palette.components ?? {}
 
   return [
     'export const theme = {',
     `  light: ${JSON.stringify(lightTheme, null, 2).replace(/\n/g, '\n  ')},`,
     `  dark: ${JSON.stringify(darkTheme, null, 2).replace(/\n/g, '\n  ')}`,
-    '}'
+    '}',
+    '',
+    'export const components = ',
+    `${JSON.stringify(components, null, 2)}`,
   ].join('\n')
 }
 
 export function exportPaletteAppConfig(_palette: PaletteDefinition) {
   return [
-    "import { theme } from './theme'",
+    "import { components, theme } from './theme'",
     '',
     'export default defineAppConfig({',
     '  ui: {',
-    '    theme',
+    '    theme,',
+    '    ...components',
     '  }',
     '})'
   ].join('\n')

@@ -1,8 +1,20 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
-import type { UpdateEditablePaletteTokenPayload } from '~/types/palette-editor'
+import type {
+  UpdateEditablePaletteColorScalePayload,
+  UpdateEditablePaletteComponentTokenPayload,
+  UpdateEditablePaletteTokenPayload,
+} from '~/types/palette-editor'
 
-const { currentPalette, sourcePalette, setCurrentPalette, updatePalette, updatePaletteName } = usePaletteState()
+const {
+  currentPalette,
+  sourcePalette,
+  setCurrentPalette,
+  updatePalette,
+  updatePaletteColorScale,
+  updatePaletteComponentToken,
+  updatePaletteName,
+} = usePaletteState()
 const { savePalette, saveNewPalette } = usePaletteApi()
 const { editorSidebarSw } = useSidebar()
 const { showErrorToast } = useErrorToast()
@@ -54,6 +66,14 @@ const handleUpdateToken = (event: UpdateEditablePaletteTokenPayload) => {
   updatePalette({mode, section, token, value})
 }
 
+const handleUpdateColorScale = (payload: UpdateEditablePaletteColorScalePayload) => {
+  updatePaletteColorScale(payload)
+}
+
+const handleUpdateComponentToken = (payload: UpdateEditablePaletteComponentTokenPayload) => {
+  updatePaletteComponentToken(payload)
+}
+
 const handlePaletteNameInput = (event: Event) => {
   updatePaletteName((event.target as HTMLInputElement).value)
 }
@@ -80,7 +100,15 @@ const handlePaletteNameInput = (event: Event) => {
           />
         </UFormField>
 
-        <WorkbenchEditorContent :palette="currentPalette" :sourcePalette="sourcePalette ?? currentPalette" defaultMode="dark" tab="tokens" @update-token="handleUpdateToken"/>
+        <WorkbenchEditorContent
+          :palette="currentPalette"
+          :sourcePalette="sourcePalette ?? currentPalette"
+          defaultMode="dark"
+          tab="tokens"
+          @update-token="handleUpdateToken"
+          @update-color-scale="handleUpdateColorScale"
+          @update-component-token="handleUpdateComponentToken"
+        />
       </div>
 
       <template #footer>

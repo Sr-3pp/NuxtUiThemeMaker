@@ -1,4 +1,9 @@
-import type { EditablePalette, UpdateEditablePaletteTokenPayload } from '~/types/palette-editor'
+import type {
+  EditablePalette,
+  UpdateEditablePaletteColorScalePayload,
+  UpdateEditablePaletteComponentTokenPayload,
+  UpdateEditablePaletteTokenPayload,
+} from '~/types/palette-editor'
 import type {
   PaletteColorScale,
   PaletteColorScales,
@@ -37,6 +42,18 @@ function cloneComponentThemes(components?: PaletteComponentThemes) {
   }
 
   return JSON.parse(JSON.stringify(components)) as PaletteComponentThemes
+}
+
+function ensureComponentThemeSection(palette: EditablePalette, componentKey: string) {
+  if (!palette.components) {
+    palette.components = {}
+  }
+
+  if (!palette.components[componentKey]) {
+    palette.components[componentKey] = {}
+  }
+
+  return palette.components[componentKey]
 }
 
 function deriveColorScales(palette: PaletteDefinition): PaletteColorScales {
@@ -191,6 +208,99 @@ export function updateEditablePaletteToken(
     }
 
     palette.colors[token]['500'] = value as PaletteTokenValue
+  }
+
+  return palette
+}
+
+export function updateEditablePaletteColorScale(
+  palette: EditablePalette,
+  { colorKey, step, value, syncMode = 'both' }: UpdateEditablePaletteColorScalePayload
+) {
+  if (!palette.colors) {
+    palette.colors = {}
+  }
+
+  if (!palette.colors[colorKey]) {
+    palette.colors[colorKey] = createEmptyColorScale()
+  }
+
+  palette.colors[colorKey][step as keyof PaletteColorScale] = value
+
+  if (step !== '500') {
+    return palette
+  }
+
+  const targetModes = syncMode === 'both' ? ['light', 'dark'] as const : [syncMode]
+
+  targetModes.forEach((modeKey) => {
+    const mode = palette.modes[modeKey]
+
+    if (!mode.color) {
+      mode.color = {}
+    }
+
+    if (!mode.ui) {
+      mode.ui = {}
+    }
+
+    mode.color[colorKey] = value
+    mode.ui[colorKey] = value
+  })
+
+  return palette
+}
+
+export function updateEditablePaletteComponentToken(
+  palette: EditablePalette,
+  payload: UpdateEditablePaletteComponentTokenPayload
+) {
+  const componentSection = ensureComponentThemeSection(palette, payload.component)
+
+  if (payload.area === 'base') {
+    componentSection.base = {
+      ...componentSection.base,
+      [payload.token]: payload.value,
+    }
+
+    return palette
+  }
+
+  if (payload.area === 'slot' && payload.slot) {
+    componentSection.slots = {
+      ...componentSection.slots,
+      [payload.slot]: {
+        ...(componentSection.slots?.[payload.slot] ?? {}),
+        [payload.token]: payload.value,
+      },
+    }
+
+    return palette
+  }
+
+  if (payload.area === 'variant' && payload.variant && payload.variantColor) {
+    componentSection.variants = {
+      ...componentSection.variants,
+      [payload.variant]: {
+        ...(componentSection.variants?.[payload.variant] ?? {}),
+        [payload.variantColor]: {
+          ...(componentSection.variants?.[payload.variant]?.[payload.variantColor] ?? {}),
+          [payload.token]: payload.value,
+        },
+      },
+    }
+
+    return palette
+  }
+
+  if (payload.area === 'state' && payload.state) {
+    componentSection.states = {
+      ...componentSection.states,
+      [payload.state]: {
+        ...(componentSection.states?.[payload.state] ?? {}),
+        [payload.token]: payload.value,
+      },
+    }
   }
 
   return palette

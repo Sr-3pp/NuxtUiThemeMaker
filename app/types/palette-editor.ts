@@ -9,3 +9,21 @@ export interface UpdateEditablePaletteTokenPayload {
   token: string
   value: PaletteTokenValue
 }
+
+export interface UpdateEditablePaletteColorScalePayload {
+  colorKey: string
+  step: string
+  value: PaletteTokenValue
+  syncMode?: PaletteModeKey | 'both'
+}
+
+export interface UpdateEditablePaletteComponentTokenPayload {
+  component: string
+  area: 'base' | 'slot' | 'variant' | 'state'
+  token: string
+  value: PaletteTokenValue
+  slot?: string
+  variant?: string
+  variantColor?: string
+  state?: string
+}

@@ -4,6 +4,8 @@ import {
   createEditablePalette,
   hydratePaletteDefinition,
   normalizePaletteDefinition,
+  updateEditablePaletteColorScale,
+  updateEditablePaletteComponentToken,
   updateEditablePaletteToken,
 } from '../../app/utils/palette-domain'
 import type { PaletteDefinition } from '../../app/types/palette'
@@ -133,5 +135,36 @@ describe('palette domain utils', () => {
     expect(editable.modes.light.color?.primary).toBe('#ffffff')
     expect(editable.modes.light.ui.primary).toBe('#ffffff')
     expect(editable.colors?.primary?.['500']).toBe('#ffffff')
+  })
+
+  it('updates color scales and syncs the chosen mode semantic token for 500', () => {
+    const editable = createEditablePalette(createPalette())
+
+    updateEditablePaletteColorScale(editable, {
+      colorKey: 'primary',
+      step: '500',
+      value: '#123456',
+      syncMode: 'dark',
+    })
+
+    expect(editable.colors?.primary?.['500']).toBe('#123456')
+    expect(editable.modes.dark.color?.primary).toBe('#123456')
+    expect(editable.modes.dark.ui.primary).toBe('#123456')
+    expect(editable.modes.light.color?.primary).toBe('#11aa55')
+  })
+
+  it('stores component override tokens in the normalized schema', () => {
+    const editable = createEditablePalette(createPalette())
+
+    updateEditablePaletteComponentToken(editable, {
+      component: 'button',
+      area: 'variant',
+      variant: 'solid',
+      variantColor: 'primary',
+      token: 'bg',
+      value: 'var(--ui-primary)',
+    })
+
+    expect(editable.components?.button?.variants?.solid?.primary?.bg).toBe('var(--ui-primary)')
   })
 })

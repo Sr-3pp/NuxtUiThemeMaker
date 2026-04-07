@@ -169,7 +169,14 @@ describe('usePaletteState', () => {
 
   it('updates palette names and tokens on the current palette only', async () => {
     const { usePaletteState } = await import('../../app/composables/usePaletteState')
-    const { currentPalette, setCurrentPalette, updatePalette, updatePaletteName } = usePaletteState()
+    const {
+      currentPalette,
+      setCurrentPalette,
+      updatePalette,
+      updatePaletteColorScale,
+      updatePaletteComponentToken,
+      updatePaletteName,
+    } = usePaletteState()
 
     setCurrentPalette(createStoredPalette())
     updatePaletteName('Aurora')
@@ -179,9 +186,26 @@ describe('usePaletteState', () => {
       token: 'primary',
       value: '#123456',
     })
+    updatePaletteColorScale({
+      colorKey: 'primary',
+      step: '500',
+      value: '#345678',
+      syncMode: 'dark',
+    })
+    updatePaletteComponentToken({
+      component: 'button',
+      area: 'variant',
+      variant: 'solid',
+      variantColor: 'primary',
+      token: 'bg',
+      value: 'var(--ui-primary)',
+    })
 
     expect(currentPalette.value?.name).toBe('Aurora')
     expect(currentPalette.value?.modes.light.color?.primary).toBe('#123456')
     expect(currentPalette.value?.modes.light.ui.primary).toBe('#123456')
+    expect(currentPalette.value?.colors?.primary?.['500']).toBe('#345678')
+    expect(currentPalette.value?.modes.dark.color?.primary).toBe('#345678')
+    expect(currentPalette.value?.components?.button?.variants?.solid?.primary?.bg).toBe('var(--ui-primary)')
   })
 })

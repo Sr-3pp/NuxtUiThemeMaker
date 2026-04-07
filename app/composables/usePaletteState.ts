@@ -1,10 +1,17 @@
-import type { EditablePalette, UpdateEditablePaletteTokenPayload } from '~/types/palette-editor'
+import type {
+  EditablePalette,
+  UpdateEditablePaletteColorScalePayload,
+  UpdateEditablePaletteComponentTokenPayload,
+  UpdateEditablePaletteTokenPayload,
+} from '~/types/palette-editor'
 import type { PaletteDefinition } from '~/types/palette'
 import type { StoredPalette } from '~/types/palette-store'
 import { emptyPalette } from '~/utils/paletteRegistry'
 import {
   clonePaletteDefinition,
   createEditablePalette,
+  updateEditablePaletteColorScale,
+  updateEditablePaletteComponentToken,
   updateEditablePaletteToken,
 } from '~/utils/palette-domain'
 
@@ -58,6 +65,22 @@ export function usePaletteState() {
     updateEditablePaletteToken(currentPalette.value, payload)
   }
 
+  const updatePaletteColorScale = (payload: UpdateEditablePaletteColorScalePayload) => {
+    if (!currentPalette.value) {
+      return
+    }
+
+    updateEditablePaletteColorScale(currentPalette.value, payload)
+  }
+
+  const updatePaletteComponentToken = (payload: UpdateEditablePaletteComponentTokenPayload) => {
+    if (!currentPalette.value) {
+      return
+    }
+
+    updateEditablePaletteComponentToken(currentPalette.value, payload)
+  }
+
   return {
     currentPalette,
     sourcePalette,
@@ -66,5 +89,7 @@ export function usePaletteState() {
     setCurrentPalette,
     updatePaletteName,
     updatePalette,
+    updatePaletteColorScale,
+    updatePaletteComponentToken,
   }
 }
