@@ -51,7 +51,7 @@ function asTokenGroup(scale: PaletteColorScale) {
           Color scales
         </p>
         <p class="text-xs text-muted">
-          Edit the global ramps. Updating `500` syncs the active mode semantic token for the same color.
+          Edit the global ramps. Updating `500` regenerates the scale and syncs the active mode semantic token.
         </p>
       </div>
     </template>
@@ -73,7 +73,7 @@ function asTokenGroup(scale: PaletteColorScale) {
             {{ formatPaletteLabel(colorKey) }}
           </p>
           <p class="text-xs text-muted">
-            `500` updates {{ activeMode }} mode semantic color
+            `500` regenerates this ramp and updates {{ activeMode }} mode semantic color
           </p>
         </div>
 
@@ -83,28 +83,47 @@ function asTokenGroup(scale: PaletteColorScale) {
             :key="`${colorKey}-${step}`"
             class="rounded-lg border border-default/60 p-3"
           >
-            <div class="flex items-center gap-3">
-              <span
-                class="h-8 w-8 rounded-lg border border-black/20 dark:border-white/20"
-                :style="paletteTokenStyle(tokenValue)"
-              />
-              <div class="min-w-0 flex-1">
-                <p class="text-sm font-medium">
-                  {{ step }}
-                </p>
-                <p class="text-xs text-muted">
-                  {{ tokenValue ?? 'Unset' }}
-                </p>
-              </div>
+            <div class="min-w-0">
+              <p class="text-sm font-medium">
+                {{ step }}
+              </p>
+              <p class="text-xs text-muted">
+                {{ tokenValue ?? 'Unset' }}
+              </p>
             </div>
 
             <div class="mt-3 flex gap-2">
-              <UColorPicker
-                :model-value="getPalettePickerValue(asTokenGroup(scale), String(step))"
-                format="hex"
-                size="sm"
-                @update:model-value="updateScale(colorKey, String(step), $event)"
-              />
+              <UPopover
+                :content="{
+                  align: 'start',
+                  side: 'bottom',
+                  sideOffset: 10
+                }"
+              >
+                <UButton
+                  type="button"
+                  color="neutral"
+                  variant="ghost"
+                  class="shrink-0 rounded-xl border bg-white/5 px-2.5 py-2 hover:bg-white/10 dark:border-white/10 dark:bg-black/5 dark:hover:bg-black/10"
+                >
+                  <span
+                    class="h-5 w-5 rounded-md border border-black/40 dark:border-white/40"
+                    :style="paletteTokenStyle(tokenValue)"
+                  />
+                </UButton>
+
+                <template #content>
+                  <div class="rounded-2xl border border-white/10 bg-black/95 p-3 shadow-2xl backdrop-blur">
+                    <UColorPicker
+                      :model-value="getPalettePickerValue(asTokenGroup(scale), String(step))"
+                      format="hex"
+                      size="sm"
+                      @update:model-value="updateScale(colorKey, String(step), $event)"
+                    />
+                  </div>
+                </template>
+              </UPopover>
+
               <UInput
                 :model-value="getPaletteInputValue(asTokenGroup(scale), String(step))"
                 class="flex-1"

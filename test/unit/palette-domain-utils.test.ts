@@ -84,19 +84,12 @@ describe('palette domain utils', () => {
   it('normalizes legacy palettes into the expanded phase 1 shape', () => {
     const normalized = normalizePaletteDefinition(createPalette())
 
-    expect(normalized.colors?.primary).toEqual({
-      '50': null,
-      '100': null,
-      '200': null,
-      '300': null,
-      '400': null,
-      '500': '#11aa55',
-      '600': null,
-      '700': null,
-      '800': null,
-      '900': null,
-      '950': null,
-    })
+    expect(normalized.colors?.primary?.['50']).toMatch(/^#[0-9a-f]{6}$/)
+    expect(normalized.colors?.primary?.['100']).toMatch(/^#[0-9a-f]{6}$/)
+    expect(normalized.colors?.primary?.['400']).toMatch(/^#[0-9a-f]{6}$/)
+    expect(normalized.colors?.primary?.['500']).toBe('#11aa55')
+    expect(normalized.colors?.primary?.['900']).toMatch(/^#[0-9a-f]{6}$/)
+    expect(normalized.colors?.primary?.['950']).toMatch(/^#[0-9a-f]{6}$/)
     expect(normalized.aliases?.warning).toBe('warning')
     expect(normalized.components).toEqual({})
     expect(normalized.metadata).toEqual({
@@ -148,9 +141,36 @@ describe('palette domain utils', () => {
     })
 
     expect(editable.colors?.primary?.['500']).toBe('#123456')
+    expect(editable.colors?.primary?.['50']).toMatch(/^#[0-9a-f]{6}$/)
+    expect(editable.colors?.primary?.['600']).toMatch(/^#[0-9a-f]{6}$/)
+    expect(editable.colors?.primary?.['950']).toMatch(/^#[0-9a-f]{6}$/)
     expect(editable.modes.dark.color?.primary).toBe('#123456')
     expect(editable.modes.dark.ui.primary).toBe('#123456')
     expect(editable.modes.light.color?.primary).toBe('#11aa55')
+  })
+
+  it('preserves manually edited non-500 steps when generating missing scale values', () => {
+    const normalized = normalizePaletteDefinition(createPalette({
+      colors: {
+        primary: {
+          '50': '#fafafa',
+          '100': null,
+          '200': null,
+          '300': null,
+          '400': null,
+          '500': '#11aa55',
+          '600': null,
+          '700': null,
+          '800': null,
+          '900': null,
+          '950': null,
+        },
+      },
+    }))
+
+    expect(normalized.colors?.primary?.['50']).toBe('#fafafa')
+    expect(normalized.colors?.primary?.['200']).toMatch(/^#[0-9a-f]{6}$/)
+    expect(normalized.colors?.primary?.['500']).toBe('#11aa55')
   })
 
   it('stores component override tokens in the normalized schema', () => {

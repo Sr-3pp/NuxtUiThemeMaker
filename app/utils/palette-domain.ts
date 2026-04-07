@@ -14,6 +14,26 @@ import type {
 import { paletteScaleSteps } from '../types/palette'
 import type { StoredPalette } from '~/types/palette-store'
 
+interface RgbColor {
+  r: number
+  g: number
+  b: number
+}
+
+const scaleMixMap: Record<string, { target: RgbColor, amount: number }> = {
+  '50': { target: { r: 255, g: 255, b: 255 }, amount: 0.95 },
+  '100': { target: { r: 255, g: 255, b: 255 }, amount: 0.88 },
+  '200': { target: { r: 255, g: 255, b: 255 }, amount: 0.72 },
+  '300': { target: { r: 255, g: 255, b: 255 }, amount: 0.54 },
+  '400': { target: { r: 255, g: 255, b: 255 }, amount: 0.26 },
+  '500': { target: { r: 0, g: 0, b: 0 }, amount: 0 },
+  '600': { target: { r: 0, g: 0, b: 0 }, amount: 0.12 },
+  '700': { target: { r: 0, g: 0, b: 0 }, amount: 0.24 },
+  '800': { target: { r: 0, g: 0, b: 0 }, amount: 0.38 },
+  '900': { target: { r: 0, g: 0, b: 0 }, amount: 0.52 },
+  '950': { target: { r: 0, g: 0, b: 0 }, amount: 0.64 },
+}
+
 function clonePaletteMode(mode: PaletteDefinition['modes']['light']) {
   return Object.fromEntries(
     Object.entries(mode).map(([section, tokens]) => [section, { ...tokens }])
@@ -23,6 +43,100 @@ function clonePaletteMode(mode: PaletteDefinition['modes']['light']) {
 function createEmptyColorScale(): PaletteColorScale {
   return Object.fromEntries(
     paletteScaleSteps.map(step => [step, null])
+  ) as PaletteColorScale
+}
+
+function clampChannel(value: number) {
+  return Math.min(255, Math.max(0, Math.round(value)))
+}
+
+function normalizeHexColor(value: string | null | undefined) {
+  const normalized = value?.trim()
+
+  if (!normalized) {
+    return null
+  }
+
+  const match = normalized.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i)
+
+  if (!match) {
+    return null
+  }
+
+  const hex = match[1]
+
+  if (!hex) {
+    return null
+  }
+
+  if (hex.length === 3) {
+    return `#${hex.split('').map(char => `${char}${char}`).join('').toLowerCase()}`
+  }
+
+  return `#${hex.toLowerCase()}`
+}
+
+function parseHexColor(value: string | null | undefined): RgbColor | null {
+  const normalized = normalizeHexColor(value)
+
+  if (!normalized) {
+    return null
+  }
+
+  return {
+    r: Number.parseInt(normalized.slice(1, 3), 16),
+    g: Number.parseInt(normalized.slice(3, 5), 16),
+    b: Number.parseInt(normalized.slice(5, 7), 16),
+  }
+}
+
+function toHexColor(color: RgbColor) {
+  return `#${[color.r, color.g, color.b].map(channel => clampChannel(channel).toString(16).padStart(2, '0')).join('')}`
+}
+
+function mixColors(source: RgbColor, target: RgbColor, amount: number): RgbColor {
+  return {
+    r: source.r + (target.r - source.r) * amount,
+    g: source.g + (target.g - source.g) * amount,
+    b: source.b + (target.b - source.b) * amount,
+  }
+}
+
+function generateColorScale(baseColor: string | null | undefined): PaletteColorScale {
+  const parsedBaseColor = parseHexColor(baseColor)
+
+  if (!parsedBaseColor) {
+    const emptyScale = createEmptyColorScale()
+    emptyScale['500'] = baseColor ?? null
+    return emptyScale
+  }
+
+  return Object.fromEntries(
+    paletteScaleSteps.map((step) => {
+      if (step === '500') {
+        return [step, toHexColor(parsedBaseColor)]
+      }
+
+      const mix = scaleMixMap[step]
+
+      if (!mix) {
+        return [step, null]
+      }
+
+      return [step, toHexColor(mixColors(parsedBaseColor, mix.target, mix.amount))]
+    })
+  ) as PaletteColorScale
+}
+
+function mergeColorScaleWithGenerated(scale: PaletteColorScale | undefined, baseColor: string | null | undefined) {
+  const generatedScale = generateColorScale(baseColor)
+
+  if (!scale) {
+    return generatedScale
+  }
+
+  return Object.fromEntries(
+    paletteScaleSteps.map(step => [step, scale[step] ?? generatedScale[step]])
   ) as PaletteColorScale
 }
 
@@ -63,13 +177,7 @@ function deriveColorScales(palette: PaletteDefinition): PaletteColorScales {
     const semanticColors = palette.modes[modeKey].color ?? {}
 
     Object.entries(semanticColors).forEach(([tokenKey, tokenValue]) => {
-      if (!colors[tokenKey]) {
-        colors[tokenKey] = createEmptyColorScale()
-      }
-
-      if (colors[tokenKey]['500'] == null) {
-        colors[tokenKey]['500'] = tokenValue
-      }
+      colors[tokenKey] = mergeColorScaleWithGenerated(colors[tokenKey], colors[tokenKey]?.['500'] ?? tokenValue)
     })
   })
 
@@ -207,7 +315,7 @@ export function updateEditablePaletteToken(
       palette.colors[token] = createEmptyColorScale()
     }
 
-    palette.colors[token]['500'] = value as PaletteTokenValue
+    palette.colors[token] = generateColorScale(value as PaletteTokenValue)
   }
 
   return palette
@@ -223,6 +331,10 @@ export function updateEditablePaletteColorScale(
 
   if (!palette.colors[colorKey]) {
     palette.colors[colorKey] = createEmptyColorScale()
+  }
+
+  if (step === '500') {
+    palette.colors[colorKey] = generateColorScale(value)
   }
 
   palette.colors[colorKey][step as keyof PaletteColorScale] = value
