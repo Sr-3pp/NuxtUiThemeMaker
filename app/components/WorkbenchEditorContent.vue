@@ -10,11 +10,12 @@ const props = defineProps<WorkbenchEditorProps>()
 const emit = defineEmits<WorkbenchEditorEmits>()
 
 const colorMode = useColorMode()
-const editorSection = ref<'tokens' | 'scales' | 'components'>('tokens')
+const editorSection = ref<'colors' | 'semantic' | 'components' | 'states'>('colors')
 const editorSections = [
-  { label: 'Semantic', value: 'tokens', slot: 'tokens' },
-  { label: 'Scales', value: 'scales', slot: 'scales' },
+  { label: 'Colors', value: 'colors', slot: 'colors' },
+  { label: 'Semantic', value: 'semantic', slot: 'semantic' },
   { label: 'Components', value: 'components', slot: 'components' },
+  { label: 'States', value: 'states', slot: 'states' },
 ]
 const activeMode = computed<PaletteModeKey>(() => {
   if (colorMode.value === 'dark') {
@@ -39,7 +40,15 @@ const activeMode = computed<PaletteModeKey>(() => {
       variant="link"
       :ui="{ root: 'mb-4', list: 'w-full border-b border-default/60' }"
     >
-      <template #tokens>
+      <template #colors>
+        <WorkbenchEditorColorScalesPanel
+          :active-mode="activeMode"
+          :palette="props.palette"
+          @update-color-scale="emit('update-color-scale', $event)"
+        />
+      </template>
+
+      <template #semantic>
         <WorkbenchEditorTokensPanel
           :active-mode="activeMode"
           :palette="props.palette"
@@ -48,16 +57,16 @@ const activeMode = computed<PaletteModeKey>(() => {
         />
       </template>
 
-      <template #scales>
-        <WorkbenchEditorColorScalesPanel
-          :active-mode="activeMode"
+      <template #components>
+        <WorkbenchEditorComponentOverridesPanel
           :palette="props.palette"
-          @update-color-scale="emit('update-color-scale', $event)"
+          @update-component-token="emit('update-component-token', $event)"
         />
       </template>
 
-      <template #components>
+      <template #states>
         <WorkbenchEditorComponentOverridesPanel
+          mode="states"
           :palette="props.palette"
           @update-component-token="emit('update-component-token', $event)"
         />

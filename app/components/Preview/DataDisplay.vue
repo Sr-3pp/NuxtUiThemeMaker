@@ -80,14 +80,12 @@ function buttonStyle(variant: string, color: string) {
 
         <UCard variant="outline">
           <template #header>
-            <p class="text-sm font-medium text-highlighted">Tooltip trigger</p>
+            <p class="text-sm font-medium text-highlighted">Hover target</p>
           </template>
 
           <div class="flex items-center gap-3">
-            <UTooltip text="Check hover contrast and overlay surface" :content="{ side: 'top' }">
-              <UButton color="neutral" variant="outline" icon="i-lucide-info" label="Hover target" :style="buttonStyle('outline', 'neutral')" />
-            </UTooltip>
-            <p class="text-sm text-muted">Tooltip surface and border contrast should remain readable over cards.</p>
+            <UButton color="neutral" variant="outline" icon="i-lucide-info" label="Hover target" :style="buttonStyle('outline', 'neutral')" />
+            <p class="text-sm text-muted">Overlay contrast check temporarily rendered as static content while the tooltip integration is removed from this preview.</p>
           </div>
         </UCard>
       </div>

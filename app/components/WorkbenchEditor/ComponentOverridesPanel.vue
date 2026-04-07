@@ -1,35 +1,181 @@
 <script setup lang="ts">
 import type { PaletteDefinition } from '~/types/palette'
 import type { UpdatePaletteComponentTokenPayload } from '~/types/theme-builder'
+import {
+  getComponentThemeEditorDefinitions,
+  getComponentThemeStateNames,
+  getComponentThemeTokenGroup,
+} from '~/utils/component-theme-editor'
+import { formatPaletteLabel, normalizePaletteTokenValue } from '~/utils/paletteEditor'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
+  mode?: 'components' | 'states'
   palette: PaletteDefinition
-}>()
+}>(), {
+  mode: 'components',
+})
 
 const emit = defineEmits<{
   'update-component-token': [payload: UpdatePaletteComponentTokenPayload]
 }>()
 
-const buttonPrimarySolid = computed(() => props.palette.components?.button?.variants?.solid?.primary ?? {})
-const inputBase = computed(() => props.palette.components?.input?.base ?? {})
+const searchQuery = ref('')
+const selectedComponent = ref('button')
+const selectedArea = ref<'base' | 'slot' | 'variant' | 'state'>('base')
+const selectedVariant = ref('solid')
+const selectedVariantColor = ref('primary')
+const selectedSlot = ref('leading')
+const selectedState = ref('hover')
 
-function updateButtonPrimarySolid(token: string, value: string | number | undefined) {
-  emit('update-component-token', {
-    component: 'button',
-    area: 'variant',
-    variant: 'solid',
-    variantColor: 'primary',
-    token,
-    value: typeof value === 'string' || typeof value === 'number' ? String(value).trim() || null : null,
+const componentDefinitions = computed(() => getComponentThemeEditorDefinitions(props.palette.components))
+const componentOptions = computed(() => componentDefinitions.value.map(definition => ({
+  label: definition.label,
+  value: definition.value,
+})))
+
+const activeDefinition = computed(() => {
+  return componentDefinitions.value.find(definition => definition.value === selectedComponent.value) ?? componentDefinitions.value[0]
+})
+
+const availableAreas = computed(() => {
+  const definition = activeDefinition.value
+
+  if (!definition) {
+    return []
+  }
+
+  const areas = props.mode === 'states'
+    ? definition.areas.filter(area => area === 'state')
+    : definition.areas.filter(area => area !== 'state')
+
+  return areas.map(area => ({
+    label: formatPaletteLabel(area),
+    value: area,
+  }))
+})
+
+const availableVariants = computed(() => activeDefinition.value?.variants.map(variant => ({
+  label: formatPaletteLabel(variant),
+  value: variant,
+})) ?? [])
+
+const availableVariantColors = computed(() => {
+  const semanticColors = Object.keys(props.palette.colors ?? {})
+
+  return [...new Set([
+    ...(activeDefinition.value?.variantColors ?? []),
+    ...semanticColors,
+  ])].map(color => ({
+    label: formatPaletteLabel(color),
+    value: color,
+  }))
+})
+
+const availableSlots = computed(() => activeDefinition.value?.slots.map(slot => ({
+  label: formatPaletteLabel(slot),
+  value: slot,
+})) ?? [])
+
+const availableStates = computed(() => getComponentThemeStateNames(props.palette.components).map(state => ({
+  label: formatPaletteLabel(state),
+  value: state,
+})))
+
+const activeTokenGroup = computed(() => {
+  return getComponentThemeTokenGroup(props.palette.components?.[selectedComponent.value], selectedArea.value, {
+    slot: selectedSlot.value,
+    variant: selectedVariant.value,
+    variantColor: selectedVariantColor.value,
+    state: selectedState.value,
   })
-}
+})
 
-function updateInputBase(token: string, value: string | number | undefined) {
+const suggestedTokenKeys = computed(() => {
+  const definition = activeDefinition.value
+
+  if (!definition) {
+    return []
+  }
+
+  return definition.tokenSuggestions[selectedArea.value] ?? []
+})
+
+const filteredTokenKeys = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase()
+  const configuredTokenKeys = Object.keys(activeTokenGroup.value)
+  const tokenKeys = [...new Set([...suggestedTokenKeys.value, ...configuredTokenKeys])]
+
+  if (!query) {
+    return tokenKeys
+  }
+
+  return tokenKeys.filter(tokenKey => tokenKey.toLowerCase().includes(query))
+})
+
+const currentScopeLabel = computed(() => {
+  const parts = [activeDefinition.value?.label]
+
+  if (selectedArea.value === 'variant') {
+    parts.push(formatPaletteLabel(selectedVariant.value), formatPaletteLabel(selectedVariantColor.value))
+  } else if (selectedArea.value === 'slot') {
+    parts.push(formatPaletteLabel(selectedSlot.value))
+  } else if (selectedArea.value === 'state') {
+    parts.push(formatPaletteLabel(selectedState.value))
+  } else {
+    parts.push('Base')
+  }
+
+  return parts.filter(Boolean).join(' / ')
+})
+
+watchEffect(() => {
+  if (!componentOptions.value.length) {
+    return
+  }
+
+  if (!componentOptions.value.some(option => option.value === selectedComponent.value)) {
+    selectedComponent.value = componentOptions.value[0]!.value
+  }
+})
+
+watchEffect(() => {
+  if (!availableAreas.value.length) {
+    return
+  }
+
+  if (!availableAreas.value.some(option => option.value === selectedArea.value)) {
+    selectedArea.value = availableAreas.value[0]!.value as typeof selectedArea.value
+  }
+})
+
+watchEffect(() => {
+  if (availableVariants.value.length && !availableVariants.value.some(option => option.value === selectedVariant.value)) {
+    selectedVariant.value = availableVariants.value[0]!.value
+  }
+
+  if (availableVariantColors.value.length && !availableVariantColors.value.some(option => option.value === selectedVariantColor.value)) {
+    selectedVariantColor.value = availableVariantColors.value[0]!.value
+  }
+
+  if (availableSlots.value.length && !availableSlots.value.some(option => option.value === selectedSlot.value)) {
+    selectedSlot.value = availableSlots.value[0]!.value
+  }
+
+  if (availableStates.value.length && !availableStates.value.some(option => option.value === selectedState.value)) {
+    selectedState.value = availableStates.value[0]!.value
+  }
+})
+
+function updateToken(token: string, value: string | number | undefined) {
   emit('update-component-token', {
-    component: 'input',
-    area: 'base',
+    component: selectedComponent.value,
+    area: selectedArea.value,
     token,
-    value: typeof value === 'string' || typeof value === 'number' ? String(value).trim() || null : null,
+    value: normalizePaletteTokenValue(value),
+    slot: selectedArea.value === 'slot' ? selectedSlot.value : undefined,
+    variant: selectedArea.value === 'variant' ? selectedVariant.value : undefined,
+    variantColor: selectedArea.value === 'variant' ? selectedVariantColor.value : undefined,
+    state: selectedArea.value === 'state' ? selectedState.value : undefined,
   })
 }
 </script>
@@ -39,103 +185,119 @@ function updateInputBase(token: string, value: string | number | undefined) {
     <template #header>
       <div class="space-y-1">
         <p class="text-sm font-medium dark:text-white">
-          Component overrides
+          {{ mode === 'states' ? 'Component states' : 'Component overrides' }}
         </p>
         <p class="text-xs text-muted">
-          First editable override surface. This writes to the normalized component theme schema and ships in exports.
+          {{ mode === 'states'
+            ? 'Tune hover, focus, active and disabled behavior without editing raw JSON.'
+            : 'Edit component base, slot and variant tokens through the normalized theme schema.' }}
         </p>
       </div>
     </template>
 
     <div class="space-y-5">
-      <div class="space-y-3 rounded-xl border border-default/60 bg-muted/20 p-3">
-        <div>
-          <p class="text-sm font-medium">
-            Button: solid primary
-          </p>
-          <p class="text-xs text-muted">
-            Basic token overrides for a common high-impact variant.
-          </p>
-        </div>
+      <div class="grid gap-3 md:grid-cols-2">
+        <UFormField label="Component">
+          <USelect
+            v-model="selectedComponent"
+            :items="componentOptions"
+            value-key="value"
+            color="neutral"
+            variant="outline"
+          />
+        </UFormField>
 
-        <div class="grid gap-3 md:grid-cols-2">
-          <UFormField label="Background">
-            <UInput
-              :model-value="buttonPrimarySolid.bg ?? ''"
-              placeholder="var(--ui-primary)"
-              @update:model-value="updateButtonPrimarySolid('bg', $event)"
-            />
-          </UFormField>
+        <UFormField :label="mode === 'states' ? 'State group' : 'Editor scope'">
+          <USelect
+            v-model="selectedArea"
+            :items="availableAreas"
+            value-key="value"
+            color="neutral"
+            variant="outline"
+            :disabled="mode === 'states'"
+          />
+        </UFormField>
 
-          <UFormField label="Text">
-            <UInput
-              :model-value="buttonPrimarySolid.text ?? ''"
-              placeholder="var(--ui-bg)"
-              @update:model-value="updateButtonPrimarySolid('text', $event)"
-            />
-          </UFormField>
+        <UFormField v-if="selectedArea === 'variant'" label="Variant">
+          <USelect
+            v-model="selectedVariant"
+            :items="availableVariants"
+            value-key="value"
+            color="neutral"
+            variant="outline"
+          />
+        </UFormField>
 
-          <UFormField label="Border">
-            <UInput
-              :model-value="buttonPrimarySolid.border ?? ''"
-              placeholder="transparent"
-              @update:model-value="updateButtonPrimarySolid('border', $event)"
-            />
-          </UFormField>
+        <UFormField v-if="selectedArea === 'variant'" label="Variant color">
+          <USelect
+            v-model="selectedVariantColor"
+            :items="availableVariantColors"
+            value-key="value"
+            color="neutral"
+            variant="outline"
+          />
+        </UFormField>
 
-          <UFormField label="Ring">
-            <UInput
-              :model-value="buttonPrimarySolid.ring ?? ''"
-              placeholder="var(--ui-primary)"
-              @update:model-value="updateButtonPrimarySolid('ring', $event)"
-            />
-          </UFormField>
-        </div>
+        <UFormField v-if="selectedArea === 'slot'" label="Slot">
+          <USelect
+            v-model="selectedSlot"
+            :items="availableSlots"
+            value-key="value"
+            color="neutral"
+            variant="outline"
+          />
+        </UFormField>
+
+        <UFormField v-if="selectedArea === 'state'" label="State">
+          <USelect
+            v-model="selectedState"
+            :items="availableStates"
+            value-key="value"
+            color="neutral"
+            variant="outline"
+          />
+        </UFormField>
+
+        <UFormField label="Filter tokens">
+          <UInput
+            v-model="searchQuery"
+            icon="i-lucide-search"
+            placeholder="bg, ring, shadow..."
+          />
+        </UFormField>
       </div>
 
-      <div class="space-y-3 rounded-xl border border-default/60 bg-muted/20 p-3">
-        <div>
-          <p class="text-sm font-medium">
-            Input: base
-          </p>
-          <p class="text-xs text-muted">
-            Shared input surface tokens to seed the component override model.
-          </p>
-        </div>
+      <div class="flex flex-wrap items-center gap-2 rounded-xl border border-default/60 bg-muted/20 px-3 py-2 text-xs text-muted">
+        <UBadge color="neutral" variant="soft">
+          {{ currentScopeLabel }}
+        </UBadge>
+        <UBadge color="neutral" variant="soft">
+          {{ filteredTokenKeys.length }} tokens
+        </UBadge>
+        <span>
+          Configured values: {{ Object.keys(activeTokenGroup).length }}
+        </span>
+      </div>
 
-        <div class="grid gap-3 md:grid-cols-2">
-          <UFormField label="Background">
-            <UInput
-              :model-value="inputBase.bg ?? ''"
-              placeholder="var(--ui-bg-elevated)"
-              @update:model-value="updateInputBase('bg', $event)"
-            />
-          </UFormField>
+      <div v-if="filteredTokenKeys.length" class="grid gap-3 md:grid-cols-2">
+        <UFormField
+          v-for="tokenKey in filteredTokenKeys"
+          :key="`${selectedComponent}-${selectedArea}-${tokenKey}`"
+          :label="formatPaletteLabel(tokenKey)"
+        >
+          <UInput
+            :model-value="activeTokenGroup[tokenKey] ?? ''"
+            :placeholder="`Set ${tokenKey}`"
+            @update:model-value="updateToken(tokenKey, $event)"
+          />
+        </UFormField>
+      </div>
 
-          <UFormField label="Text">
-            <UInput
-              :model-value="inputBase.text ?? ''"
-              placeholder="var(--ui-text)"
-              @update:model-value="updateInputBase('text', $event)"
-            />
-          </UFormField>
-
-          <UFormField label="Border">
-            <UInput
-              :model-value="inputBase.border ?? ''"
-              placeholder="var(--ui-border)"
-              @update:model-value="updateInputBase('border', $event)"
-            />
-          </UFormField>
-
-          <UFormField label="Ring">
-            <UInput
-              :model-value="inputBase.ring ?? ''"
-              placeholder="var(--ui-ring)"
-              @update:model-value="updateInputBase('ring', $event)"
-            />
-          </UFormField>
-        </div>
+      <div
+        v-else
+        class="rounded-xl border border-dashed border-default/60 bg-muted/10 px-4 py-6 text-sm text-muted"
+      >
+        No tokens match the current filter for this component scope.
       </div>
     </div>
   </UCard>

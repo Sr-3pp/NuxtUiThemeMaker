@@ -12,7 +12,18 @@ const emit = defineEmits<{
   'update-color-scale': [payload: UpdatePaletteColorScalePayload]
 }>()
 
+const searchQuery = ref('')
+
 const colorScaleEntries = computed(() => Object.entries(props.palette.colors ?? {}))
+const filteredColorScaleEntries = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase()
+
+  if (!query) {
+    return colorScaleEntries.value
+  }
+
+  return colorScaleEntries.value.filter(([colorKey]) => colorKey.toLowerCase().includes(query))
+})
 
 function updateScale(colorKey: string, step: string, value: string | number | undefined) {
   const normalized = typeof value === 'string' || typeof value === 'number'
@@ -46,8 +57,14 @@ function asTokenGroup(scale: PaletteColorScale) {
     </template>
 
     <div class="space-y-5">
+      <UInput
+        v-model="searchQuery"
+        icon="i-lucide-search"
+        placeholder="Filter ramps by color token"
+      />
+
       <div
-        v-for="[colorKey, scale] in colorScaleEntries"
+        v-for="[colorKey, scale] in filteredColorScaleEntries"
         :key="colorKey"
         class="space-y-3 rounded-xl border border-default/60 bg-muted/20 p-3"
       >
@@ -98,6 +115,13 @@ function asTokenGroup(scale: PaletteColorScale) {
             </div>
           </div>
         </div>
+      </div>
+
+      <div
+        v-if="!filteredColorScaleEntries.length"
+        class="rounded-xl border border-dashed border-default/60 bg-muted/10 px-4 py-6 text-sm text-muted"
+      >
+        No color ramps match the current filter.
       </div>
     </div>
   </UCard>
