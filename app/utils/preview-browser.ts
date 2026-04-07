@@ -1,5 +1,6 @@
 export type PreviewAreaKey =
   | 'actions'
+  | 'stateMatrix'
   | 'navigation'
   | 'forms'
   | 'overlays'
@@ -28,6 +29,14 @@ export const previewAreaDefinitions: PreviewAreaDefinition[] = [
     components: ['UButton', 'UBadge'],
     tokens: ['button variants', 'button states', 'semantic colors'],
     description: 'Button variants, emphasis levels, icon treatments and status badges.',
+  },
+  {
+    value: 'stateMatrix',
+    label: 'State Matrix',
+    tab: 'components',
+    components: ['UButton', 'UInput', 'UBadge', 'UAlert'],
+    tokens: ['button states', 'input focus', 'disabled contrast', 'semantic feedback'],
+    description: 'Explicit QA sweep for default, hover-target, active-target, error and disabled states.',
   },
   {
     value: 'navigation',

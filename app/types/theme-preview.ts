@@ -1,4 +1,4 @@
-import type { AlertProps, ButtonProps, CardProps } from '@nuxt/ui'
+import type { AlertProps, BadgeProps, ButtonProps, CardProps } from '@nuxt/ui'
 import type { PaletteDefinition } from '~/types/palette'
 
 export interface PreviewInteractiveProps {
@@ -12,6 +12,7 @@ export interface PreviewPanelContentProps extends PreviewInteractiveProps {
 
 export type ButtonColor = NonNullable<ButtonProps['color']>
 export type ButtonVariant = NonNullable<ButtonProps['variant']>
+export type BadgeVariant = NonNullable<BadgeProps['variant']>
 export type AlertVariant = NonNullable<AlertProps['variant']>
 export type CardVariant = NonNullable<CardProps['variant']>
 export type PreviewTabValue = 'browser' | 'components' | 'forms' | 'surfaces' | 'typography'

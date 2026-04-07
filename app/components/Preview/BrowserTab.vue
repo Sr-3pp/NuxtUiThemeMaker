@@ -71,6 +71,11 @@ watchEffect(() => {
         :disable-interactive="props.disableInteractive"
         :palette="props.palette"
       />
+      <PreviewStateMatrix
+        v-else-if="activeArea.value === 'stateMatrix'"
+        :disable-interactive="props.disableInteractive"
+        :palette="props.palette"
+      />
       <PreviewNavigation
         v-else-if="activeArea.value === 'navigation'"
         :disable-interactive="props.disableInteractive"
