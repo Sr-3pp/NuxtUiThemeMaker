@@ -9,6 +9,14 @@ interface ParsedThemeTokenTarget {
   key: string
 }
 
+interface ExportedThemeModule {
+  theme?: {
+    light?: Record<string, string>
+    dark?: Record<string, string>
+  }
+  components?: PaletteDefinition['components']
+}
+
 function parseThemeTokenName(tokenName: string): ParsedThemeTokenTarget | null {
   const normalized = tokenName.trim()
 
@@ -115,6 +123,144 @@ function paletteFromCssVariables(content: string): PaletteDefinition | null {
   return palette
 }
 
+function extractBalancedObjectLiteral(content: string, startIndex: number) {
+  const openIndex = content.indexOf('{', startIndex)
+
+  if (openIndex === -1) {
+    return null
+  }
+
+  let depth = 0
+  let inString = false
+  let stringQuote = ''
+  let escaping = false
+
+  for (let index = openIndex; index < content.length; index += 1) {
+    const char = content[index]
+
+    if (inString) {
+      if (escaping) {
+        escaping = false
+        continue
+      }
+
+      if (char === '\\') {
+        escaping = true
+        continue
+      }
+
+      if (char === stringQuote) {
+        inString = false
+      }
+
+      continue
+    }
+
+    if (char === '"' || char === '\'') {
+      inString = true
+      stringQuote = char
+      continue
+    }
+
+    if (char === '{') {
+      depth += 1
+      continue
+    }
+
+    if (char === '}') {
+      depth -= 1
+
+      if (depth === 0) {
+        return content.slice(openIndex, index + 1)
+      }
+    }
+  }
+
+  return null
+}
+
+function parseJsonLikeObjectLiteral(objectLiteral: string) {
+  return JSON.parse(
+    objectLiteral.replace(/([{,]\s*)([A-Za-z_$][\w$]*)(\s*:)/g, '$1"$2"$3')
+  ) as Record<string, unknown>
+}
+
+function parseThemeVariablesToMode(themeTokens: Record<string, string> | undefined) {
+  const mode: PaletteDefinition['modes']['light'] = {}
+
+  if (!themeTokens) {
+    return mode
+  }
+
+  Object.entries(themeTokens).forEach(([tokenName, tokenValue]) => {
+    const target = parseThemeTokenName(tokenName)
+
+    if (!target) {
+      return
+    }
+
+    if (!mode[target.section]) {
+      mode[target.section] = {}
+    }
+
+    const sectionTokens = mode[target.section]
+
+    if (!sectionTokens) {
+      return
+    }
+
+    sectionTokens[target.key] = tokenValue
+  })
+
+  return mode
+}
+
+function parseExportedThemeModule(content: string): ExportedThemeModule | null {
+  const themeExportIndex = content.indexOf('export const theme')
+  const componentsExportIndex = content.indexOf('export const components')
+
+  if (themeExportIndex === -1 && componentsExportIndex === -1) {
+    return null
+  }
+
+  const exportedModule: ExportedThemeModule = {}
+
+  if (themeExportIndex !== -1) {
+    const themeLiteral = extractBalancedObjectLiteral(content, themeExportIndex)
+
+    if (themeLiteral) {
+      exportedModule.theme = parseJsonLikeObjectLiteral(themeLiteral) as ExportedThemeModule['theme']
+    }
+  }
+
+  if (componentsExportIndex !== -1) {
+    const componentsLiteral = extractBalancedObjectLiteral(content, componentsExportIndex)
+
+    if (componentsLiteral) {
+      exportedModule.components = JSON.parse(componentsLiteral) as PaletteDefinition['components']
+    }
+  }
+
+  return exportedModule.theme || exportedModule.components ? exportedModule : null
+}
+
+function paletteFromExportedThemeModule(content: string): PaletteDefinition | null {
+  const exportedThemeModule = parseExportedThemeModule(content)
+
+  if (!exportedThemeModule?.theme) {
+    return null
+  }
+
+  return {
+    name: 'Imported Theme Module',
+    modes: {
+      light: parseThemeVariablesToMode(exportedThemeModule.theme.light),
+      dark: parseThemeVariablesToMode(exportedThemeModule.theme.dark),
+    },
+    components: exportedThemeModule.components ?? {},
+  }
+}
+
 export function isPaletteDefinitionLike(value: unknown): value is PaletteDefinition {
   if (!value || typeof value !== 'object') {
     return false
@@ -150,6 +296,12 @@ export function normalizeImportedPaletteFromText(content: string): PaletteDefini
     return normalizeImportedPalette(JSON.parse(trimmedContent) as unknown)
   }
   catch {
+    const exportedThemePalette = paletteFromExportedThemeModule(trimmedContent)
+
+    if (exportedThemePalette) {
+      return normalizePaletteDefinition(exportedThemePalette)
+    }
+
     const cssPalette = paletteFromCssVariables(trimmedContent)
 
     if (!cssPalette) {

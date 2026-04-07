@@ -106,4 +106,41 @@ describe('palette io', () => {
     expect(palette.modes.dark.bg?.default).toBe('#020617')
     expect(palette.modes.dark.ui?.border).toBe('#1e293b')
   })
+
+  it('imports palettes from exported theme modules', () => {
+    const palette = normalizeImportedPaletteFromText(`
+      export const theme = {
+        light: {
+          "--ui-primary": "#11aa55",
+          "--ui-text": "#111111",
+          "--ui-bg": "#f8fafc",
+          "--ui-border": "#cbd5e1"
+        },
+        dark: {
+          "--ui-primary": "#44dd88",
+          "--ui-text": "#f5f5f5",
+          "--ui-bg": "#020617",
+          "--ui-border": "#1e293b"
+        }
+      }
+
+      export const components =
+      {
+        "button": {
+          "variants": {
+            "solid": {
+              "primary": {
+                "bg": "var(--ui-primary)"
+              }
+            }
+          }
+        }
+      }
+    `)
+
+    expect(palette.modes.light.color?.primary).toBe('#11aa55')
+    expect(palette.modes.dark.text?.default).toBe('#f5f5f5')
+    expect(palette.modes.light.ui?.border).toBe('#cbd5e1')
+    expect(palette.components?.button?.variants?.solid?.primary?.bg).toBe('var(--ui-primary)')
+  })
 })
