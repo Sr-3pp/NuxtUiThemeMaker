@@ -6,6 +6,7 @@ export type PreviewAreaKey =
   | 'surfaces'
   | 'dataDisplay'
   | 'feedback'
+  | 'systemStates'
   | 'typography'
 
 export interface PreviewAreaDefinition {
@@ -73,6 +74,14 @@ export const previewAreaDefinitions: PreviewAreaDefinition[] = [
     components: ['UAlert', 'UProgress', 'USkeleton'],
     tokens: ['status colors', 'progress fills', 'loading surfaces'],
     description: 'Alerts, progress and loading states across semantic feedback colors.',
+  },
+  {
+    value: 'systemStates',
+    label: 'Empty States',
+    tab: 'surfaces',
+    components: ['UEmpty', 'UTimeline'],
+    tokens: ['empty state CTA', 'icon emphasis', 'step progression'],
+    description: 'Empty states and step-based communication patterns for dashboard and workflow screens.',
   },
   {
     value: 'typography',

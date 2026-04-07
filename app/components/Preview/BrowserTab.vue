@@ -101,6 +101,11 @@ watchEffect(() => {
         :disable-interactive="props.disableInteractive"
         :palette="props.palette"
       />
+      <PreviewSystemStates
+        v-else-if="activeArea.value === 'systemStates'"
+        :disable-interactive="props.disableInteractive"
+        :palette="props.palette"
+      />
       <PreviewTypography
         v-else
         :disable-interactive="props.disableInteractive"
