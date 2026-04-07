@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import type { PreviewInteractiveProps } from '~/types/theme-preview'
+import { getPreviewButtonStyle } from '~/utils/preview-overrides'
+
+const props = defineProps<PreviewInteractiveProps>()
+
 const tableRows = [
   { component: 'Buttons', emphasis: 'Primary and semantic actions', status: 'Ready' },
   { component: 'Forms', emphasis: 'Focus, invalid and disabled states', status: 'Review' },
@@ -17,6 +22,10 @@ const avatars = [
   { text: 'SK', chip: { color: 'warning', inset: true } },
   { text: 'JT', chip: { color: 'primary', inset: true } }
 ] as const
+
+function buttonStyle(variant: string, color: string) {
+  return getPreviewButtonStyle(props.palette, variant, color)
+}
 </script>
 
 <template>
@@ -76,7 +85,7 @@ const avatars = [
 
           <div class="flex items-center gap-3">
             <UTooltip text="Check hover contrast and overlay surface" :content="{ side: 'top' }">
-              <UButton color="neutral" variant="outline" icon="i-lucide-info" label="Hover target" />
+              <UButton color="neutral" variant="outline" icon="i-lucide-info" label="Hover target" :style="buttonStyle('outline', 'neutral')" />
             </UTooltip>
             <p class="text-sm text-muted">Tooltip surface and border contrast should remain readable over cards.</p>
           </div>

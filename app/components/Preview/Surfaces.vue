@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import { getPreviewButtonStyle } from '~/utils/preview-overrides'
+import type { PreviewInteractiveProps } from '~/types/theme-preview'
+
+const props = defineProps<PreviewInteractiveProps>()
+
 const surfaceCards = [
   {
     title: 'Default surface',
@@ -26,6 +31,10 @@ const surfaceCards = [
     classes: 'bg-inverted text-inverted border-inverted'
   }
 ]
+
+function buttonStyle(variant: string, color: string) {
+  return getPreviewButtonStyle(props.palette, variant, color)
+}
 </script>
 
 <template>
@@ -109,7 +118,7 @@ const surfaceCards = [
             <UKbd value="shift" />
             <UKbd value="p" />
             <UChip color="success" text="Live" standalone>
-              <UButton color="neutral" variant="outline" label="Command palette" />
+              <UButton color="neutral" variant="outline" label="Command palette" :style="buttonStyle('outline', 'neutral')" />
             </UChip>
           </div>
 
