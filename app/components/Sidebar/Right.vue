@@ -100,7 +100,7 @@ const handlePaletteNameInput = (event: Event) => {
           />
         </UFormField>
 
-        <WorkbenchEditorContent
+        <EditorContent
           :palette="currentPalette"
           :sourcePalette="sourcePalette ?? currentPalette"
           defaultMode="dark"

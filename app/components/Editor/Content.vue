@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { PaletteModeKey } from '~/types/palette'
 import type {
-  WorkbenchEditorEmits,
-  WorkbenchEditorProps
+  EditorEmits,
+  EditorProps
 } from '~/types/theme-builder'
 
-const props = defineProps<WorkbenchEditorProps>()
+const props = defineProps<EditorProps>()
 
-const emit = defineEmits<WorkbenchEditorEmits>()
+const emit = defineEmits<EditorEmits>()
 
 const colorMode = useColorMode()
 const editorSection = ref<'colors' | 'semantic' | 'components' | 'states'>('colors')
@@ -32,7 +32,7 @@ const activeMode = computed<PaletteModeKey>(() => {
 
 <template>
   <template v-if="props.tab === 'tokens'">
-    <WorkbenchEditorModeBanner :active-mode="activeMode" />
+    <EditorModeBanner :active-mode="activeMode" />
     <UTabs
       v-model="editorSection"
       :items="editorSections"
@@ -41,7 +41,7 @@ const activeMode = computed<PaletteModeKey>(() => {
       :ui="{ root: 'mb-4', list: 'w-full border-b border-default/60' }"
     >
       <template #colors>
-        <WorkbenchEditorColorScalesPanel
+        <EditorColorScalesPanel
           :active-mode="activeMode"
           :palette="props.palette"
           @update-color-scale="emit('update-color-scale', $event)"
@@ -49,7 +49,7 @@ const activeMode = computed<PaletteModeKey>(() => {
       </template>
 
       <template #semantic>
-        <WorkbenchEditorTokensPanel
+        <EditorTokensPanel
           :active-mode="activeMode"
           :palette="props.palette"
           :source-palette="props.sourcePalette"
@@ -58,14 +58,14 @@ const activeMode = computed<PaletteModeKey>(() => {
       </template>
 
       <template #components>
-        <WorkbenchEditorComponentOverridesPanel
+        <EditorComponentOverridesPanel
           :palette="props.palette"
           @update-component-token="emit('update-component-token', $event)"
         />
       </template>
 
       <template #states>
-        <WorkbenchEditorComponentOverridesPanel
+        <EditorComponentOverridesPanel
           mode="states"
           :palette="props.palette"
           @update-component-token="emit('update-component-token', $event)"
@@ -74,5 +74,5 @@ const activeMode = computed<PaletteModeKey>(() => {
     </UTabs>
   </template>
 
-  <WorkbenchEditorExportPanel v-else :palette="props.palette" />
+  <EditorExportPanel v-else :palette="props.palette" />
 </template>

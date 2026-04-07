@@ -110,7 +110,7 @@ function getTokenEntries(tokens: PaletteTokenGroup) {
       }"
     >
       <template #body="{ item }">
-        <WorkbenchEditorTokenField
+        <EditorTokenField
           v-for="[tokenKey, token] in getTokenEntries(item.tokens)"
           :key="`${activeMode}-${item.value}-${tokenKey}`"
           :section-key="item.value"

@@ -111,8 +111,8 @@ Turn the builder into a real theme editor rather than a token table with preview
 
 ### Repo impact
 
-- Expand editor UI under [app/components/WorkbenchEditor](/Users/sr3pp/Web/Nuxt/NuxtUiThemeMaker/app/components/WorkbenchEditor)
-- Extend [app/components/WorkbenchEditorContent.vue](/Users/sr3pp/Web/Nuxt/NuxtUiThemeMaker/app/components/WorkbenchEditorContent.vue)
+- Expand editor UI under [app/components/Editor](/Users/sr3pp/Web/Nuxt/NuxtUiThemeMaker/app/components/Editor)
+- Extend [app/components/EditorContent.vue](/Users/sr3pp/Web/Nuxt/NuxtUiThemeMaker/app/components/EditorContent.vue)
 - Extend palette state management in [app/composables/usePaletteState.ts](/Users/sr3pp/Web/Nuxt/NuxtUiThemeMaker/app/composables/usePaletteState.ts)
 
 ### Acceptance criteria

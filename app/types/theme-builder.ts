@@ -17,7 +17,7 @@ export interface UpdatePaletteTokenPayload {
 export type UpdatePaletteColorScalePayload = UpdateEditablePaletteColorScalePayload
 export type UpdatePaletteComponentTokenPayload = UpdateEditablePaletteComponentTokenPayload
 
-export interface WorkbenchEditorProps {
+export interface EditorProps {
   palette: PaletteDefinition
   sourcePalette: PaletteDefinition
   isWorking?: boolean
@@ -25,7 +25,7 @@ export interface WorkbenchEditorProps {
   tab: EditorTab
 }
 
-export interface WorkbenchEditorEmits {
+export interface EditorEmits {
   save: []
   saveAsNew: []
   'update-token': [payload: UpdatePaletteTokenPayload]
