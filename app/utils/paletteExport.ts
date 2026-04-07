@@ -1,4 +1,5 @@
 import type { PaletteDefinition } from '~/types/palette'
+import { serializePaletteExport } from '~/utils/palette-io'
 import themeBuilder from '~/utils/theme-builder'
 
 function formatThemeBlock(selector: string, tokens: Record<string, string>) {
@@ -16,7 +17,7 @@ function formatThemeBlock(selector: string, tokens: Record<string, string>) {
 }
 
 export function exportPaletteJson(palette: PaletteDefinition) {
-  return JSON.stringify(palette, null, 2)
+  return serializePaletteExport(palette)
 }
 
 export function exportPaletteCss(palette: PaletteDefinition) {

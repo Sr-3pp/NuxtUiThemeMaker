@@ -32,6 +32,7 @@ const activeMode = computed<PaletteModeKey>(() => {
       :source-palette="props.sourcePalette"
       @update-token="emit('update-token', $event)"
     />
+    <WorkbenchEditorStructurePanel class="mt-4" :palette="props.palette" />
   </template>
 
   <WorkbenchEditorExportPanel v-else :palette="props.palette" />

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PaletteDefinition } from '~/types/palette'
+import { normalizeImportedPalette } from '~/utils/palette-io'
 
 const open = defineModel<boolean>('open', { default: false })
 
@@ -10,31 +11,12 @@ const emit = defineEmits<{
 const importInput = ref<HTMLInputElement | null>(null)
 const pastedPaletteJson = ref('')
 
-function isPaletteDefinition(value: unknown): value is PaletteDefinition {
-  if (!value || typeof value !== 'object') {
-    return false
-  }
-
-  const palette = value as Partial<PaletteDefinition>
-
-  return typeof palette.name === 'string'
-    && Boolean(palette.modes)
-    && typeof palette.modes === 'object'
-    && Boolean(palette.modes.light)
-    && typeof palette.modes.light === 'object'
-    && Boolean(palette.modes.dark)
-    && typeof palette.modes.dark === 'object'
-}
-
 function importPaletteFromContent(content: string) {
   try {
     const parsed = JSON.parse(content) as unknown
+    const normalizedPalette = normalizeImportedPalette(parsed)
 
-    if (!isPaletteDefinition(parsed)) {
-      throw new Error('Invalid palette file')
-    }
-
-    emit('import', parsed)
+    emit('import', normalizedPalette)
     open.value = false
     pastedPaletteJson.value = ''
   }
