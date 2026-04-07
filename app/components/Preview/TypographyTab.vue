@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import type { PreviewInteractiveProps } from '~/types/theme-preview'
+import type { PreviewPanelContentProps } from '~/types/theme-preview'
 
-const props = defineProps<PreviewInteractiveProps>()
+const props = defineProps<PreviewPanelContentProps>()
 </script>
 
 <template>
-  <PreviewTypography :disable-interactive="props.disableInteractive" :palette="props.palette" />
+  <div class="space-y-6">
+    <PreviewInspectLegend v-if="props.inspectTokens" area="typography" />
+    <PreviewTypography :disable-interactive="props.disableInteractive" :palette="props.palette" />
+  </div>
 </template>
