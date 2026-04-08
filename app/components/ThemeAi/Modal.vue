@@ -68,7 +68,6 @@ const {
   applyPaletteSuggestion,
   applyRampSuggestion,
   applyVariantSuggestion,
-  getSelectedHistoryId,
   selectHistoryResult,
 } = useThemeAiModal(open, toRef(props, 'palette'))
 </script>
@@ -153,99 +152,19 @@ const {
           </template>
 
           <template #audit>
-            <div class="grid gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-              <UCard variant="outline" class="rounded-2xl shadow-none">
-                <template #header>
-                  <ThemeAiSectionHeader
-                    title="Repair prompt"
-                    description="Ask the model to prioritize contrast, focus rings, muted text, or publish readiness."
-                  />
-                </template>
-
-                <div class="space-y-4">
-                  <UTextarea
-                    v-model="auditPrompt"
-                    :rows="6"
-                    class="w-full"
-                    placeholder="Example: Strengthen body copy contrast, preserve the brand blue, and make focus states more obvious."
-                  />
-
-                  <UButton
-                    block
-                    color="primary"
-                    icon="i-lucide-wand-sparkles"
-                    :disabled="!hasPalette || isDisabled"
-                    :loading="isAuditLoading"
-                    @click="handleAudit()"
-                  >
-                    Generate AI repair
-                  </UButton>
-                </div>
-              </UCard>
-
-              <UCard variant="outline" class="rounded-2xl shadow-none">
-                <template #header>
-                  <ThemeAiSectionHeader
-                    title="Suggested fixes"
-                    description="Review the token-level changes before applying the patched palette."
-                    :action-label="auditResult ? 'Clear result' : undefined"
-                    @action="clearAuditResult()"
-                  />
-                </template>
-
-                <div
-                  v-if="auditResult"
-                  class="space-y-4"
-                >
-                  <ThemeAiHistory
-                    :entries="auditHistory"
-                    :selected-id="getSelectedHistoryId(auditHistory, auditResult)"
-                    @select="auditResult = selectHistoryResult(auditHistory, $event)"
-                  />
-
-                  <div class="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
-                    <p class="text-sm font-medium text-highlighted">
-                      {{ auditResult.summary }}
-                    </p>
-                  </div>
-
-                  <div class="space-y-2">
-                    <div
-                      v-for="fix in auditResult.fixes"
-                      :key="`${fix.mode}-${fix.token}-${fix.suggestedValue}`"
-                      class="rounded-xl border border-default/60 bg-muted/15 px-3 py-3"
-                    >
-                      <div class="flex flex-wrap items-center gap-2">
-                        <UBadge color="neutral" variant="outline">{{ fix.mode }}</UBadge>
-                        <UBadge color="primary" variant="soft">{{ fix.token }}</UBadge>
-                      </div>
-                      <p class="mt-2 text-sm text-muted">
-                        {{ fix.reason }}
-                      </p>
-                      <p class="mt-2 text-xs text-muted">
-                        {{ fix.currentValue ?? 'unset' }} -> {{ fix.suggestedValue }}
-                      </p>
-                    </div>
-                  </div>
-
-                  <UButton
-                    block
-                    color="primary"
-                    icon="i-lucide-check"
-                    @click="applyPaletteSuggestion(auditResult.patchedPalette, 'Applied the AI repair pass to the current draft.')"
-                  >
-                    Apply patched palette
-                  </UButton>
-                </div>
-
-                <div
-                  v-else
-                  class="rounded-xl border border-dashed border-default/70 px-4 py-10 text-center text-sm text-muted"
-                >
-                  Run an audit repair to get token suggestions and a patched draft.
-                </div>
-              </UCard>
-            </div>
+            <ThemeAiAuditTab
+              :prompt="auditPrompt"
+              :has-palette="hasPalette"
+              :is-disabled="isDisabled"
+              :is-loading="isAuditLoading"
+              :result="auditResult"
+              :history="auditHistory"
+              @update:prompt="auditPrompt = $event"
+              @generate="handleAudit()"
+              @clear-result="clearAuditResult()"
+              @select-history="auditResult = selectHistoryResult(auditHistory, $event)"
+              @apply="applyPaletteSuggestion($event, 'Applied the AI repair pass to the current draft.')"
+            />
           </template>
 
           <template #ramps>
