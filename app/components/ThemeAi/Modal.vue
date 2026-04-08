@@ -26,6 +26,9 @@ const { generatePalette, generatePaletteAudit, generatePaletteDirections, genera
 const { applyGeneratedPalette, applyGeneratedComponents, applyGeneratedRamps } = usePaletteState()
 const { cta, helperText, isDisabled, refresh } = usePaletteGenerationAccess()
 
+const MAX_REFERENCE_IMAGE_BYTES = 5 * 1024 * 1024
+const SUPPORTED_REFERENCE_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'] as const
+
 const activeTab = ref<'starter' | 'audit' | 'directions' | 'ramps' | 'variants'>('starter')
 const starterPrompt = ref('')
 const starterReferenceSummary = ref('')
@@ -52,6 +55,9 @@ const rampsResult = ref<PaletteRampGenerateResult | null>(null)
 const variantsResult = ref<PaletteVariantGenerateResult | null>(null)
 
 const hasPalette = computed(() => Boolean(props.palette))
+const canGenerateStarter = computed(() => Boolean(starterPrompt.value.trim()) && !isDisabled.value)
+const canGenerateRamps = computed(() => rampBrandColors.value.length > 0 && !isDisabled.value)
+const canGenerateVariants = computed(() => hasPalette.value && selectedVariantComponents.value.length > 0 && !isDisabled.value)
 const componentOptions = computed(() => getComponentThemeEditorDefinitions(props.palette?.components).map(definition => ({
   label: definition.label,
   value: definition.value,
@@ -92,6 +98,62 @@ watch(() => props.palette?.name, () => {
   variantsResult.value = null
 })
 
+function showValidationToast(title: string, description: string) {
+  toast.add({
+    title,
+    description,
+    color: 'warning',
+  })
+}
+
+function normalizeHexColor(value: string) {
+  const color = value.trim().toLowerCase()
+
+  if (!/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/.test(color)) {
+    return null
+  }
+
+  return color
+}
+
+function addBrandColor(target: Ref<string[]>, input: Ref<string>, label: string) {
+  const color = normalizeHexColor(input.value)
+
+  if (!color) {
+    showValidationToast('Invalid brand color', `Use a hex color like #0ea5e9 for ${label}.`)
+    return
+  }
+
+  if (target.value.includes(color)) {
+    showValidationToast('Duplicate brand color', `${color} is already included in ${label}.`)
+    input.value = ''
+    return
+  }
+
+  target.value = [...target.value, color]
+  input.value = ''
+}
+
+function clearStarterResult() {
+  starterResult.value = null
+}
+
+function clearAuditResult() {
+  auditResult.value = null
+}
+
+function clearDirectionsResult() {
+  directionsResult.value = null
+}
+
+function clearRampsResult() {
+  rampsResult.value = null
+}
+
+function clearVariantsResult() {
+  variantsResult.value = null
+}
+
 async function handleAudit() {
   if (!props.palette || isDisabled.value || isAuditLoading.value) {
     return
@@ -113,21 +175,15 @@ async function handleAudit() {
 }
 
 function addStarterBrandColor() {
-  const color = starterBrandInput.value.trim()
-
-  if (!/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(color)) {
-    return
-  }
-
-  if (!starterBrandColors.value.includes(color)) {
-    starterBrandColors.value = [...starterBrandColors.value, color]
-  }
-
-  starterBrandInput.value = ''
+  addBrandColor(starterBrandColors, starterBrandInput, 'starter theme generation')
 }
 
 function removeStarterBrandColor(color: string) {
   starterBrandColors.value = starterBrandColors.value.filter(entry => entry !== color)
+}
+
+function clearStarterReferenceImage() {
+  starterReferenceImage.value = null
 }
 
 async function handleStarterImageUpload(event: Event) {
@@ -135,6 +191,20 @@ async function handleStarterImageUpload(event: Event) {
   const file = input.files?.[0]
 
   if (!file) {
+    return
+  }
+
+  if (!SUPPORTED_REFERENCE_IMAGE_TYPES.includes(file.type as typeof SUPPORTED_REFERENCE_IMAGE_TYPES[number])) {
+    starterReferenceImage.value = null
+    showValidationToast('Unsupported image type', 'Use a PNG, JPEG, WEBP, or GIF reference image.')
+    input.value = ''
+    return
+  }
+
+  if (file.size > MAX_REFERENCE_IMAGE_BYTES) {
+    starterReferenceImage.value = null
+    showValidationToast('Image too large', 'Reference images must be 5 MB or smaller.')
+    input.value = ''
     return
   }
 
@@ -160,7 +230,7 @@ async function handleStarterImageUpload(event: Event) {
 }
 
 async function handleStarterTheme() {
-  if (isDisabled.value || isStarterLoading.value || !starterPrompt.value.trim()) {
+  if (!canGenerateStarter.value || isStarterLoading.value) {
     return
   }
 
@@ -208,17 +278,7 @@ async function handleDirections() {
 }
 
 function addRampBrandColor() {
-  const color = rampInput.value.trim()
-
-  if (!/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(color)) {
-    return
-  }
-
-  if (!rampBrandColors.value.includes(color)) {
-    rampBrandColors.value = [...rampBrandColors.value, color]
-  }
-
-  rampInput.value = ''
+  addBrandColor(rampBrandColors, rampInput, 'ramp generation')
 }
 
 function removeRampBrandColor(color: string) {
@@ -226,7 +286,7 @@ function removeRampBrandColor(color: string) {
 }
 
 async function handleRamps() {
-  if (isDisabled.value || isRampsLoading.value || !rampBrandColors.value.length) {
+  if (!canGenerateRamps.value || isRampsLoading.value) {
     return
   }
 
@@ -247,7 +307,7 @@ async function handleRamps() {
 }
 
 async function handleVariants() {
-  if (!props.palette || isDisabled.value || isVariantsLoading.value) {
+  if (!props.palette || !canGenerateVariants.value || isVariantsLoading.value) {
     return
   }
 
@@ -362,13 +422,25 @@ function applyVariantSuggestion() {
             <div class="grid gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
               <UCard variant="outline" class="rounded-2xl shadow-none">
                 <template #header>
-                  <div class="space-y-1">
-                    <p class="text-sm font-medium text-highlighted">
-                      Starter theme input
-                    </p>
-                    <p class="text-xs text-muted">
-                      Generate a full palette from a prompt, optional brand colors, and an optional screenshot or style reference.
-                    </p>
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="space-y-1">
+                      <p class="text-sm font-medium text-highlighted">
+                        Starter theme input
+                      </p>
+                      <p class="text-xs text-muted">
+                        Generate a full palette from a prompt, optional brand colors, and an optional screenshot or style reference.
+                      </p>
+                    </div>
+
+                    <UButton
+                      v-if="starterResult || starterReferenceImage || starterBrandColors.length || starterReferenceSummary || starterPrompt"
+                      color="neutral"
+                      variant="ghost"
+                      size="xs"
+                      @click="starterPrompt = ''; starterReferenceSummary = ''; starterBrandColors = []; starterBrandInput = ''; clearStarterReferenceImage(); clearStarterResult()"
+                    >
+                      Clear
+                    </UButton>
                   </div>
                 </template>
 
@@ -406,6 +478,10 @@ function applyVariantSuggestion() {
                       </template>
                     </UInput>
 
+                    <p class="text-xs text-muted">
+                      Add brand anchors as hex values. Duplicate and invalid colors are rejected before request.
+                    </p>
+
                     <div class="flex flex-wrap gap-2">
                       <UBadge
                         v-for="color in starterBrandColors"
@@ -431,6 +507,10 @@ function applyVariantSuggestion() {
                       >
                     </UFormField>
 
+                    <p class="text-xs text-muted">
+                      Optional. PNG, JPEG, WEBP, or GIF up to 5 MB.
+                    </p>
+
                     <UAlert
                       v-if="starterReferenceImage"
                       color="neutral"
@@ -438,14 +518,25 @@ function applyVariantSuggestion() {
                       icon="i-lucide-image"
                       :title="starterReferenceImage.name"
                       :description="starterReferenceImage.mimeType"
-                    />
+                    >
+                      <template #actions>
+                        <UButton
+                          color="neutral"
+                          variant="soft"
+                          size="xs"
+                          @click="clearStarterReferenceImage()"
+                        >
+                          Remove
+                        </UButton>
+                      </template>
+                    </UAlert>
                   </div>
 
                   <UButton
                     block
                     color="primary"
                     icon="i-lucide-image-plus"
-                    :disabled="isDisabled || !starterPrompt.trim()"
+                    :disabled="!canGenerateStarter"
                     :loading="isStarterLoading"
                     @click="handleStarterTheme()"
                   >
@@ -456,13 +547,25 @@ function applyVariantSuggestion() {
 
               <UCard variant="outline" class="rounded-2xl shadow-none">
                 <template #header>
-                  <div class="space-y-1">
-                    <p class="text-sm font-medium text-highlighted">
-                      Generated starter palette
-                    </p>
-                    <p class="text-xs text-muted">
-                      Apply the generated palette as the current draft.
-                    </p>
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="space-y-1">
+                      <p class="text-sm font-medium text-highlighted">
+                        Generated starter palette
+                      </p>
+                      <p class="text-xs text-muted">
+                        Apply the generated palette as the current draft.
+                      </p>
+                    </div>
+
+                    <UButton
+                      v-if="starterResult"
+                      color="neutral"
+                      variant="ghost"
+                      size="xs"
+                      @click="clearStarterResult()"
+                    >
+                      Clear result
+                    </UButton>
                   </div>
                 </template>
 
@@ -572,13 +675,25 @@ function applyVariantSuggestion() {
 
               <UCard variant="outline" class="rounded-2xl shadow-none">
                 <template #header>
-                  <div class="space-y-1">
-                    <p class="text-sm font-medium text-highlighted">
-                      Suggested fixes
-                    </p>
-                    <p class="text-xs text-muted">
-                      Review the token-level changes before applying the patched palette.
-                    </p>
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="space-y-1">
+                      <p class="text-sm font-medium text-highlighted">
+                        Suggested fixes
+                      </p>
+                      <p class="text-xs text-muted">
+                        Review the token-level changes before applying the patched palette.
+                      </p>
+                    </div>
+
+                    <UButton
+                      v-if="auditResult"
+                      color="neutral"
+                      variant="ghost"
+                      size="xs"
+                      @click="clearAuditResult()"
+                    >
+                      Clear result
+                    </UButton>
                   </div>
                 </template>
 
@@ -635,13 +750,25 @@ function applyVariantSuggestion() {
             <div class="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
               <UCard variant="outline" class="rounded-2xl shadow-none">
                 <template #header>
-                  <div class="space-y-1">
-                    <p class="text-sm font-medium text-highlighted">
-                      Brand color ramps
-                    </p>
-                    <p class="text-xs text-muted">
-                      Generate full scales from one or more brand anchors and sync their `500` values into semantic colors.
-                    </p>
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="space-y-1">
+                      <p class="text-sm font-medium text-highlighted">
+                        Brand color ramps
+                      </p>
+                      <p class="text-xs text-muted">
+                        Generate full scales from one or more brand anchors and sync their `500` values into semantic colors.
+                      </p>
+                    </div>
+
+                    <UButton
+                      v-if="rampsResult || rampBrandColors.length || rampInput || rampsPrompt"
+                      color="neutral"
+                      variant="ghost"
+                      size="xs"
+                      @click="rampBrandColors = []; rampInput = ''; rampsPrompt = ''; clearRampsResult()"
+                    >
+                      Clear
+                    </UButton>
                   </div>
                 </template>
 
@@ -663,6 +790,10 @@ function applyVariantSuggestion() {
                       </UButton>
                     </template>
                   </UInput>
+
+                  <p class="text-xs text-muted">
+                    Add one or more hex colors. Invalid and duplicate anchors are blocked before generation.
+                  </p>
 
                   <div class="flex flex-wrap gap-2">
                     <UBadge
@@ -689,7 +820,7 @@ function applyVariantSuggestion() {
                     block
                     color="primary"
                     icon="i-lucide-pipette"
-                    :disabled="isDisabled || !rampBrandColors.length"
+                    :disabled="!canGenerateRamps"
                     :loading="isRampsLoading"
                     @click="handleRamps()"
                   >
@@ -700,13 +831,25 @@ function applyVariantSuggestion() {
 
               <UCard variant="outline" class="rounded-2xl shadow-none">
                 <template #header>
-                  <div class="space-y-1">
-                    <p class="text-sm font-medium text-highlighted">
-                      Ramp preview
-                    </p>
-                    <p class="text-xs text-muted">
-                      Review the generated scales before applying them to the current draft.
-                    </p>
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="space-y-1">
+                      <p class="text-sm font-medium text-highlighted">
+                        Ramp preview
+                      </p>
+                      <p class="text-xs text-muted">
+                        Review the generated scales before applying them to the current draft.
+                      </p>
+                    </div>
+
+                    <UButton
+                      v-if="rampsResult"
+                      color="neutral"
+                      variant="ghost"
+                      size="xs"
+                      @click="clearRampsResult()"
+                    >
+                      Clear result
+                    </UButton>
                   </div>
                 </template>
 
@@ -773,13 +916,25 @@ function applyVariantSuggestion() {
             <div class="grid gap-4 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
               <UCard variant="outline" class="rounded-2xl shadow-none">
                 <template #header>
-                  <div class="space-y-1">
-                    <p class="text-sm font-medium text-highlighted">
-                      Variant brief
-                    </p>
-                    <p class="text-xs text-muted">
-                      Generate component-level styling from a mood, product, or brand prompt.
-                    </p>
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="space-y-1">
+                      <p class="text-sm font-medium text-highlighted">
+                        Variant brief
+                      </p>
+                      <p class="text-xs text-muted">
+                        Generate component-level styling from a mood, product, or brand prompt.
+                      </p>
+                    </div>
+
+                    <UButton
+                      v-if="variantsResult || variantsPrompt || selectedVariantComponents.length !== 3"
+                      color="neutral"
+                      variant="ghost"
+                      size="xs"
+                      @click="selectedVariantComponents = ['button', 'input', 'card']; variantsPrompt = ''; clearVariantsResult()"
+                    >
+                      Reset
+                    </UButton>
                   </div>
                 </template>
 
@@ -803,7 +958,7 @@ function applyVariantSuggestion() {
                     block
                     color="primary"
                     icon="i-lucide-panels-top-left"
-                    :disabled="!hasPalette || isDisabled"
+                    :disabled="!canGenerateVariants"
                     :loading="isVariantsLoading"
                     @click="handleVariants()"
                   >
@@ -814,13 +969,25 @@ function applyVariantSuggestion() {
 
               <UCard variant="outline" class="rounded-2xl shadow-none">
                 <template #header>
-                  <div class="space-y-1">
-                    <p class="text-sm font-medium text-highlighted">
-                      Generated component layer
-                    </p>
-                    <p class="text-xs text-muted">
-                      Apply the generated overrides as a merge on top of the current component theme schema.
-                    </p>
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="space-y-1">
+                      <p class="text-sm font-medium text-highlighted">
+                        Generated component layer
+                      </p>
+                      <p class="text-xs text-muted">
+                        Apply the generated overrides as a merge on top of the current component theme schema.
+                      </p>
+                    </div>
+
+                    <UButton
+                      v-if="variantsResult"
+                      color="neutral"
+                      variant="ghost"
+                      size="xs"
+                      @click="clearVariantsResult()"
+                    >
+                      Clear result
+                    </UButton>
                   </div>
                 </template>
 
@@ -887,13 +1054,25 @@ function applyVariantSuggestion() {
             <div class="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
               <UCard variant="outline" class="rounded-2xl shadow-none">
                 <template #header>
-                  <div class="space-y-1">
-                    <p class="text-sm font-medium text-highlighted">
-                      Direction brief
-                    </p>
-                    <p class="text-xs text-muted">
-                      Push the current palette toward new art directions without starting over.
-                    </p>
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="space-y-1">
+                      <p class="text-sm font-medium text-highlighted">
+                        Direction brief
+                      </p>
+                      <p class="text-xs text-muted">
+                        Push the current palette toward new art directions without starting over.
+                      </p>
+                    </div>
+
+                    <UButton
+                      v-if="directionsResult || directionsPrompt || directionsCount !== 3"
+                      color="neutral"
+                      variant="ghost"
+                      size="xs"
+                      @click="directionsPrompt = ''; directionsCount = 3; clearDirectionsResult()"
+                    >
+                      Reset
+                    </UButton>
                   </div>
                 </template>
 
