@@ -1,5 +1,5 @@
 import { createError } from 'h3'
-import { GoogleGenAI } from '@google/genai'
+import { GoogleGenAI, type ContentListUnion } from '@google/genai'
 import { ZodError, type ZodSchema } from 'zod'
 import {
   assertPaletteGenerationAllowed,
@@ -137,10 +137,12 @@ export function getGeminiApiKey() {
 
 export async function generateStructuredPaletteAiResult<T>({
   prompt,
+  contents,
   schema,
   responseSchema,
 }: {
   prompt: string
+  contents?: ContentListUnion
   schema: ZodSchema<T>
   responseSchema?: Record<string, unknown>
 }) {
@@ -148,7 +150,7 @@ export async function generateStructuredPaletteAiResult<T>({
     const ai = new GoogleGenAI({ apiKey: getGeminiApiKey() })
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
-      contents: [prompt],
+      contents: contents ?? [prompt],
       config: {
         responseMimeType: 'application/json',
         responseSchema,

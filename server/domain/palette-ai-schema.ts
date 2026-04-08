@@ -30,6 +30,10 @@ export const paletteGenerateRequestSchema = z.object({
   prompt: z.string().trim().min(1, 'Prompt is required.'),
   brandColors: z.array(hexColorSchema).min(1).max(6).optional(),
   referenceSummary: z.string().trim().min(1).max(2500).optional(),
+  referenceImage: z.object({
+    data: z.string().trim().min(1),
+    mimeType: z.string().trim().regex(/^image\//, 'Expected an image mime type'),
+  }).optional(),
 })
 
 export const paletteRampGenerateRequestSchema = z.object({

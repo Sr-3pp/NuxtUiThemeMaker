@@ -40,11 +40,18 @@ export default defineEventHandler(async (event) => {
     `Theme request: ${body.prompt}.`,
     body.brandColors?.length ? `Anchor the palette to these brand colors: ${body.brandColors.join(', ')}.` : null,
     body.referenceSummary ? `Style reference: ${body.referenceSummary}.` : null,
+    body.referenceImage ? 'A screenshot or visual style reference image is attached. Extract layout mood, contrast patterns, surface treatment, and accent behavior from it.' : null,
     paletteGenerationInstructions,
   ].filter(Boolean)
 
   const generatedPalette = await generateStructuredPaletteAiResult({
     prompt: promptParts.join(' '),
+    contents: body.referenceImage
+      ? [
+          { type: 'text', text: promptParts.join(' ') },
+          { type: 'image', data: body.referenceImage.data, mime_type: body.referenceImage.mimeType },
+        ]
+      : undefined,
     schema: paletteDefinitionSchema,
     responseSchema: paletteResponseSchema,
   })

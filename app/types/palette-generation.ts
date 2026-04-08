@@ -16,6 +16,10 @@ export interface PaletteGeneratePayload {
   prompt: string
   brandColors?: string[]
   referenceSummary?: string
+  referenceImage?: {
+    data: string
+    mimeType: string
+  }
 }
 
 export interface PaletteRampGeneratePayload {

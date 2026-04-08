@@ -18,11 +18,16 @@ const open = defineModel<boolean>('open', { default: false })
 
 const toast = useToast()
 const { showErrorToast } = useErrorToast()
-const { generatePaletteAudit, generatePaletteDirections, generatePaletteRamps, generatePaletteVariants } = usePaletteApi()
+const { generatePalette, generatePaletteAudit, generatePaletteDirections, generatePaletteRamps, generatePaletteVariants } = usePaletteApi()
 const { applyGeneratedPalette, applyGeneratedComponents, applyGeneratedRamps } = usePaletteState()
 const { cta, helperText, isDisabled, refresh } = usePaletteGenerationAccess()
 
-const activeTab = ref<'audit' | 'directions' | 'ramps' | 'variants'>('audit')
+const activeTab = ref<'starter' | 'audit' | 'directions' | 'ramps' | 'variants'>('starter')
+const starterPrompt = ref('')
+const starterReferenceSummary = ref('')
+const starterBrandColors = ref<string[]>([])
+const starterBrandInput = ref('')
+const starterReferenceImage = ref<{ data: string, mimeType: string, name: string } | null>(null)
 const auditPrompt = ref('')
 const directionsPrompt = ref('')
 const rampsPrompt = ref('')
@@ -35,6 +40,8 @@ const isAuditLoading = ref(false)
 const isDirectionsLoading = ref(false)
 const isRampsLoading = ref(false)
 const isVariantsLoading = ref(false)
+const isStarterLoading = ref(false)
+const starterResult = ref<PaletteDefinition | null>(null)
 const auditResult = ref<PaletteAuditGenerateResult | null>(null)
 const directionsResult = ref<PaletteDirectionsGenerateResult | null>(null)
 const rampsResult = ref<PaletteRampGenerateResult | null>(null)
@@ -48,10 +55,11 @@ const componentOptions = computed(() => getComponentThemeEditorDefinitions(props
 
 watch(open, (value) => {
   if (!value) {
-    activeTab.value = 'audit'
+    activeTab.value = 'starter'
     return
   }
 
+  starterResult.value = null
   auditResult.value = null
   directionsResult.value = null
   rampsResult.value = null
@@ -60,6 +68,7 @@ watch(open, (value) => {
 
 watch(() => props.palette?.name, () => {
   auditResult.value = null
+  starterResult.value = null
   directionsResult.value = null
   rampsResult.value = null
   variantsResult.value = null
@@ -82,6 +91,80 @@ async function handleAudit() {
     await refresh()
   } finally {
     isAuditLoading.value = false
+  }
+}
+
+function addStarterBrandColor() {
+  const color = starterBrandInput.value.trim()
+
+  if (!/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(color)) {
+    return
+  }
+
+  if (!starterBrandColors.value.includes(color)) {
+    starterBrandColors.value = [...starterBrandColors.value, color]
+  }
+
+  starterBrandInput.value = ''
+}
+
+function removeStarterBrandColor(color: string) {
+  starterBrandColors.value = starterBrandColors.value.filter(entry => entry !== color)
+}
+
+async function handleStarterImageUpload(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+
+  if (!file) {
+    return
+  }
+
+  try {
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(String(reader.result ?? ''))
+      reader.onerror = () => reject(reader.error)
+      reader.readAsDataURL(file)
+    })
+    const [, base64 = ''] = dataUrl.split(',', 2)
+
+    starterReferenceImage.value = {
+      data: base64,
+      mimeType: file.type || 'image/png',
+      name: file.name,
+    }
+  } catch (error) {
+    showErrorToast(error, 'Failed to read the reference image.')
+  } finally {
+    input.value = ''
+  }
+}
+
+async function handleStarterTheme() {
+  if (isDisabled.value || isStarterLoading.value || !starterPrompt.value.trim()) {
+    return
+  }
+
+  isStarterLoading.value = true
+
+  try {
+    starterResult.value = await generatePalette({
+      prompt: starterPrompt.value.trim(),
+      brandColors: starterBrandColors.value.length ? starterBrandColors.value : undefined,
+      referenceSummary: starterReferenceSummary.value.trim() || undefined,
+      referenceImage: starterReferenceImage.value
+        ? {
+            data: starterReferenceImage.value.data,
+            mimeType: starterReferenceImage.value.mimeType,
+          }
+        : undefined,
+    })
+  } catch (error) {
+    showErrorToast(error, 'Failed to generate a starter theme.')
+    await refresh()
+  } finally {
+    isStarterLoading.value = false
   }
 }
 
@@ -247,6 +330,7 @@ function applyVariantSuggestion() {
         <UTabs
           v-model="activeTab"
           :items="[
+            { label: 'Starter', value: 'starter', slot: 'starter' },
             { label: 'Audit', value: 'audit', slot: 'audit' },
             { label: 'Ramps', value: 'ramps', slot: 'ramps' },
             { label: 'Variants', value: 'variants', slot: 'variants' },
@@ -256,6 +340,171 @@ function applyVariantSuggestion() {
           variant="link"
           :ui="{ root: 'space-y-4', list: 'w-full border-b border-default/60' }"
         >
+          <template #starter>
+            <div class="grid gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+              <UCard variant="outline" class="rounded-2xl shadow-none">
+                <template #header>
+                  <div class="space-y-1">
+                    <p class="text-sm font-medium text-highlighted">
+                      Starter theme input
+                    </p>
+                    <p class="text-xs text-muted">
+                      Generate a full palette from a prompt, optional brand colors, and an optional screenshot or style reference.
+                    </p>
+                  </div>
+                </template>
+
+                <div class="space-y-4">
+                  <UTextarea
+                    v-model="starterPrompt"
+                    :rows="4"
+                    class="w-full"
+                    placeholder="Example: Turn this fintech dashboard into a calm, data-dense Nuxt UI theme with strong call-to-actions."
+                  />
+
+                  <UTextarea
+                    v-model="starterReferenceSummary"
+                    :rows="3"
+                    class="w-full"
+                    placeholder="Optional: summarize the reference style, surface treatment, or brand direction."
+                  />
+
+                  <div class="space-y-2">
+                    <UInput
+                      v-model="starterBrandInput"
+                      placeholder="#0ea5e9"
+                      @keydown.enter.prevent="addStarterBrandColor()"
+                    >
+                      <template #trailing>
+                        <UButton
+                          color="primary"
+                          variant="link"
+                          class="px-0"
+                          :disabled="!starterBrandInput.trim()"
+                          @click="addStarterBrandColor()"
+                        >
+                          Add
+                        </UButton>
+                      </template>
+                    </UInput>
+
+                    <div class="flex flex-wrap gap-2">
+                      <UBadge
+                        v-for="color in starterBrandColors"
+                        :key="color"
+                        color="neutral"
+                        variant="soft"
+                        class="gap-2"
+                      >
+                        <span class="h-3 w-3 rounded-full border border-black/10" :style="{ backgroundColor: color }" />
+                        {{ color }}
+                        <button type="button" class="leading-none" @click="removeStarterBrandColor(color)">x</button>
+                      </UBadge>
+                    </div>
+                  </div>
+
+                  <div class="space-y-2">
+                    <UFormField label="Reference image">
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        class="block w-full text-sm text-muted"
+                        @change="handleStarterImageUpload"
+                      >
+                    </UFormField>
+
+                    <UAlert
+                      v-if="starterReferenceImage"
+                      color="neutral"
+                      variant="soft"
+                      icon="i-lucide-image"
+                      :title="starterReferenceImage.name"
+                      :description="starterReferenceImage.mimeType"
+                    />
+                  </div>
+
+                  <UButton
+                    block
+                    color="primary"
+                    icon="i-lucide-image-plus"
+                    :disabled="isDisabled || !starterPrompt.trim()"
+                    :loading="isStarterLoading"
+                    @click="handleStarterTheme()"
+                  >
+                    Generate starter theme
+                  </UButton>
+                </div>
+              </UCard>
+
+              <UCard variant="outline" class="rounded-2xl shadow-none">
+                <template #header>
+                  <div class="space-y-1">
+                    <p class="text-sm font-medium text-highlighted">
+                      Generated starter palette
+                    </p>
+                    <p class="text-xs text-muted">
+                      Apply the generated palette as the current draft.
+                    </p>
+                  </div>
+                </template>
+
+                <div
+                  v-if="starterResult"
+                  class="space-y-4"
+                >
+                  <div class="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
+                    <p class="text-sm font-medium text-highlighted">
+                      {{ starterResult.name }}
+                    </p>
+                  </div>
+
+                  <div class="grid gap-3 sm:grid-cols-2">
+                    <div
+                      v-for="mode in ['light', 'dark']"
+                      :key="mode"
+                      class="rounded-xl border border-default/60 px-3 py-3"
+                    >
+                      <p class="text-xs uppercase tracking-[0.18em] text-muted">
+                        {{ mode }}
+                      </p>
+                      <div class="mt-3 flex flex-wrap gap-2">
+                        <div
+                          v-for="token in ['primary', 'secondary', 'success', 'warning', 'error']"
+                          :key="token"
+                          class="space-y-1"
+                        >
+                          <div
+                            class="h-8 w-8 rounded-full border border-black/10"
+                            :style="{ backgroundColor: starterResult.modes[mode as 'light' | 'dark']?.color?.[token] ?? 'transparent' }"
+                          />
+                          <p class="text-[10px] uppercase tracking-[0.14em] text-muted">
+                            {{ token }}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <UButton
+                    block
+                    color="primary"
+                    icon="i-lucide-check"
+                    @click="applyPaletteSuggestion(starterResult, 'Applied the generated starter theme to the current draft.')"
+                  >
+                    Apply starter theme
+                  </UButton>
+                </div>
+
+                <div
+                  v-else
+                  class="rounded-xl border border-dashed border-default/70 px-4 py-10 text-center text-sm text-muted"
+                >
+                  Add a prompt and optional references to generate a starter palette.
+                </div>
+              </UCard>
+            </div>
+          </template>
+
           <template #audit>
             <div class="grid gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
               <UCard variant="outline" class="rounded-2xl shadow-none">
