@@ -1,4 +1,7 @@
-import type { AlertProps, BadgeProps, ButtonProps, CardProps } from '@nuxt/ui'
+import type { AlertProps } from '@nuxt/ui/components/Alert.vue'
+import type { BadgeProps } from '@nuxt/ui/components/Badge.vue'
+import type { ButtonProps } from '@nuxt/ui/components/Button.vue'
+import type { CardProps } from '@nuxt/ui/components/Card.vue'
 import type { PaletteDefinition } from '~/types/palette'
 
 export interface PreviewInteractiveProps {

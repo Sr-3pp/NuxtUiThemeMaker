@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { DropdownMenuItem, NavigationMenuItem } from '@nuxt/ui';
+import type { DropdownMenuItem, NavigationMenuItem } from '~/types/ui-local'
 
 const {
-  openOwnPalettes, 
-  openDefaultPresets, 
+  openOwnPalettes,
+  openDefaultPresets,
   openCommunityPalettes
 } = useDrawers()
 
@@ -22,13 +22,18 @@ function openExportModal() {
 function openImportModal() {
   importModalOpen.value = true
 }
+
 function handlePaletteImport(palette: Parameters<typeof setCurrentPalette>[0]) {
   setCurrentPalette(palette)
 }
 
-const { signOut, user } = useAuth();
+const { signOut, user } = useAuth()
 
-const { palettesSidebarSw, togglePalettesSidebar } = useSidebar()
+const { palettesSidebarSw } = useSidebar()
+
+function toggleSidebar() {
+  palettesSidebarSw.value = !palettesSidebarSw.value
+}
 
 const authItems = computed<DropdownMenuItem[][]>(() => {
   if (!user.value) {
@@ -102,7 +107,7 @@ const palettesItems = computed<NavigationMenuItem[][]>(() => [[
     label: 'Import',
     icon: 'i-lucide-file-input',
     onSelect: () => openImportModal()
-  }, 
+  },
   {
     label: 'Export',
     icon: 'i-lucide-file-output',
@@ -113,60 +118,104 @@ const palettesItems = computed<NavigationMenuItem[][]>(() => [[
 
 
 <template>
-<UDashboardSidebar v-model:open="palettesSidebarSw" :toggle="false">
-      <SidebarImportModal v-model:open="importModalOpen" @import="handlePaletteImport" />
-      <SidebarExportModal v-model:open="exportModalOpen" :palette="currentPalette" />
-      <template #header>
-        <UButton 
-            @click="togglePalettesSidebar()"
-            variant="ghost"
-            class="sm:hidden"
-        >
-          <UIcon name="i-lucide-x" />
-        </UButton>
-        <UIcon name="i-lucide:layout-list" />
-        <p class="font-medium">
-          Palettes
-        </p>
-      </template>
+  <SidebarImportModal v-model:open="importModalOpen" @import="handlePaletteImport" />
+  <SidebarExportModal v-model:open="exportModalOpen" :palette="currentPalette" />
 
+  <USidebar
+    v-model:open="palettesSidebarSw"
+    collapsible="icon"
+    rail
+    :close="false"
+    :ui="{
+      container: 'h-full',
+      inner: 'bg-default/95 backdrop-blur supports-[backdrop-filter]:bg-default/85',
+      body: 'gap-3 p-3',
+      header: 'min-h-(--ui-header-height) px-3',
+      footer: 'p-3',
+    }"
+  >
+    <template #header="{ state, close }">
+      <UButton
+        variant="ghost"
+        class="sm:hidden"
+        square
+        @click="close"
+      >
+        <UIcon name="i-lucide-x" />
+      </UButton>
+
+      <div class="flex min-w-0 items-center gap-2 overflow-hidden">
+        <UButton
+          color="primary"
+          variant="soft"
+          square
+          class="shrink-0"
+          :aria-label="state === 'collapsed' ? 'Expand palettes sidebar' : 'Collapse palettes sidebar'"
+          @click="toggleSidebar"
+        >
+          <UIcon name="i-lucide-layout-list" class="size-4" />
+        </UButton>
+
+        <div v-if="state === 'expanded'" class="min-w-0">
+          <p class="truncate font-medium text-highlighted">
+            Palettes
+          </p>
+          <p class="truncate text-xs text-muted">
+            Browse, import, and export themes
+          </p>
+        </div>
+      </div>
+    </template>
+
+    <template #default="{ state }">
       <UNavigationMenu
+        :key="`library-${state}`"
         :items="palettesItems[0]"
         orientation="vertical"
+        :ui="{ link: 'overflow-hidden' }"
       />
 
       <UNavigationMenu
+        :key="`actions-${state}`"
         :items="palettesItems[1]"
         orientation="vertical"
         class="mt-auto"
+        :ui="{ link: 'overflow-hidden' }"
       />
+    </template>
 
-      <template #footer>
-        <UDropdownMenu
-          v-if="user"
-          :items="authItems"
-          :ui="{
-            content: 'w-48'
-          }"
-        >
-          <UButton class="w-full" icon="i-lucide-circle-user" color="neutral" variant="outline">
-            <span class="flex min-w-0 flex-col items-start text-left">
-              <span class="truncate">{{ user.name }}</span>
-              <span class="truncate text-xs text-muted">{{ user.email }}</span>
-            </span>
-          </UButton>
-        </UDropdownMenu>
-
+    <template #footer="{ state }">
+      <UDropdownMenu
+        v-if="user"
+        :items="authItems"
+        :content="{ align: 'center', collisionPadding: 12 }"
+        :ui="{ content: 'w-(--reka-dropdown-menu-trigger-width) min-w-48' }"
+      >
         <UButton
-          v-else
-          to="/login"
-          class="w-full"
-          icon="i-lucide-log-in"
+          :label="user.name || user.email"
+          icon="i-lucide-circle-user"
+          trailing-icon="i-lucide-chevrons-up-down"
           color="neutral"
-          variant="outline"
-        >
+          variant="ghost"
+          square
+          class="w-full overflow-hidden data-[state=open]:bg-elevated"
+          :ui="{ trailingIcon: 'text-dimmed ms-auto' }"
+        />
+      </UDropdownMenu>
+
+      <UButton
+        v-else
+        to="/login"
+        class="w-full overflow-hidden"
+        icon="i-lucide-log-in"
+        color="neutral"
+        variant="outline"
+        :square="state === 'collapsed'"
+      >
+        <span v-if="state === 'expanded'">
           Sign in
-        </UButton>
-      </template>
-    </UDashboardSidebar>
+        </span>
+      </UButton>
+    </template>
+  </USidebar>
 </template>

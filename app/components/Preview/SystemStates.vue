@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TimelineItem } from '@nuxt/ui'
+import type { TimelineItem } from '@nuxt/ui/components/Timeline.vue'
 import type { PreviewInteractiveProps } from '~/types/theme-preview'
 
 defineProps<PreviewInteractiveProps>()

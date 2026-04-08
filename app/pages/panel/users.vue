@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { h, resolveComponent } from 'vue'
 import { z } from 'zod'
-import type { TableColumn } from '@nuxt/ui'
+import type { TableColumn } from '@nuxt/ui/components/Table.vue'
+import type { TableCellContext } from '~/types/ui-local'
 import type { AdminUserListItem } from '~/types/admin-user'
 
 definePageMeta({
@@ -163,7 +164,7 @@ const tableColumns: TableColumn<AdminUserListItem>[] = [
   {
     accessorKey: 'isAdmin',
     header: 'Role',
-    cell: ({ row }) => {
+    cell: ({ row }: TableCellContext<AdminUserListItem>) => {
       const UBadge = resolveComponent('UBadge')
 
       return h(UBadge, {
@@ -176,7 +177,7 @@ const tableColumns: TableColumn<AdminUserListItem>[] = [
   {
     accessorKey: 'plan',
     header: 'Plan',
-    cell: ({ row }) => {
+    cell: ({ row }: TableCellContext<AdminUserListItem>) => {
       const UBadge = resolveComponent('UBadge')
       const label = row.original.plan === 'free'
         ? 'Free'
@@ -196,12 +197,12 @@ const tableColumns: TableColumn<AdminUserListItem>[] = [
   {
     accessorKey: 'createdAt',
     header: 'Created',
-    cell: ({ row }) => formatDate(row.original.createdAt),
+    cell: ({ row }: TableCellContext<AdminUserListItem>) => formatDate(row.original.createdAt),
   },
   {
     id: 'actions',
     header: 'Actions',
-    cell: ({ row }) => {
+    cell: ({ row }: TableCellContext<AdminUserListItem>) => {
       const UButton = resolveComponent('UButton')
 
       return h('div', { class: 'flex items-center justify-end gap-2' }, [
