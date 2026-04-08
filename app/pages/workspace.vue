@@ -8,9 +8,19 @@ definePageMeta({
   middleware: ['auth'],
 })
 
-const requestFetch = (import.meta.server ? useRequestFetch() : $fetch) as unknown as WorkspaceRequestFetch
-const apiFetch = <T>(url: string) => {
-  return requestFetch<T>(url, {
+function apiFetch<T>(
+  url: string,
+  options?: Parameters<WorkspaceRequestFetch>[1],
+): Promise<T> {
+  if (import.meta.server) {
+    return useRequestFetch()(url, options) as Promise<T>
+  }
+
+  return $fetch<T>(url, options) as Promise<T>
+}
+
+const fetchWorkspaceApi = <T>(url: string) => {
+  return apiFetch<T>(url, {
     credentials: 'include',
   })
 }
@@ -26,12 +36,12 @@ const emptyReviewThread: PaletteReviewThread = {
 }
 
 const { data: workspaceItems, refresh } = await useAsyncData('workspace-palettes', async () => {
-  const palettes = await apiFetch<StoredPalette[]>('/api/palettes/user')
+  const palettes = await fetchWorkspaceApi<StoredPalette[]>('/api/palettes/user')
 
   return Promise.all((palettes ?? []).map(async (palette): Promise<WorkspacePaletteItem> => {
     const [reviewThread, qa] = await Promise.all([
-      apiFetch<PaletteReviewThread>(`/api/palettes/${palette._id}/reviews`).catch(() => emptyReviewThread),
-      apiFetch<StoredPaletteQaReport>(`/api/palettes/${palette._id}/qa`).catch(() => null),
+      fetchWorkspaceApi<PaletteReviewThread>(`/api/palettes/${palette._id}/reviews`).catch(() => emptyReviewThread),
+      fetchWorkspaceApi<StoredPaletteQaReport>(`/api/palettes/${palette._id}/qa`).catch(() => null),
     ])
 
     return {
