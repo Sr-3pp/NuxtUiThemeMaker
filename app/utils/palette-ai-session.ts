@@ -23,6 +23,10 @@ export interface RestoredPaletteAiSession {
   historyId: number
 }
 
+const sessionTabs = ['starter', 'audit', 'directions', 'ramps', 'variants'] as const
+
+type PaletteAiSessionTab = typeof sessionTabs[number]
+
 export function createEmptyPersistedHistoryState<T>(): PaletteAiPersistedHistoryState<T> {
   return {
     items: [],
@@ -46,6 +50,27 @@ function getSelectedResult<T>(
   return state.items.find(entry => entry.id === state.selectedId)?.result ?? state.items[0]?.result ?? null
 }
 
+function getSelectedResultId<T>(
+  history: PaletteAiResultHistoryEntry<T>[],
+  result: T | null,
+) {
+  return history.find(entry => entry.result === result)?.id ?? null
+}
+
+function getSessionHistoryIds(session: PaletteAiPersistedSession) {
+  return sessionTabs.flatMap(tab => session[tab].items.map(entry => entry.id))
+}
+
+function toPersistedHistoryState<T>(
+  history: PaletteAiResultHistoryEntry<T>[],
+  result: T | null,
+): PaletteAiPersistedHistoryState<T> {
+  return {
+    items: history,
+    selectedId: getSelectedResultId(history, result),
+  }
+}
+
 export function restorePaletteAiSession(session?: PaletteAiPersistedSession): RestoredPaletteAiSession {
   const resolvedSession = session ?? createEmptyPersistedAiSession()
 
@@ -60,14 +85,7 @@ export function restorePaletteAiSession(session?: PaletteAiPersistedSession): Re
     directionsResult: getSelectedResult(resolvedSession.directions),
     rampsResult: getSelectedResult(resolvedSession.ramps),
     variantsResult: getSelectedResult(resolvedSession.variants),
-    historyId: Math.max(
-      0,
-      ...resolvedSession.starter.items.map(entry => entry.id),
-      ...resolvedSession.audit.items.map(entry => entry.id),
-      ...resolvedSession.directions.items.map(entry => entry.id),
-      ...resolvedSession.ramps.items.map(entry => entry.id),
-      ...resolvedSession.variants.items.map(entry => entry.id),
-    ),
+    historyId: Math.max(0, ...getSessionHistoryIds(resolvedSession)),
   }
 }
 
@@ -84,25 +102,10 @@ export function buildPaletteAiPersistedSession(payload: {
   variantsResult: PaletteVariantGenerateResult | null
 }): PaletteAiPersistedSession {
   return {
-    starter: {
-      items: payload.starterHistory,
-      selectedId: payload.starterHistory.find(entry => entry.result === payload.starterResult)?.id ?? null,
-    },
-    audit: {
-      items: payload.auditHistory,
-      selectedId: payload.auditHistory.find(entry => entry.result === payload.auditResult)?.id ?? null,
-    },
-    directions: {
-      items: payload.directionsHistory,
-      selectedId: payload.directionsHistory.find(entry => entry.result === payload.directionsResult)?.id ?? null,
-    },
-    ramps: {
-      items: payload.rampsHistory,
-      selectedId: payload.rampsHistory.find(entry => entry.result === payload.rampsResult)?.id ?? null,
-    },
-    variants: {
-      items: payload.variantsHistory,
-      selectedId: payload.variantsHistory.find(entry => entry.result === payload.variantsResult)?.id ?? null,
-    },
+    starter: toPersistedHistoryState(payload.starterHistory, payload.starterResult),
+    audit: toPersistedHistoryState(payload.auditHistory, payload.auditResult),
+    directions: toPersistedHistoryState(payload.directionsHistory, payload.directionsResult),
+    ramps: toPersistedHistoryState(payload.rampsHistory, payload.rampsResult),
+    variants: toPersistedHistoryState(payload.variantsHistory, payload.variantsResult),
   }
 }
