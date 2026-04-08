@@ -35,6 +35,7 @@ import {
 import {
   watchThemeAiModalSessionPersistence,
 } from '~/utils/theme-ai-modal-session'
+import { runThemeAiModalAction } from '~/utils/theme-ai-modal-actions'
 
 export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette | null>) {
   const toast = useToast()
@@ -173,25 +174,22 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   }
 
   async function handleAudit() {
-    if (!palette.value || access.isDisabled.value || isAuditLoading.value) {
-      return
-    }
-
-    isAuditLoading.value = true
-
-    try {
-      const result = await generatePaletteAudit({
-        palette: clonePaletteDefinition(palette.value),
-        prompt: auditPrompt.value.trim() || undefined,
-      })
-      auditResult.value = result
-      pushThemeAiResultHistory(auditHistory, historyId, result, result.summary, summarizeThemeAiPrompt(auditPrompt.value, 'Default repair brief'))
-    } catch (error) {
-      showErrorToast(error, 'Failed to generate an AI repair pass.')
-      await access.refresh()
-    } finally {
-      isAuditLoading.value = false
-    }
+    await runThemeAiModalAction({
+      loading: isAuditLoading,
+      canRun: Boolean(palette.value) && !access.isDisabled.value,
+      execute: async () => {
+        const result = await generatePaletteAudit({
+          palette: clonePaletteDefinition(palette.value!),
+          prompt: auditPrompt.value.trim() || undefined,
+        })
+        auditResult.value = result
+        pushThemeAiResultHistory(auditHistory, historyId, result, result.summary, summarizeThemeAiPrompt(auditPrompt.value, 'Default repair brief'))
+      },
+      handleError: async (error) => {
+        showErrorToast(error, 'Failed to generate an AI repair pass.')
+        await access.refresh()
+      },
+    })
   }
 
   function addStarterBrandColor() {
@@ -211,61 +209,55 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   }
 
   async function handleStarterTheme() {
-    if (!canGenerateStarter.value || isStarterLoading.value) {
-      return
-    }
-
-    isStarterLoading.value = true
-
-    try {
-      const result = await generatePalette({
-        prompt: starterPrompt.value.trim(),
-        brandColors: starterBrandColors.value.length ? starterBrandColors.value : undefined,
-        referenceSummary: starterReferenceSummary.value.trim() || undefined,
-        referenceImage: starterReferenceImage.value
-          ? {
-              data: starterReferenceImage.value.data,
-              mimeType: starterReferenceImage.value.mimeType,
-            }
-          : undefined,
-      })
-      starterResult.value = result
-      pushThemeAiResultHistory(starterHistory, historyId, result, result.name, summarizeThemeAiPrompt(starterPrompt.value, 'Starter theme'))
-    } catch (error) {
-      showErrorToast(error, 'Failed to generate a starter theme.')
-      await access.refresh()
-    } finally {
-      isStarterLoading.value = false
-    }
+    await runThemeAiModalAction({
+      loading: isStarterLoading,
+      canRun: canGenerateStarter.value,
+      execute: async () => {
+        const result = await generatePalette({
+          prompt: starterPrompt.value.trim(),
+          brandColors: starterBrandColors.value.length ? starterBrandColors.value : undefined,
+          referenceSummary: starterReferenceSummary.value.trim() || undefined,
+          referenceImage: starterReferenceImage.value
+            ? {
+                data: starterReferenceImage.value.data,
+                mimeType: starterReferenceImage.value.mimeType,
+              }
+            : undefined,
+        })
+        starterResult.value = result
+        pushThemeAiResultHistory(starterHistory, historyId, result, result.name, summarizeThemeAiPrompt(starterPrompt.value, 'Starter theme'))
+      },
+      handleError: async (error) => {
+        showErrorToast(error, 'Failed to generate a starter theme.')
+        await access.refresh()
+      },
+    })
   }
 
   async function handleDirections() {
-    if (!palette.value || access.isDisabled.value || isDirectionsLoading.value) {
-      return
-    }
-
-    isDirectionsLoading.value = true
-
-    try {
-      const result = await generatePaletteDirections({
-        palette: clonePaletteDefinition(palette.value),
-        prompt: directionsPrompt.value.trim() || undefined,
-        count: directionsCount.value,
-      })
-      directionsResult.value = result
-      pushThemeAiResultHistory(
-        directionsHistory,
-        historyId,
-        result,
-        `${result.directions.length} direction${result.directions.length === 1 ? '' : 's'}`,
-        summarizeThemeAiPrompt(directionsPrompt.value, `${directionsCount.value} option request`),
-      )
-    } catch (error) {
-      showErrorToast(error, 'Failed to generate alternative directions.')
-      await access.refresh()
-    } finally {
-      isDirectionsLoading.value = false
-    }
+    await runThemeAiModalAction({
+      loading: isDirectionsLoading,
+      canRun: Boolean(palette.value) && !access.isDisabled.value,
+      execute: async () => {
+        const result = await generatePaletteDirections({
+          palette: clonePaletteDefinition(palette.value!),
+          prompt: directionsPrompt.value.trim() || undefined,
+          count: directionsCount.value,
+        })
+        directionsResult.value = result
+        pushThemeAiResultHistory(
+          directionsHistory,
+          historyId,
+          result,
+          `${result.directions.length} direction${result.directions.length === 1 ? '' : 's'}`,
+          summarizeThemeAiPrompt(directionsPrompt.value, `${directionsCount.value} option request`),
+        )
+      },
+      handleError: async (error) => {
+        showErrorToast(error, 'Failed to generate alternative directions.')
+        await access.refresh()
+      },
+    })
   }
 
   function addRampBrandColor() {
@@ -277,61 +269,55 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   }
 
   async function handleRamps() {
-    if (!canGenerateRamps.value || isRampsLoading.value) {
-      return
-    }
-
-    isRampsLoading.value = true
-
-    try {
-      const result = await generatePaletteRamps({
-        paletteName: palette.value?.name,
-        brandColors: rampBrandColors.value,
-        prompt: rampsPrompt.value.trim() || undefined,
-      })
-      rampsResult.value = result
-      pushThemeAiResultHistory(
-        rampsHistory,
-        historyId,
-        result,
-        `${Object.keys(result.ramps).length} ramp${Object.keys(result.ramps).length === 1 ? '' : 's'}`,
-        `${rampBrandColors.value.slice(0, 2).join(', ')}${rampBrandColors.value.length > 2 ? ' +' : ''}`,
-      )
-    } catch (error) {
-      showErrorToast(error, 'Failed to generate color ramps.')
-      await access.refresh()
-    } finally {
-      isRampsLoading.value = false
-    }
+    await runThemeAiModalAction({
+      loading: isRampsLoading,
+      canRun: canGenerateRamps.value,
+      execute: async () => {
+        const result = await generatePaletteRamps({
+          paletteName: palette.value?.name,
+          brandColors: rampBrandColors.value,
+          prompt: rampsPrompt.value.trim() || undefined,
+        })
+        rampsResult.value = result
+        pushThemeAiResultHistory(
+          rampsHistory,
+          historyId,
+          result,
+          `${Object.keys(result.ramps).length} ramp${Object.keys(result.ramps).length === 1 ? '' : 's'}`,
+          `${rampBrandColors.value.slice(0, 2).join(', ')}${rampBrandColors.value.length > 2 ? ' +' : ''}`,
+        )
+      },
+      handleError: async (error) => {
+        showErrorToast(error, 'Failed to generate color ramps.')
+        await access.refresh()
+      },
+    })
   }
 
   async function handleVariants() {
-    if (!palette.value || !canGenerateVariants.value || isVariantsLoading.value) {
-      return
-    }
-
-    isVariantsLoading.value = true
-
-    try {
-      const result = await generatePaletteVariants({
-        prompt: variantsPrompt.value.trim() || 'Generate practical component variants for this palette.',
-        palette: clonePaletteDefinition(palette.value),
-        componentKeys: selectedVariantComponents.value,
-      })
-      variantsResult.value = result
-      pushThemeAiResultHistory(
-        variantsHistory,
-        historyId,
-        result,
-        result.summary,
-        selectedVariantComponents.value.slice(0, 3).join(', '),
-      )
-    } catch (error) {
-      showErrorToast(error, 'Failed to generate component variants.')
-      await access.refresh()
-    } finally {
-      isVariantsLoading.value = false
-    }
+    await runThemeAiModalAction({
+      loading: isVariantsLoading,
+      canRun: Boolean(palette.value) && canGenerateVariants.value,
+      execute: async () => {
+        const result = await generatePaletteVariants({
+          prompt: variantsPrompt.value.trim() || 'Generate practical component variants for this palette.',
+          palette: clonePaletteDefinition(palette.value!),
+          componentKeys: selectedVariantComponents.value,
+        })
+        variantsResult.value = result
+        pushThemeAiResultHistory(
+          variantsHistory,
+          historyId,
+          result,
+          result.summary,
+          selectedVariantComponents.value.slice(0, 3).join(', '),
+        )
+      },
+      handleError: async (error) => {
+        showErrorToast(error, 'Failed to generate component variants.')
+        await access.refresh()
+      },
+    })
   }
 
   function applyPaletteSuggestion(targetPalette: PaletteDefinition, message: string) {
