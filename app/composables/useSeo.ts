@@ -31,7 +31,7 @@ export function usePageSeo(options: PageSeoOptions) {
 
   useHead({
     title,
-    titleTemplate: route.path === '/' ? `%s | ${siteName}` : `%s | ${siteName}`,
+    titleTemplate: `%s | ${siteName}`,
     link: [
       {
         rel: 'canonical',

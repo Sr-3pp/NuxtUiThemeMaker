@@ -15,11 +15,6 @@ import {
   createPaletteWithGeneratedComponents,
   createPaletteWithGeneratedRamps,
 } from '~/utils/palette-domain'
-import {
-  buildPaletteAiPersistedSession,
-  createEmptyPersistedAiSession,
-  restorePaletteAiSession,
-} from '~/utils/palette-ai-session'
 import { getComponentThemeEditorDefinitions } from '~/utils/component-theme-editor'
 import {
   getSelectedThemeAiHistoryId,

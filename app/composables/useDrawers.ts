@@ -3,25 +3,27 @@ export const useDrawers = () => {
   const defaultPresetsOpen = useState<boolean>('default-presets-open', () => false)
   const communityPalettesOpen = useState<boolean>('community-palettes-open', () => false)
 
-  const closeAllDrawers = () => {
+  function closeAllDrawers() {
     ownPalettesOpen.value = false
     defaultPresetsOpen.value = false
     communityPalettesOpen.value = false
   }
 
-  const openOwnPalettes = () => {
+  function openDrawer(target: typeof ownPalettesOpen | typeof defaultPresetsOpen | typeof communityPalettesOpen) {
     closeAllDrawers()
-    ownPalettesOpen.value = true
+    target.value = true
   }
 
-  const openDefaultPresets = () => {
-    closeAllDrawers()
-    defaultPresetsOpen.value = true
+  function openOwnPalettes() {
+    openDrawer(ownPalettesOpen)
   }
 
-  const openCommunityPalettes = () => {
-    closeAllDrawers()
-    communityPalettesOpen.value = true
+  function openDefaultPresets() {
+    openDrawer(defaultPresetsOpen)
+  }
+
+  function openCommunityPalettes() {
+    openDrawer(communityPalettesOpen)
   }
 
   return {
@@ -31,6 +33,6 @@ export const useDrawers = () => {
     closeAllDrawers,
     openOwnPalettes,
     openDefaultPresets,
-    openCommunityPalettes
+    openCommunityPalettes,
   }
 }

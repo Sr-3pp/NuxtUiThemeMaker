@@ -18,6 +18,32 @@ import { FREE_PLAN_PALETTE_GENERATION_LIMIT } from '../data/pricing'
 import { clonePaletteDefinition } from '../utils/palette-domain'
 
 export function usePaletteApi() {
+  async function fetchWithRefresh<T>(
+    input: string,
+    init: Parameters<typeof $fetch<T>>[1],
+    refreshKey: string,
+  ) {
+    const result = await $fetch<T>(input, init)
+
+    await refreshNuxtData(refreshKey)
+
+    return result
+  }
+
+  function fetchWithUserPaletteRefresh<T>(
+    input: string,
+    init: Parameters<typeof $fetch<T>>[1],
+  ) {
+    return fetchWithRefresh<T>(input, init, 'user-palettes')
+  }
+
+  function fetchWithGenerationAccessRefresh<T>(
+    input: string,
+    init: Parameters<typeof $fetch<T>>[1],
+  ) {
+    return fetchWithRefresh<T>(input, init, 'palette-generation-access')
+  }
+
   const savePalette = async (palette: EditablePalette) => {
     if (!palette._id) {
       return null
@@ -31,21 +57,17 @@ export function usePaletteApi() {
       isPublic: palette.isPublic ?? false,
     }
 
-    const updatedPalette = await $fetch<StoredPalette>(`/api/palettes/${palette._id}`, {
+    return fetchWithUserPaletteRefresh<StoredPalette>(`/api/palettes/${palette._id}`, {
       method: 'PUT',
       credentials: 'include',
       body: payload,
     })
-
-    await refreshNuxtData('user-palettes')
-
-    return updatedPalette
   }
 
   const saveNewPalette = async (palette: EditablePalette) => {
     const editablePalette = clonePaletteDefinition(palette)
 
-    const createdPalette = await $fetch<StoredPalette>('/api/palettes', {
+    return fetchWithUserPaletteRefresh<StoredPalette>('/api/palettes', {
       method: 'POST',
       credentials: 'include',
       body: {
@@ -54,67 +76,45 @@ export function usePaletteApi() {
         isPublic: false,
       },
     })
-
-    await refreshNuxtData('user-palettes')
-
-    return createdPalette
   }
 
   const deletePalette = async (id: string) => {
-    await $fetch(`/api/palettes/${id}`, {
+    await fetchWithUserPaletteRefresh(`/api/palettes/${id}`, {
       method: 'DELETE',
       credentials: 'include',
     })
-
-    await refreshNuxtData('user-palettes')
   }
 
   const forkPalette = async (id: string) => {
-    const forkedPalette = await $fetch<StoredPalette>(`/api/palettes/${id}/fork`, {
+    return fetchWithUserPaletteRefresh<StoredPalette>(`/api/palettes/${id}/fork`, {
       method: 'POST',
       credentials: 'include',
     })
-
-    await refreshNuxtData('user-palettes')
-
-    return forkedPalette
   }
 
   const sharePalette = async (id: string, payload: SharePalettePayload) => {
-    const updatedPalette = await $fetch<StoredPalette>(`/api/palettes/${id}/share`, {
+    return fetchWithUserPaletteRefresh<StoredPalette>(`/api/palettes/${id}/share`, {
       method: 'POST',
       credentials: 'include',
       body: payload,
     })
-
-    await refreshNuxtData('user-palettes')
-
-    return updatedPalette
   }
 
   const unsharePalette = async (id: string, collaboratorUserId: string) => {
-    const updatedPalette = await $fetch<StoredPalette>(`/api/palettes/${id}/share/${collaboratorUserId}`, {
+    return fetchWithUserPaletteRefresh<StoredPalette>(`/api/palettes/${id}/share/${collaboratorUserId}`, {
       method: 'DELETE',
       credentials: 'include',
     })
-
-    await refreshNuxtData('user-palettes')
-
-    return updatedPalette
   }
 
   const updatePaletteVisibility = async (id: string, isPublic: boolean) => {
     const payload: UpdatePaletteVisibilityPayload = { isPublic }
 
-    const updatedPalette = await $fetch<StoredPalette>(`/api/palettes/${id}/visibility`, {
+    return fetchWithUserPaletteRefresh<StoredPalette>(`/api/palettes/${id}/visibility`, {
       method: 'PATCH',
       credentials: 'include',
       body: payload,
     })
-
-    await refreshNuxtData('user-palettes')
-
-    return updatedPalette
   }
 
   const getPaletteHistory = async (id: string) => {
@@ -162,63 +162,43 @@ export function usePaletteApi() {
   })
 
   const generatePalette = async (payload: string | PaletteGeneratePayload) => {
-    const generatedPalette = await $fetch<EditablePalette>('/api/palettes/generate', {
+    return fetchWithGenerationAccessRefresh<EditablePalette>('/api/palettes/generate', {
       method: 'POST',
       credentials: 'include',
       body: typeof payload === 'string' ? { prompt: payload } : payload,
     })
-
-    await refreshNuxtData('palette-generation-access')
-
-    return generatedPalette
   }
 
   const generatePaletteRamps = async (payload: PaletteRampGeneratePayload) => {
-    const result = await $fetch<PaletteRampGenerateResult>('/api/palettes/generate/ramp', {
+    return fetchWithGenerationAccessRefresh<PaletteRampGenerateResult>('/api/palettes/generate/ramp', {
       method: 'POST',
       credentials: 'include',
       body: payload,
     })
-
-    await refreshNuxtData('palette-generation-access')
-
-    return result
   }
 
   const generatePaletteVariants = async (payload: PaletteVariantGeneratePayload) => {
-    const result = await $fetch<PaletteVariantGenerateResult>('/api/palettes/generate/variants', {
+    return fetchWithGenerationAccessRefresh<PaletteVariantGenerateResult>('/api/palettes/generate/variants', {
       method: 'POST',
       credentials: 'include',
       body: payload,
     })
-
-    await refreshNuxtData('palette-generation-access')
-
-    return result
   }
 
   const generatePaletteAudit = async (payload: PaletteAuditGeneratePayload) => {
-    const result = await $fetch<PaletteAuditGenerateResult>('/api/palettes/generate/audit', {
+    return fetchWithGenerationAccessRefresh<PaletteAuditGenerateResult>('/api/palettes/generate/audit', {
       method: 'POST',
       credentials: 'include',
       body: payload,
     })
-
-    await refreshNuxtData('palette-generation-access')
-
-    return result
   }
 
   const generatePaletteDirections = async (payload: PaletteDirectionsGeneratePayload) => {
-    const result = await $fetch<PaletteDirectionsGenerateResult>('/api/palettes/generate/directions', {
+    return fetchWithGenerationAccessRefresh<PaletteDirectionsGenerateResult>('/api/palettes/generate/directions', {
       method: 'POST',
       credentials: 'include',
       body: payload,
     })
-
-    await refreshNuxtData('palette-generation-access')
-
-    return result
   }
 
   return {

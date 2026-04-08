@@ -1,19 +1,23 @@
-export default function useSidebar(){
-    const palettesSidebarSw = useState<boolean>('palettes-sidebar-sw', () => false)
-    const editorSidebarSw = useState<boolean>('editor-sidebar-sw', () => false)
+export default function useSidebar() {
+  const palettesSidebarSw = useState<boolean>('palettes-sidebar-sw', () => false)
+  const editorSidebarSw = useState<boolean>('editor-sidebar-sw', () => false)
 
-    const togglePalettesSidebar = () => {
-        palettesSidebarSw.value = !palettesSidebarSw.value
-    }
+  function toggle(state: typeof palettesSidebarSw | typeof editorSidebarSw) {
+    state.value = !state.value
+  }
 
-    const toggleEditorSidebar = () => {
-        editorSidebarSw.value = !editorSidebarSw.value
-    }
+  function togglePalettesSidebar() {
+    toggle(palettesSidebarSw)
+  }
 
-    return {
-        palettesSidebarSw,
-        togglePalettesSidebar,
-        editorSidebarSw,
-        toggleEditorSidebar
-    }
+  function toggleEditorSidebar() {
+    toggle(editorSidebarSw)
+  }
+
+  return {
+    palettesSidebarSw,
+    togglePalettesSidebar,
+    editorSidebarSw,
+    toggleEditorSidebar,
+  }
 }
