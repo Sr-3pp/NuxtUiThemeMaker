@@ -5,6 +5,7 @@ const createPaletteMock = vi.fn()
 const createPaletteVersionMock = vi.fn()
 const deletePaletteByIdMock = vi.fn()
 const findPaletteByIdMock = vi.fn()
+const findUserByEmailMock = vi.fn()
 const generateUniquePaletteSlugMock = vi.fn()
 const getPaletteLifecycleStatusMock = vi.fn((isPublic: boolean) => isPublic ? 'published' : 'draft')
 const listPaletteVersionsByPaletteIdMock = vi.fn()
@@ -25,6 +26,10 @@ vi.mock('~~/server/db/repositories/palette-repository', () => ({
   deletePaletteById: deletePaletteByIdMock,
   findPaletteById: findPaletteByIdMock,
   updatePaletteById: updatePaletteByIdMock,
+}))
+
+vi.mock('~~/server/db/repositories/user-repository', () => ({
+  findUserByEmail: findUserByEmailMock,
 }))
 
 vi.mock('~~/server/db/repositories/palette-version-repository', () => ({
@@ -56,6 +61,7 @@ describe('palette service', () => {
     createPaletteVersionMock.mockReset()
     deletePaletteByIdMock.mockReset()
     findPaletteByIdMock.mockReset()
+    findUserByEmailMock.mockReset()
     generateUniquePaletteSlugMock.mockReset()
     getPaletteLifecycleStatusMock.mockReset()
     listPaletteVersionsByPaletteIdMock.mockReset()
@@ -283,6 +289,70 @@ describe('palette service', () => {
         name: 'Forest Glow',
         version: 3,
       },
+    })
+  })
+
+  it('shares a palette with another registered user', async () => {
+    findPaletteByIdMock.mockResolvedValueOnce({
+      _id: 'palette-id',
+      userId: 'user-1',
+      slug: 'forest-glow',
+      name: 'Forest Glow',
+      palette: { name: 'Forest Glow', modes: { light: {}, dark: {} } },
+      isPublic: false,
+      lifecycleStatus: 'draft',
+      version: 2,
+      publishedAt: null,
+      forkedFrom: null,
+      collaborators: [],
+      createdAt: new Date('2026-03-09T10:00:00.000Z'),
+      updatedAt: new Date('2026-03-10T10:00:00.000Z'),
+    })
+    findUserByEmailMock.mockResolvedValueOnce({
+      id: 'user-2',
+      email: 'designer@example.com',
+      name: 'Designer',
+    })
+    updatePaletteByIdMock.mockResolvedValueOnce({
+      _id: 'palette-id',
+      userId: 'user-1',
+      slug: 'forest-glow',
+      name: 'Forest Glow',
+      palette: { name: 'Forest Glow', modes: { light: {}, dark: {} } },
+      isPublic: false,
+      lifecycleStatus: 'draft',
+      version: 2,
+      publishedAt: null,
+      forkedFrom: null,
+      collaborators: [
+        { userId: 'user-2', email: 'designer@example.com', name: 'Designer' },
+      ],
+      createdAt: new Date('2026-03-09T10:00:00.000Z'),
+      updatedAt: new Date('2026-03-10T10:00:00.000Z'),
+    })
+    toStoredPaletteMock.mockReturnValueOnce({
+      _id: 'palette-id',
+      collaborators: [
+        { userId: 'user-2', email: 'designer@example.com', name: 'Designer' },
+      ],
+      accessLevel: 'owner',
+    })
+
+    const { sharePaletteWithUser } = await import('../../server/services/palette-service')
+    const result = await sharePaletteWithUser('69af8b6940280b9bc83c3c07', 'user-1', 'designer@example.com')
+
+    expect(findUserByEmailMock).toHaveBeenCalledWith('designer@example.com')
+    expect(updatePaletteByIdMock).toHaveBeenCalledWith('palette-id', expect.objectContaining({
+      collaborators: [
+        { userId: 'user-2', email: 'designer@example.com', name: 'Designer' },
+      ],
+    }))
+    expect(result).toEqual({
+      _id: 'palette-id',
+      collaborators: [
+        { userId: 'user-2', email: 'designer@example.com', name: 'Designer' },
+      ],
+      accessLevel: 'owner',
     })
   })
 

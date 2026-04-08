@@ -1,6 +1,6 @@
 import type { EditablePalette } from '~/types/palette-editor'
 import type { CreatePaletteReviewPayload, PaletteReview, PaletteReviewThread } from '~/types/palette-review'
-import type { StoredPalette, UpdatePalettePayload, UpdatePaletteVisibilityPayload } from '~/types/palette-store'
+import type { SharePalettePayload, StoredPalette, UpdatePalettePayload, UpdatePaletteVisibilityPayload } from '~/types/palette-store'
 import type { PaletteGenerationAccess } from '~/types/palette-generation'
 import type { PaletteVersionSnapshot } from '~/types/palette-version'
 import { FREE_PLAN_PALETTE_GENERATION_LIMIT } from '../data/pricing'
@@ -67,6 +67,29 @@ export function usePaletteApi() {
     await refreshNuxtData('user-palettes')
 
     return forkedPalette
+  }
+
+  const sharePalette = async (id: string, payload: SharePalettePayload) => {
+    const updatedPalette = await $fetch<StoredPalette>(`/api/palettes/${id}/share`, {
+      method: 'POST',
+      credentials: 'include',
+      body: payload,
+    })
+
+    await refreshNuxtData('user-palettes')
+
+    return updatedPalette
+  }
+
+  const unsharePalette = async (id: string, collaboratorUserId: string) => {
+    const updatedPalette = await $fetch<StoredPalette>(`/api/palettes/${id}/share/${collaboratorUserId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+
+    await refreshNuxtData('user-palettes')
+
+    return updatedPalette
   }
 
   const updatePaletteVisibility = async (id: string, isPublic: boolean) => {
@@ -148,8 +171,10 @@ export function usePaletteApi() {
     getPublicPalettes,
     getUserPalettes,
     createPaletteReview,
+    sharePalette,
     saveNewPalette,
     savePalette,
+    unsharePalette,
     updatePaletteVisibility,
     generatePalette,
   }

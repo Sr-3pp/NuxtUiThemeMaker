@@ -9,6 +9,14 @@ export interface PaletteForkSource {
   version: number
 }
 
+export interface PaletteCollaborator {
+  userId: string
+  email: string
+  name: string
+}
+
+export type PaletteAccessLevel = 'owner' | 'shared'
+
 export interface StoredPalette {
   _id: string
   userId: string
@@ -20,6 +28,8 @@ export interface StoredPalette {
   version: number
   publishedAt: string | null
   forkedFrom: PaletteForkSource | null
+  collaborators: PaletteCollaborator[]
+  accessLevel: PaletteAccessLevel
   createdAt: string
   updatedAt: string
 }
@@ -34,4 +44,8 @@ export interface UpdatePalettePayload extends SavePalettePayload {}
 
 export interface UpdatePaletteVisibilityPayload {
   isPublic: boolean
+}
+
+export interface SharePalettePayload {
+  email: string
 }

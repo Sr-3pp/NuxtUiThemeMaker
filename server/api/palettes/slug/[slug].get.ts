@@ -24,13 +24,14 @@ export default defineEventHandler(async (event) => {
   }
 
   const isOwner = session?.user.id === palette.userId
+  const isCollaborator = Boolean(session?.user.id && palette.collaborators?.some(collaborator => collaborator.userId === session.user.id))
 
-  if (!palette.isPublic && !isOwner) {
+  if (!palette.isPublic && !isOwner && !isCollaborator) {
     throw createError({
       statusCode: 404,
       statusMessage: 'Palette not found',
     })
   }
 
-  return toStoredPalette(palette)
+  return toStoredPalette(palette, session?.user.id)
 })

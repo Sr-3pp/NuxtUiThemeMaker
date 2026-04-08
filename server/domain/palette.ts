@@ -7,7 +7,7 @@ import type { PaletteDocument } from '~~/server/types/palette-document'
 import type { PaletteReviewDocument } from '~~/server/types/palette-review-document'
 import type { PaletteVersionDocument } from '~~/server/types/palette-version-document'
 
-export function toStoredPalette(document: PaletteDocument): StoredPalette {
+export function toStoredPalette(document: PaletteDocument, viewerUserId?: string | null): StoredPalette {
   if (!document._id) {
     throw new Error('Palette document is missing _id')
   }
@@ -23,6 +23,8 @@ export function toStoredPalette(document: PaletteDocument): StoredPalette {
     version: document.version ?? 1,
     publishedAt: document.publishedAt?.toISOString() ?? null,
     forkedFrom: document.forkedFrom ?? null,
+    collaborators: document.collaborators ?? [],
+    accessLevel: viewerUserId && document.userId !== viewerUserId ? 'shared' : 'owner',
     createdAt: document.createdAt.toISOString(),
     updatedAt: document.updatedAt.toISOString(),
   }

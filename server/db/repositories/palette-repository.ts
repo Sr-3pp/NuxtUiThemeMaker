@@ -6,7 +6,12 @@ export async function listPalettesByUserId(userId: string) {
   const collection = await getPaletteCollection()
 
   return collection
-    .find({ userId })
+    .find({
+      $or: [
+        { userId },
+        { 'collaborators.userId': userId },
+      ],
+    })
     .sort({ updatedAt: -1 })
     .toArray()
 }

@@ -9,12 +9,14 @@ const props = withDefaults(defineProps<{
   badgeLabel?: string
   showDelete?: boolean
   showHistory?: boolean
+  showShare?: boolean
   showVisibilityToggle?: boolean
 }>(), {
   actionLabel: 'Use palette',
   badgeLabel: 'Palette',
   showDelete: false,
   showHistory: false,
+  showShare: false,
   showVisibilityToggle: false,
 })
 
@@ -22,6 +24,7 @@ const emit = defineEmits<{
   select: []
   delete: []
   history: []
+  share: []
   toggleVisibility: []
 }>()
 
@@ -67,6 +70,14 @@ const forkSourceLabel = computed(() => {
   }
 
   return `Forked from ${storedPalette.value.forkedFrom.name}`
+})
+
+const accessLabel = computed(() => {
+  if (!storedPalette.value || storedPalette.value.accessLevel !== 'shared') {
+    return null
+  }
+
+  return 'Shared with you'
 })
 
 const swatches = computed(() => {
@@ -144,6 +155,9 @@ const swatches = computed(() => {
         <p v-if="forkSourceLabel" class="text-xs text-muted">
           {{ forkSourceLabel }}
         </p>
+        <p v-if="accessLabel" class="text-xs text-muted">
+          {{ accessLabel }}
+        </p>
       </div>
 
       <div class="flex gap-2">
@@ -157,6 +171,14 @@ const swatches = computed(() => {
           icon="i-lucide-history"
           aria-label="Open palette history"
           @click="emit('history')"
+        />
+        <UButton
+          v-if="showShare"
+          color="neutral"
+          variant="soft"
+          icon="i-lucide-users"
+          aria-label="Manage palette sharing"
+          @click="emit('share')"
         />
         <UButton
           v-if="showVisibilityToggle"

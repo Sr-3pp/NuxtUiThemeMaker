@@ -119,4 +119,27 @@ describe('palette QA service access', () => {
       statusMessage: 'Forbidden',
     })
   })
+
+  it('returns QA data for collaborators on private palettes', async () => {
+    findPaletteByIdMock.mockResolvedValueOnce({
+      _id: 'palette-id',
+      userId: 'user-2',
+      collaborators: [
+        { userId: 'user-1', email: 'designer@example.com', name: 'Designer' },
+      ],
+      palette: {
+        name: 'Shared Palette',
+        modes: {
+          light: {},
+          dark: {},
+        },
+      },
+    })
+
+    const { getPaletteQaReportForUser } = await import('../../server/services/palette-qa-service')
+
+    const result = await getPaletteQaReportForUser('69af8b6940280b9bc83c3c07', 'user-1')
+
+    expect(result.paletteId).toBe('palette-id')
+  })
 })

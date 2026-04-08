@@ -5,6 +5,16 @@ import { auditPaletteTheme } from '../../app/utils/palette-qa'
 import { findPaletteById } from '~~/server/db/repositories/palette-repository'
 import { parsePaletteObjectId } from '~~/server/services/palette-helpers'
 
+function hasPaletteAccess(
+  palette: {
+    userId: string
+    collaborators?: Array<{ userId: string }>
+  },
+  userId: string,
+) {
+  return palette.userId === userId || Boolean(palette.collaborators?.some(collaborator => collaborator.userId === userId))
+}
+
 export function getPaletteQaReport(palette: PaletteDefinition) {
   return auditPaletteTheme(palette)
 }
@@ -20,7 +30,7 @@ export async function getPaletteQaReportForUser(id: string, userId: string): Pro
     })
   }
 
-  if (palette.userId !== userId) {
+  if (!hasPaletteAccess(palette, userId)) {
     throw createError({
       statusCode: 403,
       statusMessage: 'Forbidden',
@@ -28,7 +38,7 @@ export async function getPaletteQaReportForUser(id: string, userId: string): Pro
   }
 
   return {
-    paletteId: palette._id,
+    paletteId: palette._id.toHexString(),
     report: getPaletteQaReport(palette.palette),
   }
 }

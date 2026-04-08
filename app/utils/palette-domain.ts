@@ -247,6 +247,8 @@ export function toEditablePalette(palette: PaletteDefinition | StoredPalette): E
       version: palette.version,
       publishedAt: palette.publishedAt,
       forkedFrom: palette.forkedFrom,
+      collaborators: palette.collaborators,
+      accessLevel: palette.accessLevel,
       createdAt: palette.createdAt,
       updatedAt: palette.updatedAt,
     }

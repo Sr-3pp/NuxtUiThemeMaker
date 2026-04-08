@@ -157,6 +157,30 @@ describe('usePaletteApi', () => {
     expect(result).toEqual({ _id: 'palette-2', forkedFrom: { paletteId: 'palette-1' } })
   })
 
+  it('shares and unshares palettes through the owner access endpoints', async () => {
+    const { usePaletteApi } = await import('../../app/composables/usePaletteApi')
+    const api = usePaletteApi()
+
+    fetchMock
+      .mockResolvedValueOnce({ _id: 'palette-1', collaborators: [{ userId: 'user-2' }] })
+      .mockResolvedValueOnce({ _id: 'palette-1', collaborators: [] })
+
+    const shared = await api.sharePalette('palette-1', { email: 'designer@example.com' })
+    const unshared = await api.unsharePalette('palette-1', 'user-2')
+
+    expect(fetchMock).toHaveBeenNthCalledWith(1, '/api/palettes/palette-1/share', expect.objectContaining({
+      method: 'POST',
+      credentials: 'include',
+      body: { email: 'designer@example.com' },
+    }))
+    expect(fetchMock).toHaveBeenNthCalledWith(2, '/api/palettes/palette-1/share/user-2', expect.objectContaining({
+      method: 'DELETE',
+      credentials: 'include',
+    }))
+    expect(shared).toEqual({ _id: 'palette-1', collaborators: [{ userId: 'user-2' }] })
+    expect(unshared).toEqual({ _id: 'palette-1', collaborators: [] })
+  })
+
   it('deletes palettes and exposes the expected fetch helpers', async () => {
     const { usePaletteApi } = await import('../../app/composables/usePaletteApi')
     const api = usePaletteApi()

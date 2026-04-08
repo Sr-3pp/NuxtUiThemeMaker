@@ -11,5 +11,5 @@ export default defineEventHandler(async (event) => {
     })
 
     const palettes = await listPalettesByUserId(user.id)
-    return palettes.map(toStoredPalette)
+    return palettes.map(palette => toStoredPalette(palette, user.id))
 })

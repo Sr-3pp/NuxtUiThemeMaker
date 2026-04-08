@@ -48,6 +48,8 @@ export function usePaletteState() {
       version: sourcePalette.value.version,
       publishedAt: sourcePalette.value.publishedAt,
       forkedFrom: sourcePalette.value.forkedFrom,
+      collaborators: sourcePalette.value.collaborators,
+      accessLevel: sourcePalette.value.accessLevel,
       createdAt: sourcePalette.value.createdAt,
       updatedAt: sourcePalette.value.updatedAt,
     }

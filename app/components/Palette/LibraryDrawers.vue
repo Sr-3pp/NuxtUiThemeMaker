@@ -12,17 +12,40 @@ const {
 } = useDrawers()
 
 const { createEmptyPalette, currentPalette, setCurrentPalette } = usePaletteState()
-const { deletePalette, getPaletteHistory, getPublicPalettes, getUserPalettes, updatePaletteVisibility } = usePaletteApi()
+const { deletePalette, getPaletteHistory, getPublicPalettes, getUserPalettes, sharePalette, unsharePalette, updatePaletteVisibility } = usePaletteApi()
 const { user } = useAuth()
+const toast = useToast()
 const { togglePalettesSidebar } = useSidebar()
 const { showErrorToast } = useErrorToast()
 const isHistoryOpen = ref(false)
 const isHistoryLoading = ref(false)
 const historyPalette = ref<StoredPalette | null>(null)
 const paletteHistory = ref<PaletteVersionSnapshot[]>([])
+const isShareOpen = ref(false)
+const isSharing = ref(false)
+const isUnsharing = ref(false)
+const sharePaletteTarget = ref<StoredPalette | null>(null)
+const shareEmail = ref('')
 
 const { data: userPalettes, refresh: refreshUserPalettes } = await getUserPalettes()
 const { data: publicPalettes } = await getPublicPalettes()
+
+const ownedPalettes = computed(() => {
+  return (userPalettes.value ?? []).filter(palette => palette.accessLevel === 'owner')
+})
+
+const sharedPalettes = computed(() => {
+  return (userPalettes.value ?? []).filter(palette => palette.accessLevel === 'shared')
+})
+
+function syncSharePaletteTarget() {
+  if (!sharePaletteTarget.value) {
+    return
+  }
+
+  const nextPalette = (userPalettes.value ?? []).find(palette => palette._id === sharePaletteTarget.value?._id) ?? null
+  sharePaletteTarget.value = nextPalette
+}
 
 function closeLibrary() {
   closeAllDrawers()
@@ -78,6 +101,61 @@ async function handlePaletteHistoryOpen(palette: StoredPalette) {
   }
 }
 
+function handlePaletteShareOpen(palette: StoredPalette) {
+  sharePaletteTarget.value = palette
+  shareEmail.value = ''
+  isShareOpen.value = true
+}
+
+async function handlePaletteShareSubmit() {
+  if (!sharePaletteTarget.value) {
+    return
+  }
+
+  isSharing.value = true
+
+  try {
+    await sharePalette(sharePaletteTarget.value._id, {
+      email: shareEmail.value,
+    })
+    await refreshUserPalettes()
+    syncSharePaletteTarget()
+    shareEmail.value = ''
+    toast.add({
+      title: 'Palette shared',
+      description: 'Collaborator access was updated.',
+      color: 'success',
+    })
+  } catch (error) {
+    showErrorToast(error, 'Failed to share palette.')
+  } finally {
+    isSharing.value = false
+  }
+}
+
+async function handlePaletteUnshare(collaboratorUserId: string) {
+  if (!sharePaletteTarget.value) {
+    return
+  }
+
+  isUnsharing.value = true
+
+  try {
+    await unsharePalette(sharePaletteTarget.value._id, collaboratorUserId)
+    await refreshUserPalettes()
+    syncSharePaletteTarget()
+    toast.add({
+      title: 'Access removed',
+      description: 'Collaborator access was removed.',
+      color: 'success',
+    })
+  } catch (error) {
+    showErrorToast(error, 'Failed to remove collaborator.')
+  } finally {
+    isUnsharing.value = false
+  }
+}
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat('en-US', {
     dateStyle: 'medium',
@@ -96,6 +174,73 @@ watch(user, async (currentUser) => {
 </script>
 
 <template>
+  <UModal
+    v-model:open="isShareOpen"
+    :title="sharePaletteTarget ? `Share ${sharePaletteTarget.name}` : 'Share palette'"
+    description="Invite a registered user by email to access and edit this private palette."
+  >
+    <template #body>
+      <div class="space-y-4">
+        <UFormField label="Collaborator email" name="share-email">
+          <UInput
+            v-model="shareEmail"
+            placeholder="designer@example.com"
+            type="email"
+          />
+        </UFormField>
+
+        <UButton
+          block
+          color="primary"
+          icon="i-lucide-user-plus"
+          :loading="isSharing"
+          @click="handlePaletteShareSubmit"
+        >
+          Add collaborator
+        </UButton>
+
+        <div class="space-y-3">
+          <p class="text-sm font-medium text-highlighted">
+            Current collaborators
+          </p>
+
+          <div
+            v-if="!sharePaletteTarget?.collaborators.length"
+            class="rounded-2xl border border-default px-4 py-4 text-sm text-muted"
+          >
+            No collaborators yet.
+          </div>
+
+          <div
+            v-for="collaborator in sharePaletteTarget?.collaborators ?? []"
+            :key="collaborator.userId"
+            class="flex items-center justify-between gap-3 rounded-2xl border border-default px-4 py-4"
+          >
+            <div class="min-w-0">
+              <p class="truncate text-sm font-medium text-highlighted">
+                {{ collaborator.name }}
+              </p>
+              <p class="truncate text-xs text-muted">
+                {{ collaborator.email }}
+              </p>
+            </div>
+
+            <UButton
+              color="error"
+              variant="soft"
+              size="xs"
+              icon="i-lucide-user-minus"
+              :loading="isUnsharing"
+              @click="handlePaletteUnshare(collaborator.userId)"
+            >
+              Remove
+            </UButton>
+          </div>
+        </div>
+      </div>
+    </template>
+  </UModal>
+
   <UModal
     v-model:open="isHistoryOpen"
     :title="historyPalette ? `${historyPalette.name} history` : 'Palette history'"
@@ -164,25 +309,52 @@ watch(user, async (currentUser) => {
   <UDrawer
     v-model:open="ownPalettesOpen"
     title="My Palettes"
-    description="Your saved palettes. Click to load a palette into the editor, or delete palettes you no longer need."
+    description="Your own palettes and any private palettes shared with you."
   >
     <template #body>
       <div class="space-y-4 p-4">
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-          <PaletteCard
-            v-for="palette in userPalettes"
-            :key="palette._id"
-            :palette="palette"
-            badge-label="Saved"
-            action-label="Open palette"
-            show-history
-            show-visibility-toggle
-            show-delete
-            @select="handlePaletteSelect(palette)"
-            @history="handlePaletteHistoryOpen(palette)"
-            @toggle-visibility="handlePaletteVisibilityToggle(palette)"
-            @delete="handlePaletteDelete(palette)"
-          />
+        <div class="space-y-3">
+          <p class="text-sm font-medium text-highlighted">
+            Owned by you
+          </p>
+
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+            <PaletteCard
+              v-for="palette in ownedPalettes"
+              :key="palette._id"
+              :palette="palette"
+              badge-label="Saved"
+              action-label="Open palette"
+              show-history
+              show-share
+              show-visibility-toggle
+              show-delete
+              @select="handlePaletteSelect(palette)"
+              @history="handlePaletteHistoryOpen(palette)"
+              @share="handlePaletteShareOpen(palette)"
+              @toggle-visibility="handlePaletteVisibilityToggle(palette)"
+              @delete="handlePaletteDelete(palette)"
+            />
+          </div>
+        </div>
+
+        <div class="space-y-3" v-if="sharedPalettes.length">
+          <p class="text-sm font-medium text-highlighted">
+            Shared with you
+          </p>
+
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+            <PaletteCard
+              v-for="palette in sharedPalettes"
+              :key="palette._id"
+              :palette="palette"
+              badge-label="Shared"
+              action-label="Open shared palette"
+              show-history
+              @select="handlePaletteSelect(palette)"
+              @history="handlePaletteHistoryOpen(palette)"
+            />
+          </div>
         </div>
       </div>
     </template>

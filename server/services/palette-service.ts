@@ -1,7 +1,7 @@
 import { createError } from 'h3'
 import { getPaletteSaveLimit } from '../../app/data/pricing'
 import type { PaletteDefinition } from '~/types/palette'
-import type { PaletteForkSource, StoredPalette } from '~/types/palette-store'
+import type { PaletteCollaborator, PaletteForkSource, StoredPalette } from '~/types/palette-store'
 import type { PaletteVersionEvent } from '~/types/palette-version'
 import type { PaletteUser } from '~~/server/types/palette-service'
 import {
@@ -11,6 +11,7 @@ import {
   findPaletteById,
   updatePaletteById,
 } from '~~/server/db/repositories/palette-repository'
+import { findUserByEmail } from '~~/server/db/repositories/user-repository'
 import { createPaletteVersion, listPaletteVersionsByPaletteId } from '~~/server/db/repositories/palette-version-repository'
 import { getPaletteLifecycleStatus, normalizePaletteForStorage, toStoredPalette } from '~~/server/domain/palette'
 import { generateUniquePaletteSlug, parsePaletteObjectId } from '~~/server/services/palette-helpers'
@@ -48,6 +49,15 @@ async function createPaletteVersionSnapshot(
   })
 }
 
+function isPaletteCollaborator(
+  palette: {
+    collaborators?: PaletteCollaborator[]
+  },
+  userId: string,
+) {
+  return Boolean(palette.collaborators?.some(collaborator => collaborator.userId === userId))
+}
+
 export async function getOwnedPaletteByIdOrThrow(id: string, userId: string) {
   const objectId = parsePaletteObjectId(id)
   const existing = await findPaletteById(objectId)
@@ -60,6 +70,27 @@ export async function getOwnedPaletteByIdOrThrow(id: string, userId: string) {
   }
 
   if (existing.userId !== userId) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: 'Forbidden',
+    })
+  }
+
+  return existing
+}
+
+export async function getEditablePaletteByIdOrThrow(id: string, userId: string) {
+  const objectId = parsePaletteObjectId(id)
+  const existing = await findPaletteById(objectId)
+
+  if (!existing) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: 'Palette not found',
+    })
+  }
+
+  if (existing.userId !== userId && !isPaletteCollaborator(existing, userId)) {
     throw createError({
       statusCode: 403,
       statusMessage: 'Forbidden',
@@ -113,6 +144,7 @@ export async function createPaletteForUser(
     version: 1,
     publishedAt: lifecycleStatus === 'published' ? now : null,
     forkedFrom,
+    collaborators: [],
     createdAt: now,
     updatedAt: now,
   })
@@ -134,7 +166,7 @@ export async function createPaletteForUser(
     event: lifecycleStatus === 'published' ? 'published' : 'created',
   })
 
-  return toStoredPalette(document)
+  return toStoredPalette(document, user.id)
 }
 
 export async function updatePaletteForUser(
@@ -146,7 +178,7 @@ export async function updatePaletteForUser(
     isPublic?: boolean
   }
 ): Promise<StoredPalette> {
-  const existing = await getOwnedPaletteByIdOrThrow(id, userId)
+  const existing = await getEditablePaletteByIdOrThrow(id, userId)
   const name = input.name.trim()
   const palette = normalizePaletteForStorage(name, input.palette)
   const slug = await generateUniquePaletteSlug(name, existing._id)
@@ -169,6 +201,7 @@ export async function updatePaletteForUser(
     lifecycleStatus,
     version,
     publishedAt,
+    collaborators: existing.collaborators ?? [],
     updatedAt: new Date(),
   })
 
@@ -193,7 +226,7 @@ export async function updatePaletteForUser(
         : 'unpublished',
   })
 
-  return toStoredPalette(updated)
+  return toStoredPalette(updated, userId)
 }
 
 export async function setPaletteVisibilityForUser(
@@ -237,7 +270,7 @@ export async function setPaletteVisibilityForUser(
     event: isPublic ? 'published' : 'unpublished',
   })
 
-  return toStoredPalette(updated)
+  return toStoredPalette(updated, userId)
 }
 
 export async function deletePaletteForUser(id: string, userId: string) {
@@ -267,9 +300,73 @@ export async function forkPaletteForUser(
 }
 
 export async function listPaletteHistoryForUser(id: string, userId: string) {
-  const existing = await getOwnedPaletteByIdOrThrow(id, userId)
+  const existing = await getEditablePaletteByIdOrThrow(id, userId)
 
   return listPaletteVersionsByPaletteId(existing._id)
+}
+
+export async function sharePaletteWithUser(id: string, ownerUserId: string, email: string) {
+  const existing = await getOwnedPaletteByIdOrThrow(id, ownerUserId)
+  const normalizedEmail = email.trim().toLowerCase()
+  const user = await findUserByEmail(normalizedEmail)
+
+  if (!user || typeof user.id !== 'string' || typeof user.name !== 'string' || typeof user.email !== 'string') {
+    throw createError({
+      statusCode: 404,
+      statusMessage: 'User not found',
+    })
+  }
+
+  if (user.id === ownerUserId) {
+    throw createError({
+      statusCode: 422,
+      statusMessage: 'You already own this palette',
+    })
+  }
+
+  const collaborators = existing.collaborators ?? []
+
+  if (collaborators.some(collaborator => collaborator.userId === user.id)) {
+    return toStoredPalette(existing, ownerUserId)
+  }
+
+  const updated = await updatePaletteById(existing._id, {
+    collaborators: [
+      ...collaborators,
+      {
+        userId: user.id,
+        email: normalizedEmail,
+        name: user.name,
+      },
+    ],
+    updatedAt: new Date(),
+  })
+
+  if (!updated) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Failed to share palette',
+    })
+  }
+
+  return toStoredPalette(updated, ownerUserId)
+}
+
+export async function unsharePaletteWithUser(id: string, ownerUserId: string, collaboratorUserId: string) {
+  const existing = await getOwnedPaletteByIdOrThrow(id, ownerUserId)
+  const updated = await updatePaletteById(existing._id, {
+    collaborators: (existing.collaborators ?? []).filter(collaborator => collaborator.userId !== collaboratorUserId),
+    updatedAt: new Date(),
+  })
+
+  if (!updated) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Failed to update shared access',
+    })
+  }
+
+  return toStoredPalette(updated, ownerUserId)
 }
 
 async function getOwnedOrPublicPaletteByIdOrThrow(id: string, userId: string) {
@@ -283,7 +380,7 @@ async function getOwnedOrPublicPaletteByIdOrThrow(id: string, userId: string) {
     })
   }
 
-  if (!existing.isPublic && existing.userId !== userId) {
+  if (!existing.isPublic && existing.userId !== userId && !isPaletteCollaborator(existing, userId)) {
     throw createError({
       statusCode: 404,
       statusMessage: 'Palette not found',

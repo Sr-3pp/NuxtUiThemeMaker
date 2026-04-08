@@ -105,6 +105,15 @@ async function handleFork() {
   }
 }
 
+function handleOpenBuilder() {
+  if (!paletteValue.value) {
+    return
+  }
+
+  setCurrentPalette(paletteValue.value)
+  navigateTo('/')
+}
+
 async function handleReviewSubmit() {
   if (!paletteValue.value) {
     return
@@ -198,7 +207,7 @@ usePageSeo({
           >
             Fork to my library
           </UButton>
-          <UButton to="/" color="neutral" variant="outline">
+          <UButton color="neutral" variant="outline" @click="handleOpenBuilder">
             Open Builder
           </UButton>
         </div>
