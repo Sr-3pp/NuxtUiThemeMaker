@@ -32,6 +32,9 @@ import {
   handleThemeAiReferenceImageUpload,
   removeThemeAiBrandColor,
 } from '~/utils/theme-ai-modal-starter'
+import {
+  watchThemeAiModalSessionPersistence,
+} from '~/utils/theme-ai-modal-session'
 
 export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette | null>) {
   const toast = useToast()
@@ -102,75 +105,21 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     return createPaletteWithGeneratedComponents(clonePaletteDefinition(palette.value), variantsResult.value.components)
   })
 
-  function clearSessionState() {
-    auditResult.value = null
-    starterResult.value = null
-    directionsResult.value = null
-    rampsResult.value = null
-    variantsResult.value = null
-    starterHistory.value = []
-    auditHistory.value = []
-    directionsHistory.value = []
-    rampsHistory.value = []
-    variantsHistory.value = []
+  const sessionState = {
+    starterHistory,
+    auditHistory,
+    directionsHistory,
+    rampsHistory,
+    variantsHistory,
+    starterResult,
+    auditResult,
+    directionsResult,
+    rampsResult,
+    variantsResult,
+    historyId,
   }
 
-  function restorePersistedSession() {
-    const sessionKey = paletteSessionKey.value
-
-    if (!sessionKey) {
-      clearSessionState()
-      return
-    }
-
-    const restoredSession = restorePaletteAiSession(persistedSessions.value[sessionKey] ?? createEmptyPersistedAiSession())
-
-    starterHistory.value = restoredSession.starterHistory
-    auditHistory.value = restoredSession.auditHistory
-    directionsHistory.value = restoredSession.directionsHistory
-    rampsHistory.value = restoredSession.rampsHistory
-    variantsHistory.value = restoredSession.variantsHistory
-    starterResult.value = restoredSession.starterResult
-    auditResult.value = restoredSession.auditResult
-    directionsResult.value = restoredSession.directionsResult
-    rampsResult.value = restoredSession.rampsResult
-    variantsResult.value = restoredSession.variantsResult
-    historyId.value = restoredSession.historyId
-  }
-
-  function syncPersistedSession() {
-    const sessionKey = paletteSessionKey.value
-
-    if (!sessionKey) {
-      return
-    }
-
-    persistedSessions.value[sessionKey] = buildPaletteAiPersistedSession({
-      starterHistory: starterHistory.value,
-      starterResult: starterResult.value,
-      auditHistory: auditHistory.value,
-      auditResult: auditResult.value,
-      directionsHistory: directionsHistory.value,
-      directionsResult: directionsResult.value,
-      rampsHistory: rampsHistory.value,
-      rampsResult: rampsResult.value,
-      variantsHistory: variantsHistory.value,
-      variantsResult: variantsResult.value,
-    })
-  }
-
-  watch(open, (value) => {
-    if (!value) {
-      activeTab.value = 'starter'
-      return
-    }
-
-    restorePersistedSession()
-  }, { immediate: false })
-
-  watch(paletteSessionKey, () => {
-    restorePersistedSession()
-  }, { immediate: true })
+  watchThemeAiModalSessionPersistence(open, activeTab, paletteSessionKey, sessionState, persistedSessions)
 
   function showValidationToast(title: string, description: string) {
     toast.add({
@@ -222,22 +171,6 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     variantsResult.value = null
     variantsHistory.value = []
   }
-
-  watch([
-    paletteSessionKey,
-    starterHistory,
-    auditHistory,
-    directionsHistory,
-    rampsHistory,
-    variantsHistory,
-    starterResult,
-    auditResult,
-    directionsResult,
-    rampsResult,
-    variantsResult,
-  ], () => {
-    syncPersistedSession()
-  }, { deep: true })
 
   async function handleAudit() {
     if (!palette.value || access.isDisabled.value || isAuditLoading.value) {
