@@ -208,4 +208,62 @@ describe('usePaletteState', () => {
     expect(currentPalette.value?.modes.dark.color?.primary).toBe('#345678')
     expect(currentPalette.value?.components?.button?.variants?.solid?.primary?.bg).toBe('var(--ui-primary)')
   })
+
+  it('applies generated palettes while preserving saved palette metadata', async () => {
+    const { usePaletteState } = await import('../../app/composables/usePaletteState')
+    const { currentPalette, sourcePalette, setCurrentPalette, applyGeneratedPalette } = usePaletteState()
+
+    setCurrentPalette(createStoredPalette())
+    applyGeneratedPalette({
+      name: 'AI Direction',
+      modes: {
+        light: {
+          ui: {
+            primary: '#111111',
+            secondary: '#222222',
+            neutral: '#333333',
+            success: '#444444',
+            info: '#555555',
+            warning: '#666666',
+            error: '#777777',
+          },
+          color: {
+            primary: '#111111',
+            secondary: '#222222',
+            neutral: '#333333',
+            success: '#444444',
+            info: '#555555',
+            warning: '#666666',
+            error: '#777777',
+          },
+        },
+        dark: {
+          ui: {
+            primary: '#aaaaaa',
+            secondary: '#bbbbbb',
+            neutral: '#cccccc',
+            success: '#dddddd',
+            info: '#eeeeee',
+            warning: '#999999',
+            error: '#888888',
+          },
+          color: {
+            primary: '#aaaaaa',
+            secondary: '#bbbbbb',
+            neutral: '#cccccc',
+            success: '#dddddd',
+            info: '#eeeeee',
+            warning: '#999999',
+            error: '#888888',
+          },
+        },
+      },
+    })
+
+    expect(currentPalette.value?.name).toBe('AI Direction')
+    expect(currentPalette.value?._id).toBe('palette-1')
+    expect(currentPalette.value?.slug).toBe('forest-glow')
+    expect(sourcePalette.value?.name).toBe('AI Direction')
+    expect(sourcePalette.value?._id).toBe('palette-1')
+  })
 })

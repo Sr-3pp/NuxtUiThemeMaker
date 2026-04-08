@@ -28,6 +28,50 @@ export function usePaletteState() {
     sourcePalette.value = createEditablePalette(palette)
   }
 
+  const applyGeneratedPalette = (palette: PaletteDefinition) => {
+    const nextPalette = createEditablePalette(palette)
+    const previousPalette = currentPalette.value ?? sourcePalette.value
+
+    if (!previousPalette) {
+      currentPalette.value = nextPalette
+      sourcePalette.value = createEditablePalette(palette)
+      return
+    }
+
+    const preservedPalette = {
+      ...nextPalette,
+      _id: previousPalette._id,
+      userId: previousPalette.userId,
+      slug: previousPalette.slug,
+      isPublic: previousPalette.isPublic,
+      lifecycleStatus: previousPalette.lifecycleStatus,
+      version: previousPalette.version,
+      publishedAt: previousPalette.publishedAt,
+      forkedFrom: previousPalette.forkedFrom,
+      collaborators: previousPalette.collaborators,
+      accessLevel: previousPalette.accessLevel,
+      createdAt: previousPalette.createdAt,
+      updatedAt: previousPalette.updatedAt,
+    }
+
+    currentPalette.value = preservedPalette
+    sourcePalette.value = {
+      ...createEditablePalette(clonePaletteDefinition(preservedPalette)),
+      _id: preservedPalette._id,
+      userId: preservedPalette.userId,
+      slug: preservedPalette.slug,
+      isPublic: preservedPalette.isPublic,
+      lifecycleStatus: preservedPalette.lifecycleStatus,
+      version: preservedPalette.version,
+      publishedAt: preservedPalette.publishedAt,
+      forkedFrom: preservedPalette.forkedFrom,
+      collaborators: preservedPalette.collaborators,
+      accessLevel: preservedPalette.accessLevel,
+      createdAt: preservedPalette.createdAt,
+      updatedAt: preservedPalette.updatedAt,
+    }
+  }
+
   const createEmptyPalette = () => {
     setCurrentPalette(emptyPalette)
   }
@@ -93,6 +137,7 @@ export function usePaletteState() {
     createEmptyPalette,
     resetCurrentPalette,
     setCurrentPalette,
+    applyGeneratedPalette,
     updatePaletteName,
     updatePalette,
     updatePaletteColorScale,
