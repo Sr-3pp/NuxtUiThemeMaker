@@ -1,0 +1,588 @@
+import type { Ref } from 'vue'
+import type { EditablePalette } from '~/types/palette-editor'
+import type { PaletteDefinition } from '~/types/palette'
+import type {
+  PaletteAiPersistedSession,
+  PaletteAiResultHistoryEntry,
+  PaletteAuditGenerateResult,
+  PaletteDirectionsGenerateResult,
+  PaletteRampGenerateResult,
+  PaletteReferenceImageAsset,
+  PaletteVariantGenerateResult,
+} from '~/types/palette-generation'
+import {
+  clonePaletteDefinition,
+  createPaletteWithGeneratedComponents,
+  createPaletteWithGeneratedRamps,
+} from '~/utils/palette-domain'
+import {
+  buildPaletteAiPersistedSession,
+  createEmptyPersistedAiSession,
+  restorePaletteAiSession,
+} from '~/utils/palette-ai-session'
+import { getComponentThemeEditorDefinitions } from '~/utils/component-theme-editor'
+
+const MAX_REFERENCE_IMAGE_BYTES = 5 * 1024 * 1024
+const SUPPORTED_REFERENCE_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'] as const
+const MAX_RESULT_HISTORY = 4
+
+export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette | null>) {
+  const toast = useToast()
+  const { showErrorToast } = useErrorToast()
+  const { generatePalette, generatePaletteAudit, generatePaletteDirections, generatePaletteRamps, generatePaletteVariants } = usePaletteApi()
+  const { applyGeneratedPalette, applyGeneratedComponents, applyGeneratedRamps } = usePaletteState()
+  const access = usePaletteGenerationAccess()
+
+  const activeTab = ref<'starter' | 'audit' | 'directions' | 'ramps' | 'variants'>('starter')
+  const starterPrompt = ref('')
+  const starterReferenceSummary = ref('')
+  const starterBrandColors = ref<string[]>([])
+  const starterBrandInput = ref('')
+  const starterReferenceImage = ref<PaletteReferenceImageAsset | null>(null)
+  const auditPrompt = ref('')
+  const directionsPrompt = ref('')
+  const rampsPrompt = ref('')
+  const variantsPrompt = ref('')
+  const directionsCount = ref<1 | 2 | 3>(3)
+  const rampBrandColors = ref<string[]>([])
+  const rampInput = ref('')
+  const selectedVariantComponents = ref<string[]>(['button', 'input', 'card'])
+  const isAuditLoading = ref(false)
+  const isDirectionsLoading = ref(false)
+  const isRampsLoading = ref(false)
+  const isVariantsLoading = ref(false)
+  const isStarterLoading = ref(false)
+  const starterResult = ref<PaletteDefinition | null>(null)
+  const auditResult = ref<PaletteAuditGenerateResult | null>(null)
+  const directionsResult = ref<PaletteDirectionsGenerateResult | null>(null)
+  const rampsResult = ref<PaletteRampGenerateResult | null>(null)
+  const variantsResult = ref<PaletteVariantGenerateResult | null>(null)
+  const starterHistory = ref<PaletteAiResultHistoryEntry<PaletteDefinition>[]>([])
+  const auditHistory = ref<PaletteAiResultHistoryEntry<PaletteAuditGenerateResult>[]>([])
+  const directionsHistory = ref<PaletteAiResultHistoryEntry<PaletteDirectionsGenerateResult>[]>([])
+  const rampsHistory = ref<PaletteAiResultHistoryEntry<PaletteRampGenerateResult>[]>([])
+  const variantsHistory = ref<PaletteAiResultHistoryEntry<PaletteVariantGenerateResult>[]>([])
+  const historyId = ref(0)
+  const persistedSessions = useState<Record<string, PaletteAiPersistedSession>>('theme-ai-modal-sessions', () => ({}))
+
+  const hasPalette = computed(() => Boolean(palette.value))
+  const paletteSessionKey = computed(() => {
+    if (!palette.value) {
+      return null
+    }
+
+    return palette.value._id || palette.value.slug || palette.value.name
+  })
+  const canGenerateStarter = computed(() => Boolean(starterPrompt.value.trim()) && !access.isDisabled.value)
+  const canGenerateRamps = computed(() => rampBrandColors.value.length > 0 && !access.isDisabled.value)
+  const canGenerateVariants = computed(() => hasPalette.value && selectedVariantComponents.value.length > 0 && !access.isDisabled.value)
+  const componentOptions = computed(() => getComponentThemeEditorDefinitions(palette.value?.components).map(definition => ({
+    label: definition.label,
+    value: definition.value,
+  })))
+  const rampPreviewPalette = computed(() => {
+    if (!palette.value || !rampsResult.value) {
+      return null
+    }
+
+    return createPaletteWithGeneratedRamps(clonePaletteDefinition(palette.value), rampsResult.value.ramps)
+  })
+  const variantPreviewPalette = computed(() => {
+    if (!palette.value || !variantsResult.value) {
+      return null
+    }
+
+    return createPaletteWithGeneratedComponents(clonePaletteDefinition(palette.value), variantsResult.value.components)
+  })
+
+  function clearSessionState() {
+    auditResult.value = null
+    starterResult.value = null
+    directionsResult.value = null
+    rampsResult.value = null
+    variantsResult.value = null
+    starterHistory.value = []
+    auditHistory.value = []
+    directionsHistory.value = []
+    rampsHistory.value = []
+    variantsHistory.value = []
+  }
+
+  function restorePersistedSession() {
+    const sessionKey = paletteSessionKey.value
+
+    if (!sessionKey) {
+      clearSessionState()
+      return
+    }
+
+    const restoredSession = restorePaletteAiSession(persistedSessions.value[sessionKey] ?? createEmptyPersistedAiSession())
+
+    starterHistory.value = restoredSession.starterHistory
+    auditHistory.value = restoredSession.auditHistory
+    directionsHistory.value = restoredSession.directionsHistory
+    rampsHistory.value = restoredSession.rampsHistory
+    variantsHistory.value = restoredSession.variantsHistory
+    starterResult.value = restoredSession.starterResult
+    auditResult.value = restoredSession.auditResult
+    directionsResult.value = restoredSession.directionsResult
+    rampsResult.value = restoredSession.rampsResult
+    variantsResult.value = restoredSession.variantsResult
+    historyId.value = restoredSession.historyId
+  }
+
+  function syncPersistedSession() {
+    const sessionKey = paletteSessionKey.value
+
+    if (!sessionKey) {
+      return
+    }
+
+    persistedSessions.value[sessionKey] = buildPaletteAiPersistedSession({
+      starterHistory: starterHistory.value,
+      starterResult: starterResult.value,
+      auditHistory: auditHistory.value,
+      auditResult: auditResult.value,
+      directionsHistory: directionsHistory.value,
+      directionsResult: directionsResult.value,
+      rampsHistory: rampsHistory.value,
+      rampsResult: rampsResult.value,
+      variantsHistory: variantsHistory.value,
+      variantsResult: variantsResult.value,
+    })
+  }
+
+  watch(open, (value) => {
+    if (!value) {
+      activeTab.value = 'starter'
+      return
+    }
+
+    restorePersistedSession()
+  }, { immediate: false })
+
+  watch(paletteSessionKey, () => {
+    restorePersistedSession()
+  }, { immediate: true })
+
+  function showValidationToast(title: string, description: string) {
+    toast.add({
+      title,
+      description,
+      color: 'warning',
+    })
+  }
+
+  function normalizeHexColor(value: string) {
+    const color = value.trim().toLowerCase()
+
+    if (!/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/.test(color)) {
+      return null
+    }
+
+    return color
+  }
+
+  function summarizePrompt(value: string | undefined, fallback: string) {
+    const normalized = value?.trim()
+
+    if (!normalized) {
+      return fallback
+    }
+
+    return normalized.length > 48
+      ? `${normalized.slice(0, 48).trimEnd()}...`
+      : normalized
+  }
+
+  function selectHistoryResult<T>(
+    history: PaletteAiResultHistoryEntry<T>[],
+    id: number,
+  ) {
+    return history.find(entry => entry.id === id)?.result ?? null
+  }
+
+  function getSelectedHistoryId<T>(
+    history: PaletteAiResultHistoryEntry<T>[],
+    result: T | null,
+  ) {
+    return history.find(entry => entry.result === result)?.id ?? null
+  }
+
+  function addBrandColor(target: Ref<string[]>, input: Ref<string>, label: string) {
+    const color = normalizeHexColor(input.value)
+
+    if (!color) {
+      showValidationToast('Invalid brand color', `Use a hex color like #0ea5e9 for ${label}.`)
+      return
+    }
+
+    if (target.value.includes(color)) {
+      showValidationToast('Duplicate brand color', `${color} is already included in ${label}.`)
+      input.value = ''
+      return
+    }
+
+    target.value = [...target.value, color]
+    input.value = ''
+  }
+
+  function clearStarterResult() {
+    starterResult.value = null
+    starterHistory.value = []
+  }
+
+  function clearAuditResult() {
+    auditResult.value = null
+    auditHistory.value = []
+  }
+
+  function clearDirectionsResult() {
+    directionsResult.value = null
+    directionsHistory.value = []
+  }
+
+  function clearRampsResult() {
+    rampsResult.value = null
+    rampsHistory.value = []
+  }
+
+  function clearVariantsResult() {
+    variantsResult.value = null
+    variantsHistory.value = []
+  }
+
+  function pushResultHistory<T>(
+    history: Ref<PaletteAiResultHistoryEntry<T>[]>,
+    result: T,
+    label: string,
+    detail?: string,
+  ) {
+    historyId.value += 1
+    const nextDetail = detail?.trim() || undefined
+
+    history.value = [
+      {
+        id: historyId.value,
+        label,
+        createdAt: new Date().toISOString(),
+        detail: nextDetail,
+        result,
+      },
+      ...history.value.filter(entry => entry.label !== label || (entry.detail?.trim() || undefined) !== nextDetail),
+    ].slice(0, MAX_RESULT_HISTORY)
+  }
+
+  watch([
+    paletteSessionKey,
+    starterHistory,
+    auditHistory,
+    directionsHistory,
+    rampsHistory,
+    variantsHistory,
+    starterResult,
+    auditResult,
+    directionsResult,
+    rampsResult,
+    variantsResult,
+  ], () => {
+    syncPersistedSession()
+  }, { deep: true })
+
+  async function handleAudit() {
+    if (!palette.value || access.isDisabled.value || isAuditLoading.value) {
+      return
+    }
+
+    isAuditLoading.value = true
+
+    try {
+      const result = await generatePaletteAudit({
+        palette: clonePaletteDefinition(palette.value),
+        prompt: auditPrompt.value.trim() || undefined,
+      })
+      auditResult.value = result
+      pushResultHistory(auditHistory, result, result.summary, summarizePrompt(auditPrompt.value, 'Default repair brief'))
+    } catch (error) {
+      showErrorToast(error, 'Failed to generate an AI repair pass.')
+      await access.refresh()
+    } finally {
+      isAuditLoading.value = false
+    }
+  }
+
+  function addStarterBrandColor() {
+    addBrandColor(starterBrandColors, starterBrandInput, 'starter theme generation')
+  }
+
+  function removeStarterBrandColor(color: string) {
+    starterBrandColors.value = starterBrandColors.value.filter(entry => entry !== color)
+  }
+
+  function clearStarterReferenceImage() {
+    starterReferenceImage.value = null
+  }
+
+  async function handleStarterImageUpload(event: Event) {
+    const input = event.target as HTMLInputElement
+    const file = input.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    if (!SUPPORTED_REFERENCE_IMAGE_TYPES.includes(file.type as typeof SUPPORTED_REFERENCE_IMAGE_TYPES[number])) {
+      starterReferenceImage.value = null
+      showValidationToast('Unsupported image type', 'Use a PNG, JPEG, WEBP, or GIF reference image.')
+      input.value = ''
+      return
+    }
+
+    if (file.size > MAX_REFERENCE_IMAGE_BYTES) {
+      starterReferenceImage.value = null
+      showValidationToast('Image too large', 'Reference images must be 5 MB or smaller.')
+      input.value = ''
+      return
+    }
+
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(String(reader.result ?? ''))
+        reader.onerror = () => reject(reader.error)
+        reader.readAsDataURL(file)
+      })
+      const [, base64 = ''] = dataUrl.split(',', 2)
+
+      starterReferenceImage.value = {
+        data: base64,
+        mimeType: file.type || 'image/png',
+        name: file.name,
+      }
+    } catch (error) {
+      showErrorToast(error, 'Failed to read the reference image.')
+    } finally {
+      input.value = ''
+    }
+  }
+
+  async function handleStarterTheme() {
+    if (!canGenerateStarter.value || isStarterLoading.value) {
+      return
+    }
+
+    isStarterLoading.value = true
+
+    try {
+      const result = await generatePalette({
+        prompt: starterPrompt.value.trim(),
+        brandColors: starterBrandColors.value.length ? starterBrandColors.value : undefined,
+        referenceSummary: starterReferenceSummary.value.trim() || undefined,
+        referenceImage: starterReferenceImage.value
+          ? {
+              data: starterReferenceImage.value.data,
+              mimeType: starterReferenceImage.value.mimeType,
+            }
+          : undefined,
+      })
+      starterResult.value = result
+      pushResultHistory(starterHistory, result, result.name, summarizePrompt(starterPrompt.value, 'Starter theme'))
+    } catch (error) {
+      showErrorToast(error, 'Failed to generate a starter theme.')
+      await access.refresh()
+    } finally {
+      isStarterLoading.value = false
+    }
+  }
+
+  async function handleDirections() {
+    if (!palette.value || access.isDisabled.value || isDirectionsLoading.value) {
+      return
+    }
+
+    isDirectionsLoading.value = true
+
+    try {
+      const result = await generatePaletteDirections({
+        palette: clonePaletteDefinition(palette.value),
+        prompt: directionsPrompt.value.trim() || undefined,
+        count: directionsCount.value,
+      })
+      directionsResult.value = result
+      pushResultHistory(
+        directionsHistory,
+        result,
+        `${result.directions.length} direction${result.directions.length === 1 ? '' : 's'}`,
+        summarizePrompt(directionsPrompt.value, `${directionsCount.value} option request`),
+      )
+    } catch (error) {
+      showErrorToast(error, 'Failed to generate alternative directions.')
+      await access.refresh()
+    } finally {
+      isDirectionsLoading.value = false
+    }
+  }
+
+  function addRampBrandColor() {
+    addBrandColor(rampBrandColors, rampInput, 'ramp generation')
+  }
+
+  function removeRampBrandColor(color: string) {
+    rampBrandColors.value = rampBrandColors.value.filter(entry => entry !== color)
+  }
+
+  async function handleRamps() {
+    if (!canGenerateRamps.value || isRampsLoading.value) {
+      return
+    }
+
+    isRampsLoading.value = true
+
+    try {
+      const result = await generatePaletteRamps({
+        paletteName: palette.value?.name,
+        brandColors: rampBrandColors.value,
+        prompt: rampsPrompt.value.trim() || undefined,
+      })
+      rampsResult.value = result
+      pushResultHistory(
+        rampsHistory,
+        result,
+        `${Object.keys(result.ramps).length} ramp${Object.keys(result.ramps).length === 1 ? '' : 's'}`,
+        `${rampBrandColors.value.slice(0, 2).join(', ')}${rampBrandColors.value.length > 2 ? ' +' : ''}`,
+      )
+    } catch (error) {
+      showErrorToast(error, 'Failed to generate color ramps.')
+      await access.refresh()
+    } finally {
+      isRampsLoading.value = false
+    }
+  }
+
+  async function handleVariants() {
+    if (!palette.value || !canGenerateVariants.value || isVariantsLoading.value) {
+      return
+    }
+
+    isVariantsLoading.value = true
+
+    try {
+      const result = await generatePaletteVariants({
+        prompt: variantsPrompt.value.trim() || 'Generate practical component variants for this palette.',
+        palette: clonePaletteDefinition(palette.value),
+        componentKeys: selectedVariantComponents.value,
+      })
+      variantsResult.value = result
+      pushResultHistory(
+        variantsHistory,
+        result,
+        result.summary,
+        selectedVariantComponents.value.slice(0, 3).join(', '),
+      )
+    } catch (error) {
+      showErrorToast(error, 'Failed to generate component variants.')
+      await access.refresh()
+    } finally {
+      isVariantsLoading.value = false
+    }
+  }
+
+  function applyPaletteSuggestion(targetPalette: PaletteDefinition, message: string) {
+    applyGeneratedPalette(targetPalette)
+    toast.add({
+      title: 'Palette updated',
+      description: message,
+      color: 'success',
+    })
+    open.value = false
+  }
+
+  function applyRampSuggestion() {
+    if (!rampsResult.value) {
+      return
+    }
+
+    applyGeneratedRamps(rampsResult.value.ramps)
+    toast.add({
+      title: 'Ramps updated',
+      description: `Applied AI-generated ramps to ${rampsResult.value.paletteName}.`,
+      color: 'success',
+    })
+    open.value = false
+  }
+
+  function applyVariantSuggestion() {
+    if (!variantsResult.value) {
+      return
+    }
+
+    applyGeneratedComponents(variantsResult.value.components)
+    toast.add({
+      title: 'Variants updated',
+      description: 'Applied the generated component variants to the current draft.',
+      color: 'success',
+    })
+    open.value = false
+  }
+
+  return {
+    ...access,
+    activeTab,
+    hasPalette,
+    starterPrompt,
+    starterReferenceSummary,
+    starterBrandColors,
+    starterBrandInput,
+    starterReferenceImage,
+    auditPrompt,
+    directionsPrompt,
+    rampsPrompt,
+    variantsPrompt,
+    directionsCount,
+    rampBrandColors,
+    rampInput,
+    selectedVariantComponents,
+    isAuditLoading,
+    isDirectionsLoading,
+    isRampsLoading,
+    isVariantsLoading,
+    isStarterLoading,
+    starterResult,
+    auditResult,
+    directionsResult,
+    rampsResult,
+    variantsResult,
+    starterHistory,
+    auditHistory,
+    directionsHistory,
+    rampsHistory,
+    variantsHistory,
+    canGenerateStarter,
+    canGenerateRamps,
+    canGenerateVariants,
+    componentOptions,
+    rampPreviewPalette,
+    variantPreviewPalette,
+    clearStarterResult,
+    clearAuditResult,
+    clearDirectionsResult,
+    clearRampsResult,
+    clearVariantsResult,
+    addStarterBrandColor,
+    removeStarterBrandColor,
+    clearStarterReferenceImage,
+    handleStarterImageUpload,
+    handleStarterTheme,
+    handleAudit,
+    handleDirections,
+    addRampBrandColor,
+    removeRampBrandColor,
+    handleRamps,
+    handleVariants,
+    applyPaletteSuggestion,
+    applyRampSuggestion,
+    applyVariantSuggestion,
+    getSelectedHistoryId,
+    selectHistoryResult,
+  }
+}
