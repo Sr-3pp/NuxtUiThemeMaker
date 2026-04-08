@@ -137,25 +137,25 @@ describe('palette AI session helpers', () => {
     const session: PaletteAiPersistedSession = {
       starter: {
         items: [
-          { id: 4, label: 'Starter A', result: starterA },
-          { id: 7, label: 'Starter B', result: starterB },
+          { id: 4, label: 'Starter A', createdAt: '2026-04-08T10:00:00.000Z', detail: 'Prompt A', result: starterA },
+          { id: 7, label: 'Starter B', createdAt: '2026-04-08T10:05:00.000Z', detail: 'Prompt B', result: starterB },
         ],
         selectedId: 7,
       },
       audit: {
-        items: [{ id: 3, label: 'Audit A', result: auditA }],
+        items: [{ id: 3, label: 'Audit A', createdAt: '2026-04-08T10:01:00.000Z', result: auditA }],
         selectedId: 3,
       },
       directions: {
-        items: [{ id: 8, label: '1 direction', result: directionsA }],
+        items: [{ id: 8, label: '1 direction', createdAt: '2026-04-08T10:06:00.000Z', result: directionsA }],
         selectedId: 8,
       },
       ramps: {
-        items: [{ id: 2, label: '1 ramp', result: rampsA }],
+        items: [{ id: 2, label: '1 ramp', createdAt: '2026-04-08T09:59:00.000Z', result: rampsA }],
         selectedId: 2,
       },
       variants: {
-        items: [{ id: 5, label: 'Variants A', result: variantsA }],
+        items: [{ id: 5, label: 'Variants A', createdAt: '2026-04-08T10:03:00.000Z', result: variantsA }],
         selectedId: 5,
       },
     }
@@ -182,20 +182,20 @@ describe('palette AI session helpers', () => {
 
     const session = buildPaletteAiPersistedSession({
       starterHistory: [
-        { id: 1, label: 'Starter A', result: starterA },
-        { id: 2, label: 'Starter B', result: starterB },
+        { id: 1, label: 'Starter A', createdAt: '2026-04-08T10:00:00.000Z', detail: 'Prompt A', result: starterA },
+        { id: 2, label: 'Starter B', createdAt: '2026-04-08T10:02:00.000Z', detail: 'Prompt B', result: starterB },
       ],
       starterResult: starterA,
       auditHistory: [
-        { id: 3, label: 'Audit A', result: auditA },
-        { id: 4, label: 'Audit B', result: auditB },
+        { id: 3, label: 'Audit A', createdAt: '2026-04-08T10:01:00.000Z', result: auditA },
+        { id: 4, label: 'Audit B', createdAt: '2026-04-08T10:03:00.000Z', result: auditB },
       ],
       auditResult: auditB,
-      directionsHistory: [{ id: 5, label: '1 direction', result: directionsA }],
+      directionsHistory: [{ id: 5, label: '1 direction', createdAt: '2026-04-08T10:04:00.000Z', result: directionsA }],
       directionsResult: directionsA,
-      rampsHistory: [{ id: 6, label: '1 ramp', result: rampsA }],
+      rampsHistory: [{ id: 6, label: '1 ramp', createdAt: '2026-04-08T10:05:00.000Z', result: rampsA }],
       rampsResult: rampsA,
-      variantsHistory: [{ id: 7, label: 'Variants A', result: variantsA }],
+      variantsHistory: [{ id: 7, label: 'Variants A', createdAt: '2026-04-08T10:06:00.000Z', result: variantsA }],
       variantsResult: variantsA,
     })
 

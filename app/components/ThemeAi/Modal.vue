@@ -188,6 +188,27 @@ function normalizeHexColor(value: string) {
   return color
 }
 
+function formatHistoryTimestamp(value: string) {
+  return new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(value))
+}
+
+function summarizePrompt(value: string | undefined, fallback: string) {
+  const normalized = value?.trim()
+
+  if (!normalized) {
+    return fallback
+  }
+
+  return normalized.length > 48
+    ? `${normalized.slice(0, 48).trimEnd()}...`
+    : normalized
+}
+
 function addBrandColor(target: Ref<string[]>, input: Ref<string>, label: string) {
   const color = normalizeHexColor(input.value)
 
@@ -235,12 +256,15 @@ function pushResultHistory<T>(
   history: Ref<PaletteAiResultHistoryEntry<T>[]>,
   result: T,
   label: string,
+  detail?: string,
 ) {
   historyId.value += 1
   history.value = [
     {
       id: historyId.value,
       label,
+      createdAt: new Date().toISOString(),
+      detail,
       result,
     },
     ...history.value,
@@ -276,7 +300,7 @@ async function handleAudit() {
       prompt: auditPrompt.value.trim() || undefined,
     })
     auditResult.value = result
-    pushResultHistory(auditHistory, result, result.summary)
+    pushResultHistory(auditHistory, result, result.summary, summarizePrompt(auditPrompt.value, 'Default repair brief'))
   } catch (error) {
     showErrorToast(error, 'Failed to generate an AI repair pass.')
     await refresh()
@@ -360,7 +384,7 @@ async function handleStarterTheme() {
         : undefined,
     })
     starterResult.value = result
-    pushResultHistory(starterHistory, result, result.name)
+    pushResultHistory(starterHistory, result, result.name, summarizePrompt(starterPrompt.value, 'Starter theme'))
   } catch (error) {
     showErrorToast(error, 'Failed to generate a starter theme.')
     await refresh()
@@ -383,7 +407,12 @@ async function handleDirections() {
       count: directionsCount.value,
     })
     directionsResult.value = result
-    pushResultHistory(directionsHistory, result, `${result.directions.length} direction${result.directions.length === 1 ? '' : 's'}`)
+    pushResultHistory(
+      directionsHistory,
+      result,
+      `${result.directions.length} direction${result.directions.length === 1 ? '' : 's'}`,
+      summarizePrompt(directionsPrompt.value, `${directionsCount.value} option request`),
+    )
   } catch (error) {
     showErrorToast(error, 'Failed to generate alternative directions.')
     await refresh()
@@ -414,7 +443,12 @@ async function handleRamps() {
       prompt: rampsPrompt.value.trim() || undefined,
     })
     rampsResult.value = result
-    pushResultHistory(rampsHistory, result, `${Object.keys(result.ramps).length} ramp${Object.keys(result.ramps).length === 1 ? '' : 's'}`)
+    pushResultHistory(
+      rampsHistory,
+      result,
+      `${Object.keys(result.ramps).length} ramp${Object.keys(result.ramps).length === 1 ? '' : 's'}`,
+      `${rampBrandColors.value.slice(0, 2).join(', ')}${rampBrandColors.value.length > 2 ? ' +' : ''}`,
+    )
   } catch (error) {
     showErrorToast(error, 'Failed to generate color ramps.')
     await refresh()
@@ -437,7 +471,12 @@ async function handleVariants() {
       componentKeys: selectedVariantComponents.value,
     })
     variantsResult.value = result
-    pushResultHistory(variantsHistory, result, result.summary)
+    pushResultHistory(
+      variantsHistory,
+      result,
+      result.summary,
+      selectedVariantComponents.value.slice(0, 3).join(', '),
+    )
   } catch (error) {
     showErrorToast(error, 'Failed to generate component variants.')
     await refresh()
@@ -708,7 +747,10 @@ function applyVariantSuggestion() {
                         :variant="starterResult === entry.result ? 'solid' : 'outline'"
                         @click="starterResult = entry.result"
                       >
-                        {{ entry.label }}
+                        <span class="flex flex-col items-start text-left">
+                          <span>{{ entry.label }}</span>
+                          <span class="text-[10px] opacity-70">{{ entry.detail ?? formatHistoryTimestamp(entry.createdAt) }}</span>
+                        </span>
                       </UButton>
                     </div>
                   </div>
@@ -857,7 +899,10 @@ function applyVariantSuggestion() {
                         :variant="auditResult === entry.result ? 'solid' : 'outline'"
                         @click="auditResult = entry.result"
                       >
-                        {{ entry.label }}
+                        <span class="flex flex-col items-start text-left">
+                          <span>{{ entry.label }}</span>
+                          <span class="text-[10px] opacity-70">{{ entry.detail ?? formatHistoryTimestamp(entry.createdAt) }}</span>
+                        </span>
                       </UButton>
                     </div>
                   </div>
@@ -1034,7 +1079,10 @@ function applyVariantSuggestion() {
                         :variant="rampsResult === entry.result ? 'solid' : 'outline'"
                         @click="rampsResult = entry.result"
                       >
-                        {{ entry.label }}
+                        <span class="flex flex-col items-start text-left">
+                          <span>{{ entry.label }}</span>
+                          <span class="text-[10px] opacity-70">{{ entry.detail ?? formatHistoryTimestamp(entry.createdAt) }}</span>
+                        </span>
                       </UButton>
                     </div>
                   </div>
@@ -1193,7 +1241,10 @@ function applyVariantSuggestion() {
                         :variant="variantsResult === entry.result ? 'solid' : 'outline'"
                         @click="variantsResult = entry.result"
                       >
-                        {{ entry.label }}
+                        <span class="flex flex-col items-start text-left">
+                          <span>{{ entry.label }}</span>
+                          <span class="text-[10px] opacity-70">{{ entry.detail ?? formatHistoryTimestamp(entry.createdAt) }}</span>
+                        </span>
                       </UButton>
                     </div>
                   </div>
@@ -1335,7 +1386,10 @@ function applyVariantSuggestion() {
                       :variant="directionsResult === entry.result ? 'solid' : 'outline'"
                       @click="directionsResult = entry.result"
                     >
-                      {{ entry.label }}
+                      <span class="flex flex-col items-start text-left">
+                        <span>{{ entry.label }}</span>
+                        <span class="text-[10px] opacity-70">{{ entry.detail ?? formatHistoryTimestamp(entry.createdAt) }}</span>
+                      </span>
                     </UButton>
                   </div>
                 </div>

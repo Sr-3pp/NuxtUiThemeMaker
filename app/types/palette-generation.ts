@@ -82,6 +82,8 @@ export interface PaletteDirectionsGenerateResult {
 export interface PaletteAiResultHistoryEntry<T> {
   id: number
   label: string
+  createdAt: string
+  detail?: string
   result: T
 }
 
