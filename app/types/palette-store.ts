@@ -1,4 +1,5 @@
 import type { PaletteDefinition } from '~/types/palette'
+import type { PaletteLifecycleStatus } from '~/types/palette-version'
 
 export interface StoredPalette {
   _id: string
@@ -7,6 +8,9 @@ export interface StoredPalette {
   name: string
   palette: PaletteDefinition
   isPublic: boolean
+  lifecycleStatus: PaletteLifecycleStatus
+  version: number
+  publishedAt: string | null
   createdAt: string
   updatedAt: string
 }

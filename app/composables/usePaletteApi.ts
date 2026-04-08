@@ -1,6 +1,7 @@
 import type { EditablePalette } from '~/types/palette-editor'
 import type { StoredPalette, UpdatePalettePayload, UpdatePaletteVisibilityPayload } from '~/types/palette-store'
 import type { PaletteGenerationAccess } from '~/types/palette-generation'
+import type { PaletteVersionSnapshot } from '~/types/palette-version'
 import { FREE_PLAN_PALETTE_GENERATION_LIMIT } from '../data/pricing'
 import { clonePaletteDefinition } from '../utils/palette-domain'
 
@@ -70,6 +71,12 @@ export function usePaletteApi() {
     return updatedPalette
   }
 
+  const getPaletteHistory = async (id: string) => {
+    return $fetch<PaletteVersionSnapshot[]>(`/api/palettes/${id}/history`, {
+      credentials: 'include',
+    })
+  }
+
   const getUserPalettes = () => useFetch<StoredPalette[]>('/api/palettes/user', {
     key: 'user-palettes',
     credentials: 'include',
@@ -109,6 +116,7 @@ export function usePaletteApi() {
   return {
     deletePalette,
     getPaletteGenerationAccess,
+    getPaletteHistory,
     getPublicPalettes,
     getUserPalettes,
     saveNewPalette,

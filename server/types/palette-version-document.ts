@@ -1,17 +1,16 @@
 import type { ObjectId } from 'mongodb'
 import type { PaletteDefinition } from '~/types/palette'
-import type { PaletteLifecycleStatus } from '~/types/palette-version'
+import type { PaletteLifecycleStatus, PaletteVersionEvent } from '~/types/palette-version'
 
-export interface PaletteDocument {
+export interface PaletteVersionDocument {
   _id?: ObjectId
+  paletteId: ObjectId
   userId: string
-  slug: string
+  version: number
   name: string
   palette: PaletteDefinition
-  isPublic: boolean
   lifecycleStatus: PaletteLifecycleStatus
-  version: number
-  publishedAt: Date | null
+  isPublic: boolean
+  event: PaletteVersionEvent
   createdAt: Date
-  updatedAt: Date
 }

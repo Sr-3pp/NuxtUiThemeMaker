@@ -1,23 +1,27 @@
 <script setup lang="ts">
 import type { PaletteDefinition } from '~/types/palette'
 import type { StoredPalette } from '~/types/palette-store'
+import type { PaletteLifecycleStatus } from '~/types/palette-version'
 
 const props = withDefaults(defineProps<{
   palette: PaletteDefinition | StoredPalette
   actionLabel?: string
   badgeLabel?: string
   showDelete?: boolean
+  showHistory?: boolean
   showVisibilityToggle?: boolean
 }>(), {
   actionLabel: 'Use palette',
   badgeLabel: 'Palette',
   showDelete: false,
+  showHistory: false,
   showVisibilityToggle: false,
 })
 
 const emit = defineEmits<{
   select: []
   delete: []
+  history: []
   toggleVisibility: []
 }>()
 
@@ -43,6 +47,18 @@ const visibilityLabel = computed(() => {
   }
 
   return isPublicPalette.value ? 'Public' : 'Private'
+})
+
+const lifecycleStatus = computed<PaletteLifecycleStatus | null>(() => {
+  return storedPalette.value?.lifecycleStatus ?? null
+})
+
+const versionLabel = computed(() => {
+  if (!storedPalette.value) {
+    return null
+  }
+
+  return `v${storedPalette.value.version}`
 })
 
 const swatches = computed(() => {
@@ -74,8 +90,18 @@ const swatches = computed(() => {
         </div>
 
         <div class="flex shrink-0 gap-2">
+          <UBadge
+            v-if="lifecycleStatus"
+            :color="lifecycleStatus === 'published' ? 'success' : 'warning'"
+            variant="soft"
+          >
+            {{ lifecycleStatus }}
+          </UBadge>
           <UBadge v-if="visibilityLabel" :color="isPublicPalette ? 'primary' : 'neutral'" variant="soft">
             {{ visibilityLabel }}
+          </UBadge>
+          <UBadge v-if="versionLabel" color="neutral" variant="outline">
+            {{ versionLabel }}
           </UBadge>
           <UBadge color="neutral" variant="soft">
             {{ swatches.filter(swatch => swatch.value).length }}/{{ swatches.length }}
@@ -113,6 +139,14 @@ const swatches = computed(() => {
         <UButton block color="neutral" variant="outline" @click="emit('select')">
           {{ actionLabel }}
         </UButton>
+        <UButton
+          v-if="showHistory"
+          color="neutral"
+          variant="soft"
+          icon="i-lucide-history"
+          aria-label="Open palette history"
+          @click="emit('history')"
+        />
         <UButton
           v-if="showVisibilityToggle"
           :color="isPublicPalette ? 'primary' : 'neutral'"

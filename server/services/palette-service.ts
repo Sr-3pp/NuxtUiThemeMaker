@@ -2,6 +2,7 @@ import { createError } from 'h3'
 import { getPaletteSaveLimit } from '../../app/data/pricing'
 import type { PaletteDefinition } from '~/types/palette'
 import type { StoredPalette } from '~/types/palette-store'
+import type { PaletteVersionEvent } from '~/types/palette-version'
 import type { PaletteUser } from '~~/server/types/palette-service'
 import {
   countPalettesByUserId,
@@ -10,7 +11,8 @@ import {
   findPaletteById,
   updatePaletteById,
 } from '~~/server/db/repositories/palette-repository'
-import { normalizePaletteForStorage, toStoredPalette } from '~~/server/domain/palette'
+import { createPaletteVersion, listPaletteVersionsByPaletteId } from '~~/server/db/repositories/palette-version-repository'
+import { getPaletteLifecycleStatus, normalizePaletteForStorage, toStoredPalette } from '~~/server/domain/palette'
 import { generateUniquePaletteSlug, parsePaletteObjectId } from '~~/server/services/palette-helpers'
 import { assertPalettePublishReady } from '~~/server/services/palette-qa-service'
 
@@ -19,6 +21,31 @@ function getPaletteLimitMessage(plan: string | undefined, saveLimit: number) {
   const paletteLabel = saveLimit === 1 ? 'palette' : 'palettes'
 
   return `${planName} users can only save ${saveLimit} ${paletteLabel}`
+}
+
+async function createPaletteVersionSnapshot(
+  paletteId: import('mongodb').ObjectId,
+  input: {
+    userId: string
+    version: number
+    name: string
+    palette: PaletteDefinition
+    lifecycleStatus: 'draft' | 'published'
+    isPublic: boolean
+    event: PaletteVersionEvent
+  }
+) {
+  await createPaletteVersion({
+    paletteId,
+    userId: input.userId,
+    version: input.version,
+    name: input.name,
+    palette: input.palette,
+    lifecycleStatus: input.lifecycleStatus,
+    isPublic: input.isPublic,
+    event: input.event,
+    createdAt: new Date(),
+  })
 }
 
 export async function getOwnedPaletteByIdOrThrow(id: string, userId: string) {
@@ -67,8 +94,10 @@ export async function createPaletteForUser(
   const now = new Date()
   const slug = await generateUniquePaletteSlug(name)
   const palette = normalizePaletteForStorage(name, input.palette)
+  const isPublic = input.isPublic ?? false
+  const lifecycleStatus = getPaletteLifecycleStatus(isPublic)
 
-  if (input.isPublic) {
+  if (isPublic) {
     assertPalettePublishReady(palette)
   }
 
@@ -77,7 +106,10 @@ export async function createPaletteForUser(
     slug,
     name,
     palette,
-    isPublic: input.isPublic ?? false,
+    isPublic,
+    lifecycleStatus,
+    version: 1,
+    publishedAt: lifecycleStatus === 'published' ? now : null,
     createdAt: now,
     updatedAt: now,
   })
@@ -88,6 +120,16 @@ export async function createPaletteForUser(
       statusMessage: 'Failed to create palette',
     })
   }
+
+  await createPaletteVersionSnapshot(document._id, {
+    userId: user.id,
+    version: 1,
+    name,
+    palette,
+    lifecycleStatus,
+    isPublic,
+    event: lifecycleStatus === 'published' ? 'published' : 'created',
+  })
 
   return toStoredPalette(document)
 }
@@ -105,8 +147,14 @@ export async function updatePaletteForUser(
   const name = input.name.trim()
   const palette = normalizePaletteForStorage(name, input.palette)
   const slug = await generateUniquePaletteSlug(name, existing._id)
+  const isPublic = input.isPublic ?? existing.isPublic
+  const lifecycleStatus = getPaletteLifecycleStatus(isPublic)
+  const version = (existing.version ?? 1) + 1
+  const publishedAt = lifecycleStatus === 'published'
+    ? existing.publishedAt ?? new Date()
+    : null
 
-  if (input.isPublic) {
+  if (isPublic) {
     assertPalettePublishReady(palette)
   }
 
@@ -114,7 +162,10 @@ export async function updatePaletteForUser(
     slug,
     name,
     palette,
-    isPublic: input.isPublic ?? existing.isPublic,
+    isPublic,
+    lifecycleStatus,
+    version,
+    publishedAt,
     updatedAt: new Date(),
   })
 
@@ -125,6 +176,20 @@ export async function updatePaletteForUser(
     })
   }
 
+  await createPaletteVersionSnapshot(existing._id, {
+    userId,
+    version,
+    name,
+    palette,
+    lifecycleStatus,
+    isPublic,
+    event: existing.isPublic === isPublic
+      ? 'updated'
+      : isPublic
+        ? 'published'
+        : 'unpublished',
+  })
+
   return toStoredPalette(updated)
 }
 
@@ -134,6 +199,11 @@ export async function setPaletteVisibilityForUser(
   isPublic: boolean
 ): Promise<StoredPalette> {
   const existing = await getOwnedPaletteByIdOrThrow(id, userId)
+  const lifecycleStatus = getPaletteLifecycleStatus(isPublic)
+  const version = (existing.version ?? 1) + 1
+  const publishedAt = lifecycleStatus === 'published'
+    ? existing.publishedAt ?? new Date()
+    : null
 
   if (isPublic) {
     assertPalettePublishReady(existing.palette)
@@ -141,6 +211,9 @@ export async function setPaletteVisibilityForUser(
 
   const updated = await updatePaletteById(existing._id, {
     isPublic,
+    lifecycleStatus,
+    version,
+    publishedAt,
     updatedAt: new Date(),
   })
 
@@ -151,6 +224,16 @@ export async function setPaletteVisibilityForUser(
     })
   }
 
+  await createPaletteVersionSnapshot(existing._id, {
+    userId,
+    version,
+    name: existing.name,
+    palette: existing.palette,
+    lifecycleStatus,
+    isPublic,
+    event: isPublic ? 'published' : 'unpublished',
+  })
+
   return toStoredPalette(updated)
 }
 
@@ -158,4 +241,10 @@ export async function deletePaletteForUser(id: string, userId: string) {
   const existing = await getOwnedPaletteByIdOrThrow(id, userId)
 
   await deletePaletteById(existing._id)
+}
+
+export async function listPaletteHistoryForUser(id: string, userId: string) {
+  const existing = await getOwnedPaletteByIdOrThrow(id, userId)
+
+  return listPaletteVersionsByPaletteId(existing._id)
 }
