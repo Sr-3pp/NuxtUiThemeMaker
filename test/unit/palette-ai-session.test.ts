@@ -205,4 +205,29 @@ describe('palette AI session helpers', () => {
     expect(session.ramps.selectedId).toBe(6)
     expect(session.variants.selectedId).toBe(7)
   })
+
+  it('preserves metadata when rebuilding a persisted session with repeated labels', () => {
+    const starterA = createPalette('Starter A')
+    const starterB = createPalette('Starter B')
+
+    const session = buildPaletteAiPersistedSession({
+      starterHistory: [
+        { id: 8, label: 'Starter A', createdAt: '2026-04-08T10:10:00.000Z', detail: 'Same prompt', result: starterA },
+        { id: 9, label: 'Starter A', createdAt: '2026-04-08T10:12:00.000Z', detail: 'Same prompt', result: starterB },
+      ],
+      starterResult: starterB,
+      auditHistory: [],
+      auditResult: null,
+      directionsHistory: [],
+      directionsResult: null,
+      rampsHistory: [],
+      rampsResult: null,
+      variantsHistory: [],
+      variantsResult: null,
+    })
+
+    expect(session.starter.items).toHaveLength(2)
+    expect(session.starter.selectedId).toBe(9)
+    expect(session.starter.items[1]?.detail).toBe('Same prompt')
+  })
 })

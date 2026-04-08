@@ -188,15 +188,6 @@ function normalizeHexColor(value: string) {
   return color
 }
 
-function formatHistoryTimestamp(value: string) {
-  return new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    month: 'short',
-    day: 'numeric',
-  }).format(new Date(value))
-}
-
 function summarizePrompt(value: string | undefined, fallback: string) {
   const normalized = value?.trim()
 
@@ -207,6 +198,20 @@ function summarizePrompt(value: string | undefined, fallback: string) {
   return normalized.length > 48
     ? `${normalized.slice(0, 48).trimEnd()}...`
     : normalized
+}
+
+function getSelectedHistoryId<T>(
+  history: PaletteAiResultHistoryEntry<T>[],
+  result: T | null,
+) {
+  return history.find(entry => entry.result === result)?.id ?? null
+}
+
+function selectHistoryResult<T>(
+  history: PaletteAiResultHistoryEntry<T>[],
+  id: number,
+) {
+  return history.find(entry => entry.id === id)?.result ?? null
 }
 
 function addBrandColor(target: Ref<string[]>, input: Ref<string>, label: string) {
@@ -259,15 +264,17 @@ function pushResultHistory<T>(
   detail?: string,
 ) {
   historyId.value += 1
+  const nextDetail = detail?.trim() || undefined
+
   history.value = [
     {
       id: historyId.value,
       label,
       createdAt: new Date().toISOString(),
-      detail,
+      detail: nextDetail,
       result,
     },
-    ...history.value,
+    ...history.value.filter(entry => entry.label !== label || (entry.detail?.trim() || undefined) !== nextDetail),
   ].slice(0, MAX_RESULT_HISTORY)
 }
 
@@ -731,29 +738,11 @@ function applyVariantSuggestion() {
                   v-if="starterResult"
                   class="space-y-4"
                 >
-                  <div
-                    v-if="starterHistory.length > 1"
-                    class="space-y-2"
-                  >
-                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
-                      Recent runs
-                    </p>
-                    <div class="flex flex-wrap gap-2">
-                      <UButton
-                        v-for="entry in starterHistory"
-                        :key="entry.id"
-                        size="xs"
-                        :color="starterResult === entry.result ? 'primary' : 'neutral'"
-                        :variant="starterResult === entry.result ? 'solid' : 'outline'"
-                        @click="starterResult = entry.result"
-                      >
-                        <span class="flex flex-col items-start text-left">
-                          <span>{{ entry.label }}</span>
-                          <span class="text-[10px] opacity-70">{{ entry.detail ?? formatHistoryTimestamp(entry.createdAt) }}</span>
-                        </span>
-                      </UButton>
-                    </div>
-                  </div>
+                  <ThemeAiHistory
+                    :entries="starterHistory"
+                    :selected-id="getSelectedHistoryId(starterHistory, starterResult)"
+                    @select="starterResult = selectHistoryResult(starterHistory, $event)"
+                  />
 
                   <div class="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
                     <p class="text-sm font-medium text-highlighted">
@@ -883,29 +872,11 @@ function applyVariantSuggestion() {
                   v-if="auditResult"
                   class="space-y-4"
                 >
-                  <div
-                    v-if="auditHistory.length > 1"
-                    class="space-y-2"
-                  >
-                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
-                      Recent runs
-                    </p>
-                    <div class="flex flex-wrap gap-2">
-                      <UButton
-                        v-for="entry in auditHistory"
-                        :key="entry.id"
-                        size="xs"
-                        :color="auditResult === entry.result ? 'primary' : 'neutral'"
-                        :variant="auditResult === entry.result ? 'solid' : 'outline'"
-                        @click="auditResult = entry.result"
-                      >
-                        <span class="flex flex-col items-start text-left">
-                          <span>{{ entry.label }}</span>
-                          <span class="text-[10px] opacity-70">{{ entry.detail ?? formatHistoryTimestamp(entry.createdAt) }}</span>
-                        </span>
-                      </UButton>
-                    </div>
-                  </div>
+                  <ThemeAiHistory
+                    :entries="auditHistory"
+                    :selected-id="getSelectedHistoryId(auditHistory, auditResult)"
+                    @select="auditResult = selectHistoryResult(auditHistory, $event)"
+                  />
 
                   <div class="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
                     <p class="text-sm font-medium text-highlighted">
@@ -1063,29 +1034,11 @@ function applyVariantSuggestion() {
                   v-if="rampsResult"
                   class="space-y-4"
                 >
-                  <div
-                    v-if="rampsHistory.length > 1"
-                    class="space-y-2"
-                  >
-                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
-                      Recent runs
-                    </p>
-                    <div class="flex flex-wrap gap-2">
-                      <UButton
-                        v-for="entry in rampsHistory"
-                        :key="entry.id"
-                        size="xs"
-                        :color="rampsResult === entry.result ? 'primary' : 'neutral'"
-                        :variant="rampsResult === entry.result ? 'solid' : 'outline'"
-                        @click="rampsResult = entry.result"
-                      >
-                        <span class="flex flex-col items-start text-left">
-                          <span>{{ entry.label }}</span>
-                          <span class="text-[10px] opacity-70">{{ entry.detail ?? formatHistoryTimestamp(entry.createdAt) }}</span>
-                        </span>
-                      </UButton>
-                    </div>
-                  </div>
+                  <ThemeAiHistory
+                    :entries="rampsHistory"
+                    :selected-id="getSelectedHistoryId(rampsHistory, rampsResult)"
+                    @select="rampsResult = selectHistoryResult(rampsHistory, $event)"
+                  />
 
                   <div
                     v-for="(scale, colorKey) in rampsResult.ramps"
@@ -1225,29 +1178,11 @@ function applyVariantSuggestion() {
                   v-if="variantsResult"
                   class="space-y-4"
                 >
-                  <div
-                    v-if="variantsHistory.length > 1"
-                    class="space-y-2"
-                  >
-                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
-                      Recent runs
-                    </p>
-                    <div class="flex flex-wrap gap-2">
-                      <UButton
-                        v-for="entry in variantsHistory"
-                        :key="entry.id"
-                        size="xs"
-                        :color="variantsResult === entry.result ? 'primary' : 'neutral'"
-                        :variant="variantsResult === entry.result ? 'solid' : 'outline'"
-                        @click="variantsResult = entry.result"
-                      >
-                        <span class="flex flex-col items-start text-left">
-                          <span>{{ entry.label }}</span>
-                          <span class="text-[10px] opacity-70">{{ entry.detail ?? formatHistoryTimestamp(entry.createdAt) }}</span>
-                        </span>
-                      </UButton>
-                    </div>
-                  </div>
+                  <ThemeAiHistory
+                    :entries="variantsHistory"
+                    :selected-id="getSelectedHistoryId(variantsHistory, variantsResult)"
+                    @select="variantsResult = selectHistoryResult(variantsHistory, $event)"
+                  />
 
                   <div class="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
                     <p class="text-sm font-medium text-highlighted">
@@ -1374,24 +1309,11 @@ function applyVariantSuggestion() {
                   v-if="directionsHistory.length > 1"
                   class="rounded-2xl border border-default/60 bg-muted/15 px-4 py-3"
                 >
-                  <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
-                    Recent runs
-                  </p>
-                  <div class="mt-2 flex flex-wrap gap-2">
-                    <UButton
-                      v-for="entry in directionsHistory"
-                      :key="entry.id"
-                      size="xs"
-                      :color="directionsResult === entry.result ? 'primary' : 'neutral'"
-                      :variant="directionsResult === entry.result ? 'solid' : 'outline'"
-                      @click="directionsResult = entry.result"
-                    >
-                      <span class="flex flex-col items-start text-left">
-                        <span>{{ entry.label }}</span>
-                        <span class="text-[10px] opacity-70">{{ entry.detail ?? formatHistoryTimestamp(entry.createdAt) }}</span>
-                      </span>
-                    </UButton>
-                  </div>
+                  <ThemeAiHistory
+                    :entries="directionsHistory"
+                    :selected-id="getSelectedHistoryId(directionsHistory, directionsResult)"
+                    @select="directionsResult = selectHistoryResult(directionsHistory, $event)"
+                  />
                 </div>
 
                 <UCard
