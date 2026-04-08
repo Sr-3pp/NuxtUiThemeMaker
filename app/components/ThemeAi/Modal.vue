@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Ref } from 'vue'
 import type { EditablePalette } from '~/types/palette-editor'
 import type { PaletteDefinition } from '~/types/palette'
 import type {
@@ -28,6 +29,13 @@ const { cta, helperText, isDisabled, refresh } = usePaletteGenerationAccess()
 
 const MAX_REFERENCE_IMAGE_BYTES = 5 * 1024 * 1024
 const SUPPORTED_REFERENCE_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'] as const
+const MAX_RESULT_HISTORY = 4
+
+interface ResultHistoryEntry<T> {
+  id: number
+  label: string
+  result: T
+}
 
 const activeTab = ref<'starter' | 'audit' | 'directions' | 'ramps' | 'variants'>('starter')
 const starterPrompt = ref('')
@@ -53,6 +61,12 @@ const auditResult = ref<PaletteAuditGenerateResult | null>(null)
 const directionsResult = ref<PaletteDirectionsGenerateResult | null>(null)
 const rampsResult = ref<PaletteRampGenerateResult | null>(null)
 const variantsResult = ref<PaletteVariantGenerateResult | null>(null)
+const starterHistory = ref<ResultHistoryEntry<PaletteDefinition>[]>([])
+const auditHistory = ref<ResultHistoryEntry<PaletteAuditGenerateResult>[]>([])
+const directionsHistory = ref<ResultHistoryEntry<PaletteDirectionsGenerateResult>[]>([])
+const rampsHistory = ref<ResultHistoryEntry<PaletteRampGenerateResult>[]>([])
+const variantsHistory = ref<ResultHistoryEntry<PaletteVariantGenerateResult>[]>([])
+const historyId = ref(0)
 
 const hasPalette = computed(() => Boolean(props.palette))
 const canGenerateStarter = computed(() => Boolean(starterPrompt.value.trim()) && !isDisabled.value)
@@ -88,6 +102,11 @@ watch(open, (value) => {
   directionsResult.value = null
   rampsResult.value = null
   variantsResult.value = null
+  starterHistory.value = []
+  auditHistory.value = []
+  directionsHistory.value = []
+  rampsHistory.value = []
+  variantsHistory.value = []
 }, { immediate: false })
 
 watch(() => props.palette?.name, () => {
@@ -96,6 +115,11 @@ watch(() => props.palette?.name, () => {
   directionsResult.value = null
   rampsResult.value = null
   variantsResult.value = null
+  starterHistory.value = []
+  auditHistory.value = []
+  directionsHistory.value = []
+  rampsHistory.value = []
+  variantsHistory.value = []
 })
 
 function showValidationToast(title: string, description: string) {
@@ -136,22 +160,43 @@ function addBrandColor(target: Ref<string[]>, input: Ref<string>, label: string)
 
 function clearStarterResult() {
   starterResult.value = null
+  starterHistory.value = []
 }
 
 function clearAuditResult() {
   auditResult.value = null
+  auditHistory.value = []
 }
 
 function clearDirectionsResult() {
   directionsResult.value = null
+  directionsHistory.value = []
 }
 
 function clearRampsResult() {
   rampsResult.value = null
+  rampsHistory.value = []
 }
 
 function clearVariantsResult() {
   variantsResult.value = null
+  variantsHistory.value = []
+}
+
+function pushResultHistory<T>(
+  history: Ref<ResultHistoryEntry<T>[]>,
+  result: T,
+  label: string,
+) {
+  historyId.value += 1
+  history.value = [
+    {
+      id: historyId.value,
+      label,
+      result,
+    },
+    ...history.value,
+  ].slice(0, MAX_RESULT_HISTORY)
 }
 
 async function handleAudit() {
@@ -162,10 +207,12 @@ async function handleAudit() {
   isAuditLoading.value = true
 
   try {
-    auditResult.value = await generatePaletteAudit({
+    const result = await generatePaletteAudit({
       palette: clonePaletteDefinition(props.palette),
       prompt: auditPrompt.value.trim() || undefined,
     })
+    auditResult.value = result
+    pushResultHistory(auditHistory, result, result.summary)
   } catch (error) {
     showErrorToast(error, 'Failed to generate an AI repair pass.')
     await refresh()
@@ -237,7 +284,7 @@ async function handleStarterTheme() {
   isStarterLoading.value = true
 
   try {
-    starterResult.value = await generatePalette({
+    const result = await generatePalette({
       prompt: starterPrompt.value.trim(),
       brandColors: starterBrandColors.value.length ? starterBrandColors.value : undefined,
       referenceSummary: starterReferenceSummary.value.trim() || undefined,
@@ -248,6 +295,8 @@ async function handleStarterTheme() {
           }
         : undefined,
     })
+    starterResult.value = result
+    pushResultHistory(starterHistory, result, result.name)
   } catch (error) {
     showErrorToast(error, 'Failed to generate a starter theme.')
     await refresh()
@@ -264,11 +313,13 @@ async function handleDirections() {
   isDirectionsLoading.value = true
 
   try {
-    directionsResult.value = await generatePaletteDirections({
+    const result = await generatePaletteDirections({
       palette: clonePaletteDefinition(props.palette),
       prompt: directionsPrompt.value.trim() || undefined,
       count: directionsCount.value,
     })
+    directionsResult.value = result
+    pushResultHistory(directionsHistory, result, `${result.directions.length} direction${result.directions.length === 1 ? '' : 's'}`)
   } catch (error) {
     showErrorToast(error, 'Failed to generate alternative directions.')
     await refresh()
@@ -293,11 +344,13 @@ async function handleRamps() {
   isRampsLoading.value = true
 
   try {
-    rampsResult.value = await generatePaletteRamps({
+    const result = await generatePaletteRamps({
       paletteName: props.palette?.name,
       brandColors: rampBrandColors.value,
       prompt: rampsPrompt.value.trim() || undefined,
     })
+    rampsResult.value = result
+    pushResultHistory(rampsHistory, result, `${Object.keys(result.ramps).length} ramp${Object.keys(result.ramps).length === 1 ? '' : 's'}`)
   } catch (error) {
     showErrorToast(error, 'Failed to generate color ramps.')
     await refresh()
@@ -314,11 +367,13 @@ async function handleVariants() {
   isVariantsLoading.value = true
 
   try {
-    variantsResult.value = await generatePaletteVariants({
+    const result = await generatePaletteVariants({
       prompt: variantsPrompt.value.trim() || 'Generate practical component variants for this palette.',
       palette: clonePaletteDefinition(props.palette),
       componentKeys: selectedVariantComponents.value,
     })
+    variantsResult.value = result
+    pushResultHistory(variantsHistory, result, result.summary)
   } catch (error) {
     showErrorToast(error, 'Failed to generate component variants.')
     await refresh()
@@ -573,6 +628,27 @@ function applyVariantSuggestion() {
                   v-if="starterResult"
                   class="space-y-4"
                 >
+                  <div
+                    v-if="starterHistory.length > 1"
+                    class="space-y-2"
+                  >
+                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
+                      Recent runs
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                      <UButton
+                        v-for="entry in starterHistory"
+                        :key="entry.id"
+                        size="xs"
+                        :color="starterResult === entry.result ? 'primary' : 'neutral'"
+                        :variant="starterResult === entry.result ? 'solid' : 'outline'"
+                        @click="starterResult = entry.result"
+                      >
+                        {{ entry.label }}
+                      </UButton>
+                    </div>
+                  </div>
+
                   <div class="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
                     <p class="text-sm font-medium text-highlighted">
                       {{ starterResult.name }}
@@ -701,6 +777,27 @@ function applyVariantSuggestion() {
                   v-if="auditResult"
                   class="space-y-4"
                 >
+                  <div
+                    v-if="auditHistory.length > 1"
+                    class="space-y-2"
+                  >
+                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
+                      Recent runs
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                      <UButton
+                        v-for="entry in auditHistory"
+                        :key="entry.id"
+                        size="xs"
+                        :color="auditResult === entry.result ? 'primary' : 'neutral'"
+                        :variant="auditResult === entry.result ? 'solid' : 'outline'"
+                        @click="auditResult = entry.result"
+                      >
+                        {{ entry.label }}
+                      </UButton>
+                    </div>
+                  </div>
+
                   <div class="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
                     <p class="text-sm font-medium text-highlighted">
                       {{ auditResult.summary }}
@@ -858,6 +955,27 @@ function applyVariantSuggestion() {
                   class="space-y-4"
                 >
                   <div
+                    v-if="rampsHistory.length > 1"
+                    class="space-y-2"
+                  >
+                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
+                      Recent runs
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                      <UButton
+                        v-for="entry in rampsHistory"
+                        :key="entry.id"
+                        size="xs"
+                        :color="rampsResult === entry.result ? 'primary' : 'neutral'"
+                        :variant="rampsResult === entry.result ? 'solid' : 'outline'"
+                        @click="rampsResult = entry.result"
+                      >
+                        {{ entry.label }}
+                      </UButton>
+                    </div>
+                  </div>
+
+                  <div
                     v-for="(scale, colorKey) in rampsResult.ramps"
                     :key="colorKey"
                     class="space-y-2"
@@ -995,6 +1113,27 @@ function applyVariantSuggestion() {
                   v-if="variantsResult"
                   class="space-y-4"
                 >
+                  <div
+                    v-if="variantsHistory.length > 1"
+                    class="space-y-2"
+                  >
+                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
+                      Recent runs
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                      <UButton
+                        v-for="entry in variantsHistory"
+                        :key="entry.id"
+                        size="xs"
+                        :color="variantsResult === entry.result ? 'primary' : 'neutral'"
+                        :variant="variantsResult === entry.result ? 'solid' : 'outline'"
+                        @click="variantsResult = entry.result"
+                      >
+                        {{ entry.label }}
+                      </UButton>
+                    </div>
+                  </div>
+
                   <div class="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
                     <p class="text-sm font-medium text-highlighted">
                       {{ variantsResult.summary }}
@@ -1116,6 +1255,27 @@ function applyVariantSuggestion() {
               </UCard>
 
               <div class="space-y-3">
+                <div
+                  v-if="directionsHistory.length > 1"
+                  class="rounded-2xl border border-default/60 bg-muted/15 px-4 py-3"
+                >
+                  <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
+                    Recent runs
+                  </p>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <UButton
+                      v-for="entry in directionsHistory"
+                      :key="entry.id"
+                      size="xs"
+                      :color="directionsResult === entry.result ? 'primary' : 'neutral'"
+                      :variant="directionsResult === entry.result ? 'solid' : 'outline'"
+                      @click="directionsResult = entry.result"
+                    >
+                      {{ entry.label }}
+                    </UButton>
+                  </div>
+                </div>
+
                 <UCard
                   v-for="direction in directionsResult?.directions ?? []"
                   :key="direction.name"
