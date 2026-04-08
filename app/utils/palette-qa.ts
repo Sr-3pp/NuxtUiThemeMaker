@@ -1,11 +1,6 @@
 import type { PaletteDefinition, PaletteModeKey } from '~/types/palette'
 import type { ThemeQaIssue, ThemeQaReadinessItem, ThemeQaReport, ThemeQaSeverity, ThemeQaStatus } from '~/types/theme-qa'
-
-interface RgbColor {
-  r: number
-  g: number
-  b: number
-}
+import { parseHexColor, type HexRgbColor } from './color-hex'
 
 interface ContrastPairDefinition {
   id: string
@@ -100,47 +95,7 @@ const severityWeight: Record<ThemeQaSeverity, number> = {
   info: 3,
 }
 
-function normalizeHexColor(value: string | null | undefined) {
-  const normalized = value?.trim()
-
-  if (!normalized) {
-    return null
-  }
-
-  const match = normalized.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i)
-
-  if (!match) {
-    return null
-  }
-
-  const hex = match[1]
-
-  if (!hex) {
-    return null
-  }
-
-  if (hex.length === 3) {
-    return `#${hex.split('').map(char => `${char}${char}`).join('').toLowerCase()}`
-  }
-
-  return `#${hex.toLowerCase()}`
-}
-
-function parseHexColor(value: string | null | undefined): RgbColor | null {
-  const normalized = normalizeHexColor(value)
-
-  if (!normalized) {
-    return null
-  }
-
-  return {
-    r: Number.parseInt(normalized.slice(1, 3), 16),
-    g: Number.parseInt(normalized.slice(3, 5), 16),
-    b: Number.parseInt(normalized.slice(5, 7), 16),
-  }
-}
-
-function calculateRelativeLuminance(color: RgbColor) {
+function calculateRelativeLuminance(color: HexRgbColor) {
   const channels = [color.r, color.g, color.b].map((channel) => {
     const normalized = channel / 255
 

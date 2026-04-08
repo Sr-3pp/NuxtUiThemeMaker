@@ -13,14 +13,9 @@ import type {
 } from '../types/palette'
 import { paletteScaleSteps } from '../types/palette'
 import type { StoredPalette } from '~/types/palette-store'
+import { parseHexColor, toHexColor, type HexRgbColor } from './color-hex'
 
-interface RgbColor {
-  r: number
-  g: number
-  b: number
-}
-
-const scaleMixMap: Record<string, { target: RgbColor, amount: number }> = {
+const scaleMixMap: Record<string, { target: HexRgbColor, amount: number }> = {
   '50': { target: { r: 255, g: 255, b: 255 }, amount: 0.95 },
   '100': { target: { r: 255, g: 255, b: 255 }, amount: 0.88 },
   '200': { target: { r: 255, g: 255, b: 255 }, amount: 0.72 },
@@ -46,55 +41,7 @@ function createEmptyColorScale(): PaletteColorScale {
   ) as PaletteColorScale
 }
 
-function clampChannel(value: number) {
-  return Math.min(255, Math.max(0, Math.round(value)))
-}
-
-function normalizeHexColor(value: string | null | undefined) {
-  const normalized = value?.trim()
-
-  if (!normalized) {
-    return null
-  }
-
-  const match = normalized.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i)
-
-  if (!match) {
-    return null
-  }
-
-  const hex = match[1]
-
-  if (!hex) {
-    return null
-  }
-
-  if (hex.length === 3) {
-    return `#${hex.split('').map(char => `${char}${char}`).join('').toLowerCase()}`
-  }
-
-  return `#${hex.toLowerCase()}`
-}
-
-function parseHexColor(value: string | null | undefined): RgbColor | null {
-  const normalized = normalizeHexColor(value)
-
-  if (!normalized) {
-    return null
-  }
-
-  return {
-    r: Number.parseInt(normalized.slice(1, 3), 16),
-    g: Number.parseInt(normalized.slice(3, 5), 16),
-    b: Number.parseInt(normalized.slice(5, 7), 16),
-  }
-}
-
-function toHexColor(color: RgbColor) {
-  return `#${[color.r, color.g, color.b].map(channel => clampChannel(channel).toString(16).padStart(2, '0')).join('')}`
-}
-
-function mixColors(source: RgbColor, target: RgbColor, amount: number): RgbColor {
+function mixColors(source: HexRgbColor, target: HexRgbColor, amount: number): HexRgbColor {
   return {
     r: source.r + (target.r - source.r) * amount,
     g: source.g + (target.g - source.g) * amount,
