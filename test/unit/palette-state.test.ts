@@ -266,4 +266,56 @@ describe('usePaletteState', () => {
     expect(sourcePalette.value?.name).toBe('AI Direction')
     expect(sourcePalette.value?._id).toBe('palette-1')
   })
+
+  it('applies generated ramps to palette scales and semantic 500 tokens', async () => {
+    const { usePaletteState } = await import('../../app/composables/usePaletteState')
+    const { currentPalette, setCurrentPalette, applyGeneratedRamps } = usePaletteState()
+
+    setCurrentPalette(createStoredPalette())
+    applyGeneratedRamps({
+      primary: {
+        '50': '#f0f9ff',
+        '100': '#e0f2fe',
+        '200': '#bae6fd',
+        '300': '#7dd3fc',
+        '400': '#38bdf8',
+        '500': '#0ea5e9',
+        '600': '#0284c7',
+        '700': '#0369a1',
+        '800': '#075985',
+        '900': '#0c4a6e',
+        '950': '#082f49',
+      },
+    })
+
+    expect(currentPalette.value?.colors?.primary?.['500']).toBe('#0ea5e9')
+    expect(currentPalette.value?.modes.light.color?.primary).toBe('#0ea5e9')
+    expect(currentPalette.value?.modes.dark.color?.primary).toBe('#0ea5e9')
+    expect(currentPalette.value?.modes.light.ui.primary).toBe('#0ea5e9')
+    expect(currentPalette.value?.modes.dark.ui.primary).toBe('#0ea5e9')
+  })
+
+  it('merges generated component variants into the current palette', async () => {
+    const { usePaletteState } = await import('../../app/composables/usePaletteState')
+    const { currentPalette, setCurrentPalette, applyGeneratedComponents } = usePaletteState()
+
+    setCurrentPalette(createStoredPalette())
+    applyGeneratedComponents({
+      button: {
+        variants: {
+          solid: {
+            primary: {
+              bg: 'var(--ui-primary)',
+              text: 'var(--ui-bg)',
+            },
+          },
+        },
+      },
+    })
+
+    expect(currentPalette.value?.components?.button?.variants?.solid?.primary).toEqual({
+      bg: 'var(--ui-primary)',
+      text: 'var(--ui-bg)',
+    })
+  })
 })

@@ -4,8 +4,11 @@ import type { PaletteDefinition } from '~/types/palette'
 import type {
   PaletteAuditGenerateResult,
   PaletteDirectionsGenerateResult,
+  PaletteRampGenerateResult,
+  PaletteVariantGenerateResult,
 } from '~/types/palette-generation'
 import { clonePaletteDefinition } from '~/utils/palette-domain'
+import { getComponentThemeEditorDefinitions } from '~/utils/component-theme-editor'
 
 const props = defineProps<{
   palette: EditablePalette | null
@@ -15,20 +18,33 @@ const open = defineModel<boolean>('open', { default: false })
 
 const toast = useToast()
 const { showErrorToast } = useErrorToast()
-const { generatePaletteAudit, generatePaletteDirections } = usePaletteApi()
-const { applyGeneratedPalette } = usePaletteState()
+const { generatePaletteAudit, generatePaletteDirections, generatePaletteRamps, generatePaletteVariants } = usePaletteApi()
+const { applyGeneratedPalette, applyGeneratedComponents, applyGeneratedRamps } = usePaletteState()
 const { cta, helperText, isDisabled, refresh } = usePaletteGenerationAccess()
 
-const activeTab = ref<'audit' | 'directions'>('audit')
+const activeTab = ref<'audit' | 'directions' | 'ramps' | 'variants'>('audit')
 const auditPrompt = ref('')
 const directionsPrompt = ref('')
+const rampsPrompt = ref('')
+const variantsPrompt = ref('')
 const directionsCount = ref<1 | 2 | 3>(3)
+const rampBrandColors = ref<string[]>([])
+const rampInput = ref('')
+const selectedVariantComponents = ref<string[]>(['button', 'input', 'card'])
 const isAuditLoading = ref(false)
 const isDirectionsLoading = ref(false)
+const isRampsLoading = ref(false)
+const isVariantsLoading = ref(false)
 const auditResult = ref<PaletteAuditGenerateResult | null>(null)
 const directionsResult = ref<PaletteDirectionsGenerateResult | null>(null)
+const rampsResult = ref<PaletteRampGenerateResult | null>(null)
+const variantsResult = ref<PaletteVariantGenerateResult | null>(null)
 
 const hasPalette = computed(() => Boolean(props.palette))
+const componentOptions = computed(() => getComponentThemeEditorDefinitions(props.palette?.components).map(definition => ({
+  label: definition.label,
+  value: definition.value,
+})))
 
 watch(open, (value) => {
   if (!value) {
@@ -38,11 +54,15 @@ watch(open, (value) => {
 
   auditResult.value = null
   directionsResult.value = null
+  rampsResult.value = null
+  variantsResult.value = null
 }, { immediate: false })
 
 watch(() => props.palette?.name, () => {
   auditResult.value = null
   directionsResult.value = null
+  rampsResult.value = null
+  variantsResult.value = null
 })
 
 async function handleAudit() {
@@ -86,11 +106,99 @@ async function handleDirections() {
   }
 }
 
+function addRampBrandColor() {
+  const color = rampInput.value.trim()
+
+  if (!/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(color)) {
+    return
+  }
+
+  if (!rampBrandColors.value.includes(color)) {
+    rampBrandColors.value = [...rampBrandColors.value, color]
+  }
+
+  rampInput.value = ''
+}
+
+function removeRampBrandColor(color: string) {
+  rampBrandColors.value = rampBrandColors.value.filter(entry => entry !== color)
+}
+
+async function handleRamps() {
+  if (isDisabled.value || isRampsLoading.value || !rampBrandColors.value.length) {
+    return
+  }
+
+  isRampsLoading.value = true
+
+  try {
+    rampsResult.value = await generatePaletteRamps({
+      paletteName: props.palette?.name,
+      brandColors: rampBrandColors.value,
+      prompt: rampsPrompt.value.trim() || undefined,
+    })
+  } catch (error) {
+    showErrorToast(error, 'Failed to generate color ramps.')
+    await refresh()
+  } finally {
+    isRampsLoading.value = false
+  }
+}
+
+async function handleVariants() {
+  if (!props.palette || isDisabled.value || isVariantsLoading.value) {
+    return
+  }
+
+  isVariantsLoading.value = true
+
+  try {
+    variantsResult.value = await generatePaletteVariants({
+      prompt: variantsPrompt.value.trim() || 'Generate practical component variants for this palette.',
+      palette: clonePaletteDefinition(props.palette),
+      componentKeys: selectedVariantComponents.value,
+    })
+  } catch (error) {
+    showErrorToast(error, 'Failed to generate component variants.')
+    await refresh()
+  } finally {
+    isVariantsLoading.value = false
+  }
+}
+
 function applyPaletteSuggestion(palette: PaletteDefinition, message: string) {
   applyGeneratedPalette(palette)
   toast.add({
     title: 'Palette updated',
     description: message,
+    color: 'success',
+  })
+  open.value = false
+}
+
+function applyRampSuggestion() {
+  if (!rampsResult.value) {
+    return
+  }
+
+  applyGeneratedRamps(rampsResult.value.ramps)
+  toast.add({
+    title: 'Ramps updated',
+    description: `Applied AI-generated ramps to ${rampsResult.value.paletteName}.`,
+    color: 'success',
+  })
+  open.value = false
+}
+
+function applyVariantSuggestion() {
+  if (!variantsResult.value) {
+    return
+  }
+
+  applyGeneratedComponents(variantsResult.value.components)
+  toast.add({
+    title: 'Variants updated',
+    description: 'Applied the generated component variants to the current draft.',
     color: 'success',
   })
   open.value = false
@@ -140,6 +248,8 @@ function applyPaletteSuggestion(palette: PaletteDefinition, message: string) {
           v-model="activeTab"
           :items="[
             { label: 'Audit', value: 'audit', slot: 'audit' },
+            { label: 'Ramps', value: 'ramps', slot: 'ramps' },
+            { label: 'Variants', value: 'variants', slot: 'variants' },
             { label: 'Directions', value: 'directions', slot: 'directions' },
           ]"
           color="neutral"
@@ -237,6 +347,232 @@ function applyPaletteSuggestion(palette: PaletteDefinition, message: string) {
                   class="rounded-xl border border-dashed border-default/70 px-4 py-10 text-center text-sm text-muted"
                 >
                   Run an audit repair to get token suggestions and a patched draft.
+                </div>
+              </UCard>
+            </div>
+          </template>
+
+          <template #ramps>
+            <div class="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+              <UCard variant="outline" class="rounded-2xl shadow-none">
+                <template #header>
+                  <div class="space-y-1">
+                    <p class="text-sm font-medium text-highlighted">
+                      Brand color ramps
+                    </p>
+                    <p class="text-xs text-muted">
+                      Generate full scales from one or more brand anchors and sync their `500` values into semantic colors.
+                    </p>
+                  </div>
+                </template>
+
+                <div class="space-y-4">
+                  <UInput
+                    v-model="rampInput"
+                    placeholder="#0ea5e9"
+                    @keydown.enter.prevent="addRampBrandColor()"
+                  >
+                    <template #trailing>
+                      <UButton
+                        color="primary"
+                        variant="link"
+                        class="px-0"
+                        :disabled="!rampInput.trim()"
+                        @click="addRampBrandColor()"
+                      >
+                        Add
+                      </UButton>
+                    </template>
+                  </UInput>
+
+                  <div class="flex flex-wrap gap-2">
+                    <UBadge
+                      v-for="color in rampBrandColors"
+                      :key="color"
+                      color="neutral"
+                      variant="soft"
+                      class="gap-2"
+                    >
+                      <span class="h-3 w-3 rounded-full border border-black/10" :style="{ backgroundColor: color }" />
+                      {{ color }}
+                      <button type="button" class="leading-none" @click="removeRampBrandColor(color)">x</button>
+                    </UBadge>
+                  </div>
+
+                  <UTextarea
+                    v-model="rampsPrompt"
+                    :rows="4"
+                    class="w-full"
+                    placeholder="Example: Keep the ramps crisp and technical, with lighter steps that work well for data-heavy surfaces."
+                  />
+
+                  <UButton
+                    block
+                    color="primary"
+                    icon="i-lucide-pipette"
+                    :disabled="isDisabled || !rampBrandColors.length"
+                    :loading="isRampsLoading"
+                    @click="handleRamps()"
+                  >
+                    Generate ramps
+                  </UButton>
+                </div>
+              </UCard>
+
+              <UCard variant="outline" class="rounded-2xl shadow-none">
+                <template #header>
+                  <div class="space-y-1">
+                    <p class="text-sm font-medium text-highlighted">
+                      Ramp preview
+                    </p>
+                    <p class="text-xs text-muted">
+                      Review the generated scales before applying them to the current draft.
+                    </p>
+                  </div>
+                </template>
+
+                <div
+                  v-if="rampsResult"
+                  class="space-y-4"
+                >
+                  <div
+                    v-for="(scale, colorKey) in rampsResult.ramps"
+                    :key="colorKey"
+                    class="space-y-2"
+                  >
+                    <p class="text-sm font-medium text-highlighted">
+                      {{ colorKey }}
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-6">
+                      <div
+                        v-for="(value, step) in scale"
+                        :key="`${colorKey}-${step}`"
+                        class="rounded-xl border border-default/60 p-2"
+                      >
+                        <div class="h-10 rounded-lg border border-black/10" :style="{ backgroundColor: value ?? 'transparent' }" />
+                        <p class="mt-2 text-xs font-medium text-highlighted">{{ step }}</p>
+                        <p class="text-[11px] text-muted">{{ value }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <UButton
+                    block
+                    color="primary"
+                    icon="i-lucide-check"
+                    @click="applyRampSuggestion()"
+                  >
+                    Apply ramps
+                  </UButton>
+                </div>
+
+                <div
+                  v-else
+                  class="rounded-2xl border border-dashed border-default/70 px-4 py-10 text-center text-sm text-muted"
+                >
+                  Add one or more brand colors to generate full ramps.
+                </div>
+              </UCard>
+            </div>
+          </template>
+
+          <template #variants>
+            <div class="grid gap-4 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+              <UCard variant="outline" class="rounded-2xl shadow-none">
+                <template #header>
+                  <div class="space-y-1">
+                    <p class="text-sm font-medium text-highlighted">
+                      Variant brief
+                    </p>
+                    <p class="text-xs text-muted">
+                      Generate component-level styling from a mood, product, or brand prompt.
+                    </p>
+                  </div>
+                </template>
+
+                <div class="space-y-4">
+                  <USelectMenu
+                    v-model="selectedVariantComponents"
+                    :items="componentOptions"
+                    multiple
+                    value-key="value"
+                    placeholder="Choose components"
+                  />
+
+                  <UTextarea
+                    v-model="variantsPrompt"
+                    :rows="6"
+                    class="w-full"
+                    placeholder="Example: Give buttons and inputs a sharper B2B feel with quieter cards and stronger table hierarchy."
+                  />
+
+                  <UButton
+                    block
+                    color="primary"
+                    icon="i-lucide-panels-top-left"
+                    :disabled="!hasPalette || isDisabled"
+                    :loading="isVariantsLoading"
+                    @click="handleVariants()"
+                  >
+                    Generate variants
+                  </UButton>
+                </div>
+              </UCard>
+
+              <UCard variant="outline" class="rounded-2xl shadow-none">
+                <template #header>
+                  <div class="space-y-1">
+                    <p class="text-sm font-medium text-highlighted">
+                      Generated component layer
+                    </p>
+                    <p class="text-xs text-muted">
+                      Apply the generated overrides as a merge on top of the current component theme schema.
+                    </p>
+                  </div>
+                </template>
+
+                <div
+                  v-if="variantsResult"
+                  class="space-y-4"
+                >
+                  <div class="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
+                    <p class="text-sm font-medium text-highlighted">
+                      {{ variantsResult.summary }}
+                    </p>
+                  </div>
+
+                  <div
+                    v-for="(theme, componentKey) in variantsResult.components"
+                    :key="componentKey"
+                    class="rounded-xl border border-default/60 bg-muted/15 px-3 py-3"
+                  >
+                    <div class="flex flex-wrap items-center gap-2">
+                      <UBadge color="primary" variant="soft">
+                        {{ componentKey }}
+                      </UBadge>
+                      <UBadge v-if="theme.base" color="neutral" variant="outline">base</UBadge>
+                      <UBadge v-if="theme.slots" color="neutral" variant="outline">slots</UBadge>
+                      <UBadge v-if="theme.variants" color="neutral" variant="outline">variants</UBadge>
+                      <UBadge v-if="theme.states" color="neutral" variant="outline">states</UBadge>
+                    </div>
+                  </div>
+
+                  <UButton
+                    block
+                    color="primary"
+                    icon="i-lucide-check"
+                    @click="applyVariantSuggestion()"
+                  >
+                    Apply component variants
+                  </UButton>
+                </div>
+
+                <div
+                  v-else
+                  class="rounded-2xl border border-dashed border-default/70 px-4 py-10 text-center text-sm text-muted"
+                >
+                  Generate a component layer to preview and merge into the current draft.
                 </div>
               </UCard>
             </div>

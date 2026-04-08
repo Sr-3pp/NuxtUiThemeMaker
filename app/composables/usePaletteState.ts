@@ -4,7 +4,7 @@ import type {
   UpdateEditablePaletteComponentTokenPayload,
   UpdateEditablePaletteTokenPayload,
 } from '~/types/palette-editor'
-import type { PaletteDefinition } from '~/types/palette'
+import type { PaletteColorScales, PaletteComponentThemes, PaletteDefinition } from '~/types/palette'
 import type { StoredPalette } from '~/types/palette-store'
 import { emptyPalette } from '~/utils/paletteRegistry'
 import {
@@ -69,6 +69,52 @@ export function usePaletteState() {
       accessLevel: preservedPalette.accessLevel,
       createdAt: preservedPalette.createdAt,
       updatedAt: preservedPalette.updatedAt,
+    }
+  }
+
+  const applyGeneratedRamps = (ramps: PaletteColorScales) => {
+    if (!currentPalette.value) {
+      return
+    }
+
+    const nextColors = {
+      ...(currentPalette.value.colors ?? {}),
+      ...Object.fromEntries(
+        Object.entries(ramps).map(([colorKey, scale]) => [colorKey, { ...scale }])
+      ),
+    }
+
+    currentPalette.value.colors = nextColors
+
+    ;(['light', 'dark'] as const).forEach((mode) => {
+      const paletteMode = currentPalette.value?.modes[mode]
+      const colorGroup = paletteMode?.color
+      const uiGroup = paletteMode?.ui
+
+      if (!colorGroup) {
+        return
+      }
+
+      Object.entries(ramps).forEach(([colorKey, scale]) => {
+        if (colorKey in colorGroup) {
+          colorGroup[colorKey] = scale['500']
+        }
+
+        if (uiGroup && colorKey in uiGroup) {
+          uiGroup[colorKey] = scale['500']
+        }
+      })
+    })
+  }
+
+  const applyGeneratedComponents = (components: PaletteComponentThemes) => {
+    if (!currentPalette.value) {
+      return
+    }
+
+    currentPalette.value.components = {
+      ...(currentPalette.value.components ?? {}),
+      ...JSON.parse(JSON.stringify(components)) as PaletteComponentThemes,
     }
   }
 
@@ -138,6 +184,8 @@ export function usePaletteState() {
     resetCurrentPalette,
     setCurrentPalette,
     applyGeneratedPalette,
+    applyGeneratedRamps,
+    applyGeneratedComponents,
     updatePaletteName,
     updatePalette,
     updatePaletteColorScale,
