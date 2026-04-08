@@ -259,6 +259,10 @@ export function toEditablePalette(palette: PaletteDefinition | StoredPalette): E
   return {
     name: clonedPalette.name,
     modes: clonedPalette.modes,
+    colors: clonedPalette.colors,
+    aliases: clonedPalette.aliases,
+    components: clonedPalette.components,
+    metadata: clonedPalette.metadata,
   }
 }
 
@@ -289,6 +293,56 @@ export function hydratePaletteDefinition(palette: PaletteDefinition) {
 
 export function createEditablePalette(palette: PaletteDefinition | StoredPalette): EditablePalette {
   return hydratePaletteDefinition(toEditablePalette(palette))
+}
+
+export function createPaletteWithGeneratedRamps(
+  palette: PaletteDefinition,
+  ramps: PaletteColorScales
+): PaletteDefinition {
+  const nextPalette = clonePaletteDefinition(palette)
+
+  nextPalette.colors = {
+    ...(nextPalette.colors ?? {}),
+    ...Object.fromEntries(
+      Object.entries(ramps).map(([colorKey, scale]) => [colorKey, { ...scale }])
+    ),
+  }
+
+  ;(['light', 'dark'] as const).forEach((mode) => {
+    const paletteMode = nextPalette.modes[mode]
+    const colorGroup = paletteMode?.color
+    const uiGroup = paletteMode?.ui
+
+    if (!colorGroup) {
+      return
+    }
+
+    Object.entries(ramps).forEach(([colorKey, scale]) => {
+      if (colorKey in colorGroup) {
+        colorGroup[colorKey] = scale['500']
+      }
+
+      if (uiGroup && colorKey in uiGroup) {
+        uiGroup[colorKey] = scale['500']
+      }
+    })
+  })
+
+  return nextPalette
+}
+
+export function createPaletteWithGeneratedComponents(
+  palette: PaletteDefinition,
+  components: PaletteComponentThemes
+): PaletteDefinition {
+  const nextPalette = clonePaletteDefinition(palette)
+
+  nextPalette.components = {
+    ...(nextPalette.components ?? {}),
+    ...cloneComponentThemes(components),
+  }
+
+  return nextPalette
 }
 
 export function updateEditablePaletteToken(

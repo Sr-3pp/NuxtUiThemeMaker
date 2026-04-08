@@ -10,6 +10,8 @@ import { emptyPalette } from '~/utils/paletteRegistry'
 import {
   clonePaletteDefinition,
   createEditablePalette,
+  createPaletteWithGeneratedComponents,
+  createPaletteWithGeneratedRamps,
   updateEditablePaletteColorScale,
   updateEditablePaletteComponentToken,
   updateEditablePaletteToken,
@@ -77,34 +79,9 @@ export function usePaletteState() {
       return
     }
 
-    const nextColors = {
-      ...(currentPalette.value.colors ?? {}),
-      ...Object.fromEntries(
-        Object.entries(ramps).map(([colorKey, scale]) => [colorKey, { ...scale }])
-      ),
-    }
-
-    currentPalette.value.colors = nextColors
-
-    ;(['light', 'dark'] as const).forEach((mode) => {
-      const paletteMode = currentPalette.value?.modes[mode]
-      const colorGroup = paletteMode?.color
-      const uiGroup = paletteMode?.ui
-
-      if (!colorGroup) {
-        return
-      }
-
-      Object.entries(ramps).forEach(([colorKey, scale]) => {
-        if (colorKey in colorGroup) {
-          colorGroup[colorKey] = scale['500']
-        }
-
-        if (uiGroup && colorKey in uiGroup) {
-          uiGroup[colorKey] = scale['500']
-        }
-      })
-    })
+    currentPalette.value = createEditablePalette(
+      createPaletteWithGeneratedRamps(currentPalette.value, ramps)
+    )
   }
 
   const applyGeneratedComponents = (components: PaletteComponentThemes) => {
@@ -112,10 +89,9 @@ export function usePaletteState() {
       return
     }
 
-    currentPalette.value.components = {
-      ...(currentPalette.value.components ?? {}),
-      ...JSON.parse(JSON.stringify(components)) as PaletteComponentThemes,
-    }
+    currentPalette.value = createEditablePalette(
+      createPaletteWithGeneratedComponents(currentPalette.value, components)
+    )
   }
 
   const createEmptyPalette = () => {

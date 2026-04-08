@@ -7,7 +7,11 @@ import type {
   PaletteRampGenerateResult,
   PaletteVariantGenerateResult,
 } from '~/types/palette-generation'
-import { clonePaletteDefinition } from '~/utils/palette-domain'
+import {
+  clonePaletteDefinition,
+  createPaletteWithGeneratedComponents,
+  createPaletteWithGeneratedRamps,
+} from '~/utils/palette-domain'
 import { getComponentThemeEditorDefinitions } from '~/utils/component-theme-editor'
 
 const props = defineProps<{
@@ -52,6 +56,20 @@ const componentOptions = computed(() => getComponentThemeEditorDefinitions(props
   label: definition.label,
   value: definition.value,
 })))
+const rampPreviewPalette = computed(() => {
+  if (!props.palette || !rampsResult.value) {
+    return null
+  }
+
+  return createPaletteWithGeneratedRamps(clonePaletteDefinition(props.palette), rampsResult.value.ramps)
+})
+const variantPreviewPalette = computed(() => {
+  if (!props.palette || !variantsResult.value) {
+    return null
+  }
+
+  return createPaletteWithGeneratedComponents(clonePaletteDefinition(props.palette), variantsResult.value.components)
+})
 
 watch(open, (value) => {
   if (!value) {
@@ -713,6 +731,13 @@ function applyVariantSuggestion() {
                     </div>
                   </div>
 
+                  <ThemeAiComparison
+                    v-if="props.palette && rampPreviewPalette"
+                    :from-palette="clonePaletteDefinition(props.palette)"
+                    :to-palette="rampPreviewPalette"
+                    title="Ramp diff"
+                  />
+
                   <UButton
                     block
                     color="primary"
@@ -813,6 +838,13 @@ function applyVariantSuggestion() {
                       <UBadge v-if="theme.states" color="neutral" variant="outline">states</UBadge>
                     </div>
                   </div>
+
+                  <ThemeAiComparison
+                    v-if="props.palette && variantPreviewPalette"
+                    :from-palette="clonePaletteDefinition(props.palette)"
+                    :to-palette="variantPreviewPalette"
+                    title="Variant diff"
+                  />
 
                   <UButton
                     block
