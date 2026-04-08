@@ -22,6 +22,12 @@ export interface PaletteGeneratePayload {
   }
 }
 
+export interface PaletteReferenceImageAsset {
+  data: string
+  mimeType: string
+  name: string
+}
+
 export interface PaletteRampGeneratePayload {
   paletteName?: string
   brandColors: string[]

@@ -584,243 +584,40 @@ function applyVariantSuggestion() {
           :ui="{ root: 'space-y-4', list: 'w-full border-b border-default/60' }"
         >
           <template #starter>
-            <div class="grid gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-              <UCard variant="outline" class="rounded-2xl shadow-none">
-                <template #header>
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="space-y-1">
-                      <p class="text-sm font-medium text-highlighted">
-                        Starter theme input
-                      </p>
-                      <p class="text-xs text-muted">
-                        Generate a full palette from a prompt, optional brand colors, and an optional screenshot or style reference.
-                      </p>
-                    </div>
-
-                    <UButton
-                      v-if="starterResult || starterReferenceImage || starterBrandColors.length || starterReferenceSummary || starterPrompt"
-                      color="neutral"
-                      variant="ghost"
-                      size="xs"
-                      @click="starterPrompt = ''; starterReferenceSummary = ''; starterBrandColors = []; starterBrandInput = ''; clearStarterReferenceImage(); clearStarterResult()"
-                    >
-                      Clear
-                    </UButton>
-                  </div>
-                </template>
-
-                <div class="space-y-4">
-                  <UTextarea
-                    v-model="starterPrompt"
-                    :rows="4"
-                    class="w-full"
-                    placeholder="Example: Turn this fintech dashboard into a calm, data-dense Nuxt UI theme with strong call-to-actions."
-                  />
-
-                  <UTextarea
-                    v-model="starterReferenceSummary"
-                    :rows="3"
-                    class="w-full"
-                    placeholder="Optional: summarize the reference style, surface treatment, or brand direction."
-                  />
-
-                  <div class="space-y-2">
-                    <UInput
-                      v-model="starterBrandInput"
-                      placeholder="#0ea5e9"
-                      @keydown.enter.prevent="addStarterBrandColor()"
-                    >
-                      <template #trailing>
-                        <UButton
-                          color="primary"
-                          variant="link"
-                          class="px-0"
-                          :disabled="!starterBrandInput.trim()"
-                          @click="addStarterBrandColor()"
-                        >
-                          Add
-                        </UButton>
-                      </template>
-                    </UInput>
-
-                    <p class="text-xs text-muted">
-                      Add brand anchors as hex values. Duplicate and invalid colors are rejected before request.
-                    </p>
-
-                    <div class="flex flex-wrap gap-2">
-                      <UBadge
-                        v-for="color in starterBrandColors"
-                        :key="color"
-                        color="neutral"
-                        variant="soft"
-                        class="gap-2"
-                      >
-                        <span class="h-3 w-3 rounded-full border border-black/10" :style="{ backgroundColor: color }" />
-                        {{ color }}
-                        <button type="button" class="leading-none" @click="removeStarterBrandColor(color)">x</button>
-                      </UBadge>
-                    </div>
-                  </div>
-
-                  <div class="space-y-2">
-                    <UFormField label="Reference image">
-                      <input
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp,image/gif"
-                        class="block w-full text-sm text-muted"
-                        @change="handleStarterImageUpload"
-                      >
-                    </UFormField>
-
-                    <p class="text-xs text-muted">
-                      Optional. PNG, JPEG, WEBP, or GIF up to 5 MB.
-                    </p>
-
-                    <UAlert
-                      v-if="starterReferenceImage"
-                      color="neutral"
-                      variant="soft"
-                      icon="i-lucide-image"
-                      :title="starterReferenceImage.name"
-                      :description="starterReferenceImage.mimeType"
-                    >
-                      <template #actions>
-                        <UButton
-                          color="neutral"
-                          variant="soft"
-                          size="xs"
-                          @click="clearStarterReferenceImage()"
-                        >
-                          Remove
-                        </UButton>
-                      </template>
-                    </UAlert>
-                  </div>
-
-                  <UButton
-                    block
-                    color="primary"
-                    icon="i-lucide-image-plus"
-                    :disabled="!canGenerateStarter"
-                    :loading="isStarterLoading"
-                    @click="handleStarterTheme()"
-                  >
-                    Generate starter theme
-                  </UButton>
-                </div>
-              </UCard>
-
-              <UCard variant="outline" class="rounded-2xl shadow-none">
-                <template #header>
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="space-y-1">
-                      <p class="text-sm font-medium text-highlighted">
-                        Generated starter palette
-                      </p>
-                      <p class="text-xs text-muted">
-                        Apply the generated palette as the current draft.
-                      </p>
-                    </div>
-
-                    <UButton
-                      v-if="starterResult"
-                      color="neutral"
-                      variant="ghost"
-                      size="xs"
-                      @click="clearStarterResult()"
-                    >
-                      Clear result
-                    </UButton>
-                  </div>
-                </template>
-
-                <div
-                  v-if="starterResult"
-                  class="space-y-4"
-                >
-                  <ThemeAiHistory
-                    :entries="starterHistory"
-                    :selected-id="getSelectedHistoryId(starterHistory, starterResult)"
-                    @select="starterResult = selectHistoryResult(starterHistory, $event)"
-                  />
-
-                  <div class="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
-                    <p class="text-sm font-medium text-highlighted">
-                      {{ starterResult.name }}
-                    </p>
-                  </div>
-
-                  <div class="grid gap-3 sm:grid-cols-2">
-                    <div
-                      v-for="mode in ['light', 'dark']"
-                      :key="mode"
-                      class="rounded-xl border border-default/60 px-3 py-3"
-                    >
-                      <p class="text-xs uppercase tracking-[0.18em] text-muted">
-                        {{ mode }}
-                      </p>
-                      <div class="mt-3 flex flex-wrap gap-2">
-                        <div
-                          v-for="token in ['primary', 'secondary', 'success', 'warning', 'error']"
-                          :key="token"
-                          class="space-y-1"
-                        >
-                          <div
-                            class="h-8 w-8 rounded-full border border-black/10"
-                            :style="{ backgroundColor: starterResult.modes[mode as 'light' | 'dark']?.color?.[token] ?? 'transparent' }"
-                          />
-                          <p class="text-[10px] uppercase tracking-[0.14em] text-muted">
-                            {{ token }}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <ThemeAiComparison
-                    v-if="props.palette"
-                    :from-palette="clonePaletteDefinition(props.palette)"
-                    :to-palette="starterResult"
-                    title="Starter theme diff"
-                  />
-
-                  <ThemeAiLivePreview
-                    :palette="starterResult"
-                    title="Starter theme preview"
-                  />
-
-                  <UButton
-                    block
-                    color="primary"
-                    icon="i-lucide-check"
-                    @click="applyPaletteSuggestion(starterResult, 'Applied the generated starter theme to the current draft.')"
-                  >
-                    Apply starter theme
-                  </UButton>
-                </div>
-
-                <div
-                  v-else
-                  class="rounded-xl border border-dashed border-default/70 px-4 py-10 text-center text-sm text-muted"
-                >
-                  Add a prompt and optional references to generate a starter palette.
-                </div>
-              </UCard>
-            </div>
+            <ThemeAiStarterTab
+              :palette="props.palette"
+              :prompt="starterPrompt"
+              :reference-summary="starterReferenceSummary"
+              :brand-colors="starterBrandColors"
+              :brand-input="starterBrandInput"
+              :reference-image="starterReferenceImage"
+              :can-generate="canGenerateStarter"
+              :is-loading="isStarterLoading"
+              :result="starterResult"
+              :history="starterHistory"
+              @update:prompt="starterPrompt = $event"
+              @update:reference-summary="starterReferenceSummary = $event"
+              @update:brand-input="starterBrandInput = $event"
+              @add-brand-color="addStarterBrandColor()"
+              @remove-brand-color="removeStarterBrandColor($event)"
+              @upload-image="handleStarterImageUpload($event)"
+              @clear-image="clearStarterReferenceImage()"
+              @clear-form="starterPrompt = ''; starterReferenceSummary = ''; starterBrandColors = []; starterBrandInput = ''; clearStarterReferenceImage(); clearStarterResult()"
+              @generate="handleStarterTheme()"
+              @clear-result="clearStarterResult()"
+              @select-history="starterResult = selectHistoryResult(starterHistory, $event)"
+              @apply-result="applyPaletteSuggestion($event, 'Applied the generated starter theme to the current draft.')"
+            />
           </template>
 
           <template #audit>
             <div class="grid gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
               <UCard variant="outline" class="rounded-2xl shadow-none">
                 <template #header>
-                  <div class="space-y-1">
-                    <p class="text-sm font-medium text-highlighted">
-                      Repair prompt
-                    </p>
-                    <p class="text-xs text-muted">
-                      Ask the model to prioritize contrast, focus rings, muted text, or publish readiness.
-                    </p>
-                  </div>
+                  <ThemeAiSectionHeader
+                    title="Repair prompt"
+                    description="Ask the model to prioritize contrast, focus rings, muted text, or publish readiness."
+                  />
                 </template>
 
                 <div class="space-y-4">
@@ -846,26 +643,12 @@ function applyVariantSuggestion() {
 
               <UCard variant="outline" class="rounded-2xl shadow-none">
                 <template #header>
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="space-y-1">
-                      <p class="text-sm font-medium text-highlighted">
-                        Suggested fixes
-                      </p>
-                      <p class="text-xs text-muted">
-                        Review the token-level changes before applying the patched palette.
-                      </p>
-                    </div>
-
-                    <UButton
-                      v-if="auditResult"
-                      color="neutral"
-                      variant="ghost"
-                      size="xs"
-                      @click="clearAuditResult()"
-                    >
-                      Clear result
-                    </UButton>
-                  </div>
+                  <ThemeAiSectionHeader
+                    title="Suggested fixes"
+                    description="Review the token-level changes before applying the patched palette."
+                    :action-label="auditResult ? 'Clear result' : undefined"
+                    @action="clearAuditResult()"
+                  />
                 </template>
 
                 <div
@@ -927,26 +710,12 @@ function applyVariantSuggestion() {
             <div class="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
               <UCard variant="outline" class="rounded-2xl shadow-none">
                 <template #header>
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="space-y-1">
-                      <p class="text-sm font-medium text-highlighted">
-                        Brand color ramps
-                      </p>
-                      <p class="text-xs text-muted">
-                        Generate full scales from one or more brand anchors and sync their `500` values into semantic colors.
-                      </p>
-                    </div>
-
-                    <UButton
-                      v-if="rampsResult || rampBrandColors.length || rampInput || rampsPrompt"
-                      color="neutral"
-                      variant="ghost"
-                      size="xs"
-                      @click="rampBrandColors = []; rampInput = ''; rampsPrompt = ''; clearRampsResult()"
-                    >
-                      Clear
-                    </UButton>
-                  </div>
+                  <ThemeAiSectionHeader
+                    title="Brand color ramps"
+                    description="Generate full scales from one or more brand anchors and sync their `500` values into semantic colors."
+                    :action-label="rampsResult || rampBrandColors.length || rampInput || rampsPrompt ? 'Clear' : undefined"
+                    @action="rampBrandColors = []; rampInput = ''; rampsPrompt = ''; clearRampsResult()"
+                  />
                 </template>
 
                 <div class="space-y-4">
@@ -1008,26 +777,12 @@ function applyVariantSuggestion() {
 
               <UCard variant="outline" class="rounded-2xl shadow-none">
                 <template #header>
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="space-y-1">
-                      <p class="text-sm font-medium text-highlighted">
-                        Ramp preview
-                      </p>
-                      <p class="text-xs text-muted">
-                        Review the generated scales before applying them to the current draft.
-                      </p>
-                    </div>
-
-                    <UButton
-                      v-if="rampsResult"
-                      color="neutral"
-                      variant="ghost"
-                      size="xs"
-                      @click="clearRampsResult()"
-                    >
-                      Clear result
-                    </UButton>
-                  </div>
+                  <ThemeAiSectionHeader
+                    title="Ramp preview"
+                    description="Review the generated scales before applying them to the current draft."
+                    :action-label="rampsResult ? 'Clear result' : undefined"
+                    @action="clearRampsResult()"
+                  />
                 </template>
 
                 <div
@@ -1099,26 +854,12 @@ function applyVariantSuggestion() {
             <div class="grid gap-4 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
               <UCard variant="outline" class="rounded-2xl shadow-none">
                 <template #header>
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="space-y-1">
-                      <p class="text-sm font-medium text-highlighted">
-                        Variant brief
-                      </p>
-                      <p class="text-xs text-muted">
-                        Generate component-level styling from a mood, product, or brand prompt.
-                      </p>
-                    </div>
-
-                    <UButton
-                      v-if="variantsResult || variantsPrompt || selectedVariantComponents.length !== 3"
-                      color="neutral"
-                      variant="ghost"
-                      size="xs"
-                      @click="selectedVariantComponents = ['button', 'input', 'card']; variantsPrompt = ''; clearVariantsResult()"
-                    >
-                      Reset
-                    </UButton>
-                  </div>
+                  <ThemeAiSectionHeader
+                    title="Variant brief"
+                    description="Generate component-level styling from a mood, product, or brand prompt."
+                    :action-label="variantsResult || variantsPrompt || selectedVariantComponents.length !== 3 ? 'Reset' : undefined"
+                    @action="selectedVariantComponents = ['button', 'input', 'card']; variantsPrompt = ''; clearVariantsResult()"
+                  />
                 </template>
 
                 <div class="space-y-4">
@@ -1152,26 +893,12 @@ function applyVariantSuggestion() {
 
               <UCard variant="outline" class="rounded-2xl shadow-none">
                 <template #header>
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="space-y-1">
-                      <p class="text-sm font-medium text-highlighted">
-                        Generated component layer
-                      </p>
-                      <p class="text-xs text-muted">
-                        Apply the generated overrides as a merge on top of the current component theme schema.
-                      </p>
-                    </div>
-
-                    <UButton
-                      v-if="variantsResult"
-                      color="neutral"
-                      variant="ghost"
-                      size="xs"
-                      @click="clearVariantsResult()"
-                    >
-                      Clear result
-                    </UButton>
-                  </div>
+                  <ThemeAiSectionHeader
+                    title="Generated component layer"
+                    description="Apply the generated overrides as a merge on top of the current component theme schema."
+                    :action-label="variantsResult ? 'Clear result' : undefined"
+                    @action="clearVariantsResult()"
+                  />
                 </template>
 
                 <div
@@ -1240,158 +967,21 @@ function applyVariantSuggestion() {
           </template>
 
           <template #directions>
-            <div class="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-              <UCard variant="outline" class="rounded-2xl shadow-none">
-                <template #header>
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="space-y-1">
-                      <p class="text-sm font-medium text-highlighted">
-                        Direction brief
-                      </p>
-                      <p class="text-xs text-muted">
-                        Push the current palette toward new art directions without starting over.
-                      </p>
-                    </div>
-
-                    <UButton
-                      v-if="directionsResult || directionsPrompt || directionsCount !== 3"
-                      color="neutral"
-                      variant="ghost"
-                      size="xs"
-                      @click="directionsPrompt = ''; directionsCount = 3; clearDirectionsResult()"
-                    >
-                      Reset
-                    </UButton>
-                  </div>
-                </template>
-
-                <div class="space-y-4">
-                  <UTextarea
-                    v-model="directionsPrompt"
-                    :rows="6"
-                    class="w-full"
-                    placeholder="Example: Explore one more editorial option, one more enterprise option, and one darker command-center option."
-                  />
-
-                  <div class="space-y-2">
-                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
-                      Number of directions
-                    </p>
-                    <div class="flex flex-wrap gap-2">
-                      <UButton
-                        v-for="count in [1, 2, 3]"
-                        :key="count"
-                        :color="directionsCount === count ? 'primary' : 'neutral'"
-                        :variant="directionsCount === count ? 'solid' : 'outline'"
-                        size="sm"
-                        @click="directionsCount = count as 1 | 2 | 3"
-                      >
-                        {{ count }}
-                      </UButton>
-                    </div>
-                  </div>
-
-                  <UButton
-                    block
-                    color="primary"
-                    icon="i-lucide-sparkles"
-                    :disabled="!hasPalette || isDisabled"
-                    :loading="isDirectionsLoading"
-                    @click="handleDirections()"
-                  >
-                    Generate directions
-                  </UButton>
-                </div>
-              </UCard>
-
-              <div class="space-y-3">
-                <div
-                  v-if="directionsHistory.length > 1"
-                  class="rounded-2xl border border-default/60 bg-muted/15 px-4 py-3"
-                >
-                  <ThemeAiHistory
-                    :entries="directionsHistory"
-                    :selected-id="getSelectedHistoryId(directionsHistory, directionsResult)"
-                    @select="directionsResult = selectHistoryResult(directionsHistory, $event)"
-                  />
-                </div>
-
-                <UCard
-                  v-for="direction in directionsResult?.directions ?? []"
-                  :key="direction.name"
-                  variant="outline"
-                  class="rounded-2xl shadow-none"
-                >
-                  <template #header>
-                    <div class="flex items-start justify-between gap-3">
-                      <div>
-                        <p class="text-base font-semibold text-highlighted">
-                          {{ direction.name }}
-                        </p>
-                        <p class="mt-1 text-sm text-muted">
-                          {{ direction.rationale }}
-                        </p>
-                      </div>
-
-                      <UButton
-                        color="primary"
-                        variant="soft"
-                        size="sm"
-                        @click="applyPaletteSuggestion(direction.palette, `Applied the ${direction.name} direction to the current draft.`)"
-                      >
-                        Apply
-                      </UButton>
-                    </div>
-                  </template>
-
-                  <div class="grid gap-2 sm:grid-cols-2">
-                    <div
-                      v-for="mode in ['light', 'dark']"
-                      :key="mode"
-                      class="rounded-xl border border-default/60 px-3 py-3"
-                    >
-                      <p class="text-xs uppercase tracking-[0.18em] text-muted">
-                        {{ mode }}
-                      </p>
-                      <div class="mt-3 flex flex-wrap gap-2">
-                        <div
-                          v-for="token in ['primary', 'secondary', 'success', 'warning', 'error']"
-                          :key="token"
-                          class="space-y-1"
-                        >
-                          <div
-                            class="h-8 w-8 rounded-full border border-black/10"
-                            :style="{ backgroundColor: direction.palette.modes[mode as 'light' | 'dark']?.color?.[token] ?? 'transparent' }"
-                          />
-                          <p class="text-[10px] uppercase tracking-[0.14em] text-muted">
-                            {{ token }}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <ThemeAiComparison
-                    v-if="props.palette"
-                    :from-palette="clonePaletteDefinition(props.palette)"
-                    :to-palette="direction.palette"
-                    :title="`${direction.name} diff`"
-                  />
-
-                  <ThemeAiLivePreview
-                    :palette="direction.palette"
-                    :title="`${direction.name} preview`"
-                  />
-                </UCard>
-
-                <div
-                  v-if="!directionsResult"
-                  class="rounded-2xl border border-dashed border-default/70 px-4 py-10 text-center text-sm text-muted"
-                >
-                  Generate directions to compare alternate takes on the current palette.
-                </div>
-              </div>
-            </div>
+            <ThemeAiDirectionsTab
+              :palette="props.palette"
+              :prompt="directionsPrompt"
+              :count="directionsCount"
+              :is-disabled="isDisabled"
+              :is-loading="isDirectionsLoading"
+              :result="directionsResult"
+              :history="directionsHistory"
+              @update:prompt="directionsPrompt = $event"
+              @update:count="directionsCount = $event"
+              @reset="directionsPrompt = ''; directionsCount = 3; clearDirectionsResult()"
+              @generate="handleDirections()"
+              @select-history="directionsResult = selectHistoryResult(directionsHistory, $event)"
+              @apply-direction="applyPaletteSuggestion($event.palette, `Applied the ${$event.name} direction to the current draft.`)"
+            />
           </template>
         </UTabs>
       </div>
