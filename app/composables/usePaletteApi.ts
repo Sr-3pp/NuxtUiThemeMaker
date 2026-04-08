@@ -57,6 +57,17 @@ export function usePaletteApi() {
     await refreshNuxtData('user-palettes')
   }
 
+  const forkPalette = async (id: string) => {
+    const forkedPalette = await $fetch<StoredPalette>(`/api/palettes/${id}/fork`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+
+    await refreshNuxtData('user-palettes')
+
+    return forkedPalette
+  }
+
   const updatePaletteVisibility = async (id: string, isPublic: boolean) => {
     const payload: UpdatePaletteVisibilityPayload = { isPublic }
 
@@ -115,6 +126,7 @@ export function usePaletteApi() {
 
   return {
     deletePalette,
+    forkPalette,
     getPaletteGenerationAccess,
     getPaletteHistory,
     getPublicPalettes,

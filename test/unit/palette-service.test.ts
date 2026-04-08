@@ -148,6 +148,7 @@ describe('palette service', () => {
       lifecycleStatus: 'draft',
       version: 1,
       publishedAt: null,
+      forkedFrom: null,
     }))
     expect(createPaletteVersionMock).toHaveBeenCalledWith(expect.objectContaining({
       paletteId: 'palette-id',
@@ -199,6 +200,90 @@ describe('palette service', () => {
       lifecycleStatus: 'published',
       isPublic: true,
     }))
+  })
+
+  it('forks a public palette into a private draft with provenance metadata', async () => {
+    findPaletteByIdMock.mockResolvedValueOnce({
+      _id: { toHexString: () => 'source-palette-id' },
+      userId: 'user-2',
+      slug: 'forest-glow',
+      name: 'Forest Glow',
+      palette: { name: 'Forest Glow', modes: { light: {}, dark: {} } },
+      isPublic: true,
+      lifecycleStatus: 'published',
+      version: 3,
+      publishedAt: new Date('2026-03-09T10:00:00.000Z'),
+      forkedFrom: null,
+      createdAt: new Date('2026-03-09T10:00:00.000Z'),
+      updatedAt: new Date('2026-03-10T10:00:00.000Z'),
+    })
+    countPalettesByUserIdMock.mockResolvedValueOnce(0)
+    generateUniquePaletteSlugMock.mockResolvedValueOnce('forest-glow-fork')
+    normalizePaletteForStorageMock.mockImplementationOnce((name, palette) => ({ ...palette, name }))
+    createPaletteMock.mockResolvedValueOnce({
+      _id: 'fork-palette-id',
+      userId: 'user-1',
+      slug: 'forest-glow-fork',
+      name: 'Forest Glow Fork',
+      palette: { name: 'Forest Glow Fork', modes: { light: {}, dark: {} } },
+      isPublic: false,
+      lifecycleStatus: 'draft',
+      version: 1,
+      publishedAt: null,
+      forkedFrom: {
+        paletteId: 'source-palette-id',
+        userId: 'user-2',
+        slug: 'forest-glow',
+        name: 'Forest Glow',
+        version: 3,
+      },
+      createdAt: new Date('2026-03-15T12:00:00.000Z'),
+      updatedAt: new Date('2026-03-15T12:00:00.000Z'),
+    })
+    toStoredPaletteMock.mockReturnValueOnce({
+      _id: 'fork-palette-id',
+      forkedFrom: {
+        paletteId: 'source-palette-id',
+        userId: 'user-2',
+        slug: 'forest-glow',
+        name: 'Forest Glow',
+        version: 3,
+      },
+    })
+
+    const { forkPaletteForUser } = await import('../../server/services/palette-service')
+
+    const result = await forkPaletteForUser('69af8b6940280b9bc83c3c07', {
+      id: 'user-1',
+      plan: 'pro',
+    })
+
+    expect(createPaletteMock).toHaveBeenCalledWith(expect.objectContaining({
+      name: 'Forest Glow Fork',
+      isPublic: false,
+      forkedFrom: {
+        paletteId: 'source-palette-id',
+        userId: 'user-2',
+        slug: 'forest-glow',
+        name: 'Forest Glow',
+        version: 3,
+      },
+    }))
+    expect(createPaletteVersionMock).toHaveBeenCalledWith(expect.objectContaining({
+      event: 'created',
+      isPublic: false,
+      lifecycleStatus: 'draft',
+    }))
+    expect(result).toEqual({
+      _id: 'fork-palette-id',
+      forkedFrom: {
+        paletteId: 'source-palette-id',
+        userId: 'user-2',
+        slug: 'forest-glow',
+        name: 'Forest Glow',
+        version: 3,
+      },
+    })
   })
 
   it('updates a palette and increments version history', async () => {

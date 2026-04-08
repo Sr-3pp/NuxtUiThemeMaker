@@ -5,6 +5,12 @@ import { buildPaletteDescription, buildPaletteJsonLd } from '~/utils/seo'
 const route = useRoute()
 const slug = computed(() => String(route.params.slug))
 const requestHeaders = import.meta.server ? useRequestHeaders(['cookie']) : undefined
+const toast = useToast()
+const { forkPalette } = usePaletteApi()
+const { isAuthenticated, normalizeRedirectTarget, user } = useAuth()
+const { setCurrentPalette } = usePaletteState()
+const { showErrorToast } = useErrorToast()
+const isForking = ref(false)
 
 const { data: palette, error } = await useAsyncData(
   () => `palette-${slug.value}`,
@@ -21,7 +27,39 @@ if (error.value) {
 }
 
 const paletteValue = computed(() => palette.value)
+const isOwner = computed(() => Boolean(user.value && paletteValue.value && user.value.id === paletteValue.value.userId))
 const siteConfig = useRuntimeConfig()
+
+async function handleFork() {
+  if (!paletteValue.value) {
+    return
+  }
+
+  if (!isAuthenticated.value) {
+    const redirect = normalizeRedirectTarget(route.fullPath, '/')
+    await navigateTo(`/login?redirect=${encodeURIComponent(redirect)}`)
+    return
+  }
+
+  isForking.value = true
+
+  try {
+    const forkedPalette = await forkPalette(paletteValue.value._id)
+
+    setCurrentPalette(forkedPalette)
+    toast.add({
+      title: 'Palette forked',
+      description: `${forkedPalette.name} was added to your library.`,
+      color: 'success',
+    })
+
+    await navigateTo('/')
+  } catch (error) {
+    showErrorToast(error, 'Failed to fork palette.')
+  } finally {
+    isForking.value = false
+  }
+}
 
 usePageSeo({
   title: computed(() => paletteValue.value?.name ? `${paletteValue.value.name} Palette` : 'Shared Palette').value,
@@ -65,7 +103,23 @@ usePageSeo({
           <UBadge :color="palette?.isPublic ? 'primary' : 'neutral'" variant="soft">
             {{ palette?.isPublic ? 'Public' : 'Private owner view' }}
           </UBadge>
+          <UBadge
+            v-if="palette?.forkedFrom"
+            color="neutral"
+            variant="outline"
+          >
+            Fork of {{ palette.forkedFrom.name }}
+          </UBadge>
           <UColorModeSwitch />
+          <UButton
+            v-if="palette && !isOwner"
+            color="primary"
+            icon="i-lucide-git-fork"
+            :loading="isForking"
+            @click="handleFork"
+          >
+            Fork to my library
+          </UButton>
           <UButton to="/" color="neutral" variant="outline">
             Open Builder
           </UButton>

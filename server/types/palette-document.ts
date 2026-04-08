@@ -1,5 +1,6 @@
 import type { ObjectId } from 'mongodb'
 import type { PaletteDefinition } from '~/types/palette'
+import type { PaletteForkSource } from '~/types/palette-store'
 import type { PaletteLifecycleStatus } from '~/types/palette-version'
 
 export interface PaletteDocument {
@@ -12,6 +13,7 @@ export interface PaletteDocument {
   lifecycleStatus: PaletteLifecycleStatus
   version: number
   publishedAt: Date | null
+  forkedFrom: PaletteForkSource | null
   createdAt: Date
   updatedAt: Date
 }

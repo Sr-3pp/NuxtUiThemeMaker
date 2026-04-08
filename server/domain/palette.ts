@@ -20,6 +20,7 @@ export function toStoredPalette(document: PaletteDocument): StoredPalette {
     lifecycleStatus: document.lifecycleStatus ?? getPaletteLifecycleStatus(document.isPublic),
     version: document.version ?? 1,
     publishedAt: document.publishedAt?.toISOString() ?? null,
+    forkedFrom: document.forkedFrom ?? null,
     createdAt: document.createdAt.toISOString(),
     updatedAt: document.updatedAt.toISOString(),
   }

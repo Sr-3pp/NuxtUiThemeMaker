@@ -243,6 +243,10 @@ export function toEditablePalette(palette: PaletteDefinition | StoredPalette): E
       userId: palette.userId,
       slug: palette.slug,
       isPublic: palette.isPublic,
+      lifecycleStatus: palette.lifecycleStatus,
+      version: palette.version,
+      publishedAt: palette.publishedAt,
+      forkedFrom: palette.forkedFrom,
       createdAt: palette.createdAt,
       updatedAt: palette.updatedAt,
     }

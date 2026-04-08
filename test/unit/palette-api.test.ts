@@ -141,6 +141,22 @@ describe('usePaletteApi', () => {
     expect(result).toEqual({ _id: 'palette-1', isPublic: false })
   })
 
+  it('forks palettes into the user library and revalidates user palettes', async () => {
+    const { usePaletteApi } = await import('../../app/composables/usePaletteApi')
+    const api = usePaletteApi()
+
+    fetchMock.mockResolvedValueOnce({ _id: 'palette-2', forkedFrom: { paletteId: 'palette-1' } })
+
+    const result = await api.forkPalette('palette-1')
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/palettes/palette-1/fork', expect.objectContaining({
+      method: 'POST',
+      credentials: 'include',
+    }))
+    expect(refreshNuxtDataMock).toHaveBeenCalledWith('user-palettes')
+    expect(result).toEqual({ _id: 'palette-2', forkedFrom: { paletteId: 'palette-1' } })
+  })
+
   it('deletes palettes and exposes the expected fetch helpers', async () => {
     const { usePaletteApi } = await import('../../app/composables/usePaletteApi')
     const api = usePaletteApi()

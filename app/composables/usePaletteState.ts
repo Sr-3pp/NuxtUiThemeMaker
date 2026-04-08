@@ -44,6 +44,10 @@ export function usePaletteState() {
       userId: sourcePalette.value.userId,
       slug: sourcePalette.value.slug,
       isPublic: sourcePalette.value.isPublic,
+      lifecycleStatus: sourcePalette.value.lifecycleStatus,
+      version: sourcePalette.value.version,
+      publishedAt: sourcePalette.value.publishedAt,
+      forkedFrom: sourcePalette.value.forkedFrom,
       createdAt: sourcePalette.value.createdAt,
       updatedAt: sourcePalette.value.updatedAt,
     }

@@ -61,6 +61,14 @@ const versionLabel = computed(() => {
   return `v${storedPalette.value.version}`
 })
 
+const forkSourceLabel = computed(() => {
+  if (!storedPalette.value?.forkedFrom) {
+    return null
+  }
+
+  return `Forked from ${storedPalette.value.forkedFrom.name}`
+})
+
 const swatches = computed(() => {
   const lightColors = paletteDefinition.value.modes.light.color ?? {}
   const darkColors = paletteDefinition.value.modes.dark.color ?? {}
@@ -132,6 +140,9 @@ const swatches = computed(() => {
               ? 'Main palette colors at a glance.'
               : 'Blank palette ready to be filled.'
           }}
+        </p>
+        <p v-if="forkSourceLabel" class="text-xs text-muted">
+          {{ forkSourceLabel }}
         </p>
       </div>
 

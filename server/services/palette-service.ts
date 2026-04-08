@@ -1,7 +1,7 @@
 import { createError } from 'h3'
 import { getPaletteSaveLimit } from '../../app/data/pricing'
 import type { PaletteDefinition } from '~/types/palette'
-import type { StoredPalette } from '~/types/palette-store'
+import type { PaletteForkSource, StoredPalette } from '~/types/palette-store'
 import type { PaletteVersionEvent } from '~/types/palette-version'
 import type { PaletteUser } from '~~/server/types/palette-service'
 import {
@@ -75,6 +75,7 @@ export async function createPaletteForUser(
     name: string
     palette: PaletteDefinition
     isPublic?: boolean
+    forkedFrom?: PaletteForkSource | null
   }
 ): Promise<StoredPalette> {
   const name = input.name.trim()
@@ -96,6 +97,7 @@ export async function createPaletteForUser(
   const palette = normalizePaletteForStorage(name, input.palette)
   const isPublic = input.isPublic ?? false
   const lifecycleStatus = getPaletteLifecycleStatus(isPublic)
+  const forkedFrom = input.forkedFrom ?? null
 
   if (isPublic) {
     assertPalettePublishReady(palette)
@@ -110,6 +112,7 @@ export async function createPaletteForUser(
     lifecycleStatus,
     version: 1,
     publishedAt: lifecycleStatus === 'published' ? now : null,
+    forkedFrom,
     createdAt: now,
     updatedAt: now,
   })
@@ -243,8 +246,49 @@ export async function deletePaletteForUser(id: string, userId: string) {
   await deletePaletteById(existing._id)
 }
 
+export async function forkPaletteForUser(
+  id: string,
+  user: PaletteUser,
+): Promise<StoredPalette> {
+  const source = await getOwnedOrPublicPaletteByIdOrThrow(id, user.id)
+
+  return createPaletteForUser(user, {
+    name: `${source.name} Fork`,
+    palette: source.palette,
+    isPublic: false,
+    forkedFrom: {
+      paletteId: source._id.toHexString(),
+      userId: source.userId,
+      slug: source.slug,
+      name: source.name,
+      version: source.version ?? 1,
+    },
+  })
+}
+
 export async function listPaletteHistoryForUser(id: string, userId: string) {
   const existing = await getOwnedPaletteByIdOrThrow(id, userId)
 
   return listPaletteVersionsByPaletteId(existing._id)
+}
+
+async function getOwnedOrPublicPaletteByIdOrThrow(id: string, userId: string) {
+  const objectId = parsePaletteObjectId(id)
+  const existing = await findPaletteById(objectId)
+
+  if (!existing) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: 'Palette not found',
+    })
+  }
+
+  if (!existing.isPublic && existing.userId !== userId) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: 'Palette not found',
+    })
+  }
+
+  return existing
 }
