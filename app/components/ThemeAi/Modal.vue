@@ -707,263 +707,47 @@ function applyVariantSuggestion() {
           </template>
 
           <template #ramps>
-            <div class="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-              <UCard variant="outline" class="rounded-2xl shadow-none">
-                <template #header>
-                  <ThemeAiSectionHeader
-                    title="Brand color ramps"
-                    description="Generate full scales from one or more brand anchors and sync their `500` values into semantic colors."
-                    :action-label="rampsResult || rampBrandColors.length || rampInput || rampsPrompt ? 'Clear' : undefined"
-                    @action="rampBrandColors = []; rampInput = ''; rampsPrompt = ''; clearRampsResult()"
-                  />
-                </template>
-
-                <div class="space-y-4">
-                  <UInput
-                    v-model="rampInput"
-                    placeholder="#0ea5e9"
-                    @keydown.enter.prevent="addRampBrandColor()"
-                  >
-                    <template #trailing>
-                      <UButton
-                        color="primary"
-                        variant="link"
-                        class="px-0"
-                        :disabled="!rampInput.trim()"
-                        @click="addRampBrandColor()"
-                      >
-                        Add
-                      </UButton>
-                    </template>
-                  </UInput>
-
-                  <p class="text-xs text-muted">
-                    Add one or more hex colors. Invalid and duplicate anchors are blocked before generation.
-                  </p>
-
-                  <div class="flex flex-wrap gap-2">
-                    <UBadge
-                      v-for="color in rampBrandColors"
-                      :key="color"
-                      color="neutral"
-                      variant="soft"
-                      class="gap-2"
-                    >
-                      <span class="h-3 w-3 rounded-full border border-black/10" :style="{ backgroundColor: color }" />
-                      {{ color }}
-                      <button type="button" class="leading-none" @click="removeRampBrandColor(color)">x</button>
-                    </UBadge>
-                  </div>
-
-                  <UTextarea
-                    v-model="rampsPrompt"
-                    :rows="4"
-                    class="w-full"
-                    placeholder="Example: Keep the ramps crisp and technical, with lighter steps that work well for data-heavy surfaces."
-                  />
-
-                  <UButton
-                    block
-                    color="primary"
-                    icon="i-lucide-pipette"
-                    :disabled="!canGenerateRamps"
-                    :loading="isRampsLoading"
-                    @click="handleRamps()"
-                  >
-                    Generate ramps
-                  </UButton>
-                </div>
-              </UCard>
-
-              <UCard variant="outline" class="rounded-2xl shadow-none">
-                <template #header>
-                  <ThemeAiSectionHeader
-                    title="Ramp preview"
-                    description="Review the generated scales before applying them to the current draft."
-                    :action-label="rampsResult ? 'Clear result' : undefined"
-                    @action="clearRampsResult()"
-                  />
-                </template>
-
-                <div
-                  v-if="rampsResult"
-                  class="space-y-4"
-                >
-                  <ThemeAiHistory
-                    :entries="rampsHistory"
-                    :selected-id="getSelectedHistoryId(rampsHistory, rampsResult)"
-                    @select="rampsResult = selectHistoryResult(rampsHistory, $event)"
-                  />
-
-                  <div
-                    v-for="(scale, colorKey) in rampsResult.ramps"
-                    :key="colorKey"
-                    class="space-y-2"
-                  >
-                    <p class="text-sm font-medium text-highlighted">
-                      {{ colorKey }}
-                    </p>
-
-                    <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-6">
-                      <div
-                        v-for="(value, step) in scale"
-                        :key="`${colorKey}-${step}`"
-                        class="rounded-xl border border-default/60 p-2"
-                      >
-                        <div class="h-10 rounded-lg border border-black/10" :style="{ backgroundColor: value ?? 'transparent' }" />
-                        <p class="mt-2 text-xs font-medium text-highlighted">{{ step }}</p>
-                        <p class="text-[11px] text-muted">{{ value }}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <ThemeAiComparison
-                    v-if="props.palette && rampPreviewPalette"
-                    :from-palette="clonePaletteDefinition(props.palette)"
-                    :to-palette="rampPreviewPalette"
-                    title="Ramp diff"
-                  />
-
-                  <ThemeAiLivePreview
-                    v-if="rampPreviewPalette"
-                    :palette="rampPreviewPalette"
-                    title="Ramp preview"
-                  />
-
-                  <UButton
-                    block
-                    color="primary"
-                    icon="i-lucide-check"
-                    @click="applyRampSuggestion()"
-                  >
-                    Apply ramps
-                  </UButton>
-                </div>
-
-                <div
-                  v-else
-                  class="rounded-2xl border border-dashed border-default/70 px-4 py-10 text-center text-sm text-muted"
-                >
-                  Add one or more brand colors to generate full ramps.
-                </div>
-              </UCard>
-            </div>
+            <ThemeAiRampsTab
+              :palette="props.palette"
+              :prompt="rampsPrompt"
+              :brand-colors="rampBrandColors"
+              :brand-input="rampInput"
+              :can-generate="canGenerateRamps"
+              :is-loading="isRampsLoading"
+              :result="rampsResult"
+              :history="rampsHistory"
+              :preview-palette="rampPreviewPalette"
+              @update:prompt="rampsPrompt = $event"
+              @update:brand-input="rampInput = $event"
+              @add-brand-color="addRampBrandColor()"
+              @remove-brand-color="removeRampBrandColor($event)"
+              @clear="rampBrandColors = []; rampInput = ''; rampsPrompt = ''; clearRampsResult()"
+              @generate="handleRamps()"
+              @clear-result="clearRampsResult()"
+              @select-history="rampsResult = selectHistoryResult(rampsHistory, $event)"
+              @apply="applyRampSuggestion()"
+            />
           </template>
 
           <template #variants>
-            <div class="grid gap-4 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
-              <UCard variant="outline" class="rounded-2xl shadow-none">
-                <template #header>
-                  <ThemeAiSectionHeader
-                    title="Variant brief"
-                    description="Generate component-level styling from a mood, product, or brand prompt."
-                    :action-label="variantsResult || variantsPrompt || selectedVariantComponents.length !== 3 ? 'Reset' : undefined"
-                    @action="selectedVariantComponents = ['button', 'input', 'card']; variantsPrompt = ''; clearVariantsResult()"
-                  />
-                </template>
-
-                <div class="space-y-4">
-                  <USelectMenu
-                    v-model="selectedVariantComponents"
-                    :items="componentOptions"
-                    multiple
-                    value-key="value"
-                    placeholder="Choose components"
-                  />
-
-                  <UTextarea
-                    v-model="variantsPrompt"
-                    :rows="6"
-                    class="w-full"
-                    placeholder="Example: Give buttons and inputs a sharper B2B feel with quieter cards and stronger table hierarchy."
-                  />
-
-                  <UButton
-                    block
-                    color="primary"
-                    icon="i-lucide-panels-top-left"
-                    :disabled="!canGenerateVariants"
-                    :loading="isVariantsLoading"
-                    @click="handleVariants()"
-                  >
-                    Generate variants
-                  </UButton>
-                </div>
-              </UCard>
-
-              <UCard variant="outline" class="rounded-2xl shadow-none">
-                <template #header>
-                  <ThemeAiSectionHeader
-                    title="Generated component layer"
-                    description="Apply the generated overrides as a merge on top of the current component theme schema."
-                    :action-label="variantsResult ? 'Clear result' : undefined"
-                    @action="clearVariantsResult()"
-                  />
-                </template>
-
-                <div
-                  v-if="variantsResult"
-                  class="space-y-4"
-                >
-                  <ThemeAiHistory
-                    :entries="variantsHistory"
-                    :selected-id="getSelectedHistoryId(variantsHistory, variantsResult)"
-                    @select="variantsResult = selectHistoryResult(variantsHistory, $event)"
-                  />
-
-                  <div class="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
-                    <p class="text-sm font-medium text-highlighted">
-                      {{ variantsResult.summary }}
-                    </p>
-                  </div>
-
-                  <div
-                    v-for="(theme, componentKey) in variantsResult.components"
-                    :key="componentKey"
-                    class="rounded-xl border border-default/60 bg-muted/15 px-3 py-3"
-                  >
-                    <div class="flex flex-wrap items-center gap-2">
-                      <UBadge color="primary" variant="soft">
-                        {{ componentKey }}
-                      </UBadge>
-                      <UBadge v-if="theme.base" color="neutral" variant="outline">base</UBadge>
-                      <UBadge v-if="theme.slots" color="neutral" variant="outline">slots</UBadge>
-                      <UBadge v-if="theme.variants" color="neutral" variant="outline">variants</UBadge>
-                      <UBadge v-if="theme.states" color="neutral" variant="outline">states</UBadge>
-                    </div>
-                  </div>
-
-                  <ThemeAiComparison
-                    v-if="props.palette && variantPreviewPalette"
-                    :from-palette="clonePaletteDefinition(props.palette)"
-                    :to-palette="variantPreviewPalette"
-                    title="Variant diff"
-                  />
-
-                  <ThemeAiLivePreview
-                    v-if="variantPreviewPalette"
-                    :palette="variantPreviewPalette"
-                    title="Variant preview"
-                  />
-
-                  <UButton
-                    block
-                    color="primary"
-                    icon="i-lucide-check"
-                    @click="applyVariantSuggestion()"
-                  >
-                    Apply component variants
-                  </UButton>
-                </div>
-
-                <div
-                  v-else
-                  class="rounded-2xl border border-dashed border-default/70 px-4 py-10 text-center text-sm text-muted"
-                >
-                  Generate a component layer to preview and merge into the current draft.
-                </div>
-              </UCard>
-            </div>
+            <ThemeAiVariantsTab
+              :palette="props.palette"
+              :prompt="variantsPrompt"
+              :selected-components="selectedVariantComponents"
+              :component-options="componentOptions"
+              :can-generate="canGenerateVariants"
+              :is-loading="isVariantsLoading"
+              :result="variantsResult"
+              :history="variantsHistory"
+              :preview-palette="variantPreviewPalette"
+              @update:prompt="variantsPrompt = $event"
+              @update:selected-components="selectedVariantComponents = $event"
+              @reset="selectedVariantComponents = ['button', 'input', 'card']; variantsPrompt = ''; clearVariantsResult()"
+              @generate="handleVariants()"
+              @clear-result="clearVariantsResult()"
+              @select-history="variantsResult = selectHistoryResult(variantsHistory, $event)"
+              @apply="applyVariantSuggestion()"
+            />
           </template>
 
           <template #directions>
