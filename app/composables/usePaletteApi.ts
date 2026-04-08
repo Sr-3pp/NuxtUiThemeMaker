@@ -1,7 +1,18 @@
 import type { EditablePalette } from '~/types/palette-editor'
 import type { CreatePaletteReviewPayload, PaletteReview, PaletteReviewThread } from '~/types/palette-review'
 import type { SharePalettePayload, StoredPalette, UpdatePalettePayload, UpdatePaletteVisibilityPayload } from '~/types/palette-store'
-import type { PaletteGenerationAccess } from '~/types/palette-generation'
+import type {
+  PaletteAuditGeneratePayload,
+  PaletteAuditGenerateResult,
+  PaletteDirectionsGeneratePayload,
+  PaletteDirectionsGenerateResult,
+  PaletteGeneratePayload,
+  PaletteGenerationAccess,
+  PaletteRampGeneratePayload,
+  PaletteRampGenerateResult,
+  PaletteVariantGeneratePayload,
+  PaletteVariantGenerateResult,
+} from '~/types/palette-generation'
 import type { PaletteVersionSnapshot } from '~/types/palette-version'
 import { FREE_PLAN_PALETTE_GENERATION_LIMIT } from '../data/pricing'
 import { clonePaletteDefinition } from '../utils/palette-domain'
@@ -150,16 +161,64 @@ export function usePaletteApi() {
     } satisfies PaletteGenerationAccess),
   })
 
-  const generatePalette = async (prompt: string) => {
+  const generatePalette = async (payload: string | PaletteGeneratePayload) => {
     const generatedPalette = await $fetch<EditablePalette>('/api/palettes/generate', {
       method: 'POST',
       credentials: 'include',
-      body: { prompt },
+      body: typeof payload === 'string' ? { prompt: payload } : payload,
     })
 
     await refreshNuxtData('palette-generation-access')
 
     return generatedPalette
+  }
+
+  const generatePaletteRamps = async (payload: PaletteRampGeneratePayload) => {
+    const result = await $fetch<PaletteRampGenerateResult>('/api/palettes/generate/ramp', {
+      method: 'POST',
+      credentials: 'include',
+      body: payload,
+    })
+
+    await refreshNuxtData('palette-generation-access')
+
+    return result
+  }
+
+  const generatePaletteVariants = async (payload: PaletteVariantGeneratePayload) => {
+    const result = await $fetch<PaletteVariantGenerateResult>('/api/palettes/generate/variants', {
+      method: 'POST',
+      credentials: 'include',
+      body: payload,
+    })
+
+    await refreshNuxtData('palette-generation-access')
+
+    return result
+  }
+
+  const generatePaletteAudit = async (payload: PaletteAuditGeneratePayload) => {
+    const result = await $fetch<PaletteAuditGenerateResult>('/api/palettes/generate/audit', {
+      method: 'POST',
+      credentials: 'include',
+      body: payload,
+    })
+
+    await refreshNuxtData('palette-generation-access')
+
+    return result
+  }
+
+  const generatePaletteDirections = async (payload: PaletteDirectionsGeneratePayload) => {
+    const result = await $fetch<PaletteDirectionsGenerateResult>('/api/palettes/generate/directions', {
+      method: 'POST',
+      credentials: 'include',
+      body: payload,
+    })
+
+    await refreshNuxtData('palette-generation-access')
+
+    return result
   }
 
   return {
@@ -177,5 +236,9 @@ export function usePaletteApi() {
     unsharePalette,
     updatePaletteVisibility,
     generatePalette,
+    generatePaletteRamps,
+    generatePaletteVariants,
+    generatePaletteAudit,
+    generatePaletteDirections,
   }
 }
