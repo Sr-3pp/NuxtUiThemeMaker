@@ -21,10 +21,15 @@ import {
   restorePaletteAiSession,
 } from '~/utils/palette-ai-session'
 import { getComponentThemeEditorDefinitions } from '~/utils/component-theme-editor'
+import {
+  getSelectedThemeAiHistoryId,
+  pushThemeAiResultHistory,
+  selectThemeAiHistoryResult,
+  summarizeThemeAiPrompt,
+} from '~/utils/theme-ai-modal-history'
 
 const MAX_REFERENCE_IMAGE_BYTES = 5 * 1024 * 1024
 const SUPPORTED_REFERENCE_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'] as const
-const MAX_RESULT_HISTORY = 4
 
 export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette | null>) {
   const toast = useToast()
@@ -183,30 +188,18 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     return color
   }
 
-  function summarizePrompt(value: string | undefined, fallback: string) {
-    const normalized = value?.trim()
-
-    if (!normalized) {
-      return fallback
-    }
-
-    return normalized.length > 48
-      ? `${normalized.slice(0, 48).trimEnd()}...`
-      : normalized
-  }
-
   function selectHistoryResult<T>(
     history: PaletteAiResultHistoryEntry<T>[],
     id: number,
   ) {
-    return history.find(entry => entry.id === id)?.result ?? null
+    return selectThemeAiHistoryResult(history, id)
   }
 
   function getSelectedHistoryId<T>(
     history: PaletteAiResultHistoryEntry<T>[],
     result: T | null,
   ) {
-    return history.find(entry => entry.result === result)?.id ?? null
+    return getSelectedThemeAiHistoryId(history, result)
   }
 
   function addBrandColor(target: Ref<string[]>, input: Ref<string>, label: string) {
@@ -252,27 +245,6 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     variantsHistory.value = []
   }
 
-  function pushResultHistory<T>(
-    history: Ref<PaletteAiResultHistoryEntry<T>[]>,
-    result: T,
-    label: string,
-    detail?: string,
-  ) {
-    historyId.value += 1
-    const nextDetail = detail?.trim() || undefined
-
-    history.value = [
-      {
-        id: historyId.value,
-        label,
-        createdAt: new Date().toISOString(),
-        detail: nextDetail,
-        result,
-      },
-      ...history.value.filter(entry => entry.label !== label || (entry.detail?.trim() || undefined) !== nextDetail),
-    ].slice(0, MAX_RESULT_HISTORY)
-  }
-
   watch([
     paletteSessionKey,
     starterHistory,
@@ -302,7 +274,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
         prompt: auditPrompt.value.trim() || undefined,
       })
       auditResult.value = result
-      pushResultHistory(auditHistory, result, result.summary, summarizePrompt(auditPrompt.value, 'Default repair brief'))
+      pushThemeAiResultHistory(auditHistory, historyId, result, result.summary, summarizeThemeAiPrompt(auditPrompt.value, 'Default repair brief'))
     } catch (error) {
       showErrorToast(error, 'Failed to generate an AI repair pass.')
       await access.refresh()
@@ -386,7 +358,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
           : undefined,
       })
       starterResult.value = result
-      pushResultHistory(starterHistory, result, result.name, summarizePrompt(starterPrompt.value, 'Starter theme'))
+      pushThemeAiResultHistory(starterHistory, historyId, result, result.name, summarizeThemeAiPrompt(starterPrompt.value, 'Starter theme'))
     } catch (error) {
       showErrorToast(error, 'Failed to generate a starter theme.')
       await access.refresh()
@@ -409,11 +381,12 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
         count: directionsCount.value,
       })
       directionsResult.value = result
-      pushResultHistory(
+      pushThemeAiResultHistory(
         directionsHistory,
+        historyId,
         result,
         `${result.directions.length} direction${result.directions.length === 1 ? '' : 's'}`,
-        summarizePrompt(directionsPrompt.value, `${directionsCount.value} option request`),
+        summarizeThemeAiPrompt(directionsPrompt.value, `${directionsCount.value} option request`),
       )
     } catch (error) {
       showErrorToast(error, 'Failed to generate alternative directions.')
@@ -445,8 +418,9 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
         prompt: rampsPrompt.value.trim() || undefined,
       })
       rampsResult.value = result
-      pushResultHistory(
+      pushThemeAiResultHistory(
         rampsHistory,
+        historyId,
         result,
         `${Object.keys(result.ramps).length} ramp${Object.keys(result.ramps).length === 1 ? '' : 's'}`,
         `${rampBrandColors.value.slice(0, 2).join(', ')}${rampBrandColors.value.length > 2 ? ' +' : ''}`,
@@ -473,8 +447,9 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
         componentKeys: selectedVariantComponents.value,
       })
       variantsResult.value = result
-      pushResultHistory(
+      pushThemeAiResultHistory(
         variantsHistory,
+        historyId,
         result,
         result.summary,
         selectedVariantComponents.value.slice(0, 3).join(', '),

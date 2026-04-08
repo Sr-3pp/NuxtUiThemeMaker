@@ -24,6 +24,12 @@ vi.mock('~/utils/component-theme-editor', async () => {
   return actual
 })
 
+vi.mock('~/utils/theme-ai-modal-history', async () => {
+  const actual = await vi.importActual<typeof import('../../app/utils/theme-ai-modal-history')>('../../app/utils/theme-ai-modal-history')
+
+  return actual
+})
+
 function createEditablePalette(): EditablePalette {
   return {
     _id: 'palette-1',
