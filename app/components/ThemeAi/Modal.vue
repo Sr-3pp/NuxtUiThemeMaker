@@ -510,6 +510,11 @@ function applyVariantSuggestion() {
                     title="Starter theme diff"
                   />
 
+                  <ThemeAiLivePreview
+                    :palette="starterResult"
+                    title="Starter theme preview"
+                  />
+
                   <UButton
                     block
                     color="primary"
@@ -738,6 +743,12 @@ function applyVariantSuggestion() {
                     title="Ramp diff"
                   />
 
+                  <ThemeAiLivePreview
+                    v-if="rampPreviewPalette"
+                    :palette="rampPreviewPalette"
+                    title="Ramp preview"
+                  />
+
                   <UButton
                     block
                     color="primary"
@@ -844,6 +855,12 @@ function applyVariantSuggestion() {
                     :from-palette="clonePaletteDefinition(props.palette)"
                     :to-palette="variantPreviewPalette"
                     title="Variant diff"
+                  />
+
+                  <ThemeAiLivePreview
+                    v-if="variantPreviewPalette"
+                    :palette="variantPreviewPalette"
+                    title="Variant preview"
                   />
 
                   <UButton
@@ -980,6 +997,11 @@ function applyVariantSuggestion() {
                     :from-palette="clonePaletteDefinition(props.palette)"
                     :to-palette="direction.palette"
                     :title="`${direction.name} diff`"
+                  />
+
+                  <ThemeAiLivePreview
+                    :palette="direction.palette"
+                    :title="`${direction.name} preview`"
                   />
                 </UCard>
 
