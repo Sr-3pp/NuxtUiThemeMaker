@@ -100,6 +100,8 @@ const handlePaletteNameInput = (event: Event) => {
           />
         </UFormField>
 
+        <ThemeQaPanel :palette="currentPalette" />
+
         <EditorContent
           :palette="currentPalette"
           :sourcePalette="sourcePalette ?? currentPalette"

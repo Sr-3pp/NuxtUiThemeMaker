@@ -1,34 +1,19 @@
 <script setup lang="ts">
 import type {
-  AlertVariant,
-  BadgeVariant,
+  AlertStateSample,
+  BadgeStateSample,
+  ButtonStateRow,
+  ButtonStateSample,
   ButtonColor,
   ButtonVariant,
+  FieldStateSample,
   PreviewInteractiveProps,
 } from '~/types/theme-preview'
 import { getPreviewButtonStyle, getPreviewInputStyle } from '~/utils/preview-overrides'
 
 const props = defineProps<PreviewInteractiveProps>()
 
-interface ButtonStateSample {
-  label: string
-  tone: ButtonColor
-  disabled?: boolean
-}
-
-interface FieldStateSample {
-  label: string
-  hint: string
-  color: ButtonColor
-  variant: 'outline'
-  value: string
-  placeholder: string
-  highlight?: boolean
-  focused?: boolean
-  disabled?: boolean
-}
-
-const buttonRows: Array<{ color: ButtonColor, variant: ButtonVariant }> = [
+const buttonRows: ButtonStateRow[] = [
   { color: 'primary', variant: 'solid' },
   { color: 'secondary', variant: 'outline' },
   { color: 'success', variant: 'soft' },
@@ -80,14 +65,14 @@ const fieldStates: FieldStateSample[] = [
   },
 ]
 
-const badgeStates: Array<{ label: string, color: ButtonColor, variant: BadgeVariant }> = [
+const badgeStates: BadgeStateSample[] = [
   { label: 'Info', color: 'info', variant: 'soft' },
   { label: 'Success', color: 'success', variant: 'solid' },
   { label: 'Warning', color: 'warning', variant: 'outline' },
   { label: 'Muted', color: 'neutral', variant: 'subtle' },
 ]
 
-const alertStates: Array<{ label: string, color: ButtonColor, variant: AlertVariant, description: string }> = [
+const alertStates: AlertStateSample[] = [
   {
     label: 'Info banner',
     color: 'info',

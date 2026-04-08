@@ -15,6 +15,42 @@ export type ButtonVariant = NonNullable<ButtonProps['variant']>
 export type BadgeVariant = NonNullable<BadgeProps['variant']>
 export type AlertVariant = NonNullable<AlertProps['variant']>
 export type CardVariant = NonNullable<CardProps['variant']>
+export interface ButtonStateSample {
+  label: string
+  tone: ButtonColor
+  disabled?: boolean
+}
+
+export interface FieldStateSample {
+  label: string
+  hint: string
+  color: ButtonColor
+  variant: 'outline'
+  value: string
+  placeholder: string
+  highlight?: boolean
+  focused?: boolean
+  disabled?: boolean
+}
+
+export interface ButtonStateRow {
+  color: ButtonColor
+  variant: ButtonVariant
+}
+
+export interface BadgeStateSample {
+  label: string
+  color: ButtonColor
+  variant: BadgeVariant
+}
+
+export interface AlertStateSample {
+  label: string
+  color: ButtonColor
+  variant: AlertVariant
+  description: string
+}
+
 export type PreviewTabValue = 'browser' | 'components' | 'forms' | 'surfaces' | 'typography'
 export type PreviewFrameMode = 'current' | 'light' | 'dark' | 'split'
 export type PreviewViewport = 'mobile' | 'tablet' | 'desktop' | 'full'

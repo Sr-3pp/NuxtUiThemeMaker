@@ -70,6 +70,8 @@ const previewViewportClass = computed(() => {
 
 <template>
   <div class="space-y-4">
+    <ThemeQaPanel :palette="props.palette" compact />
+
     <UCard variant="outline" class="rounded-2xl shadow-none dark:border-white/10 dark:bg-black/40">
       <template #header>
         <div class="space-y-1">
