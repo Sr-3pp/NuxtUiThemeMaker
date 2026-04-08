@@ -28,17 +28,59 @@ export interface ThemeAiModalSessionState {
   historyId: Ref<number>
 }
 
+const sessionTabs = ['starter', 'audit', 'directions', 'ramps', 'variants'] as const
+
+type ThemeAiSessionTab = typeof sessionTabs[number]
+type ThemeAiSessionRestoredKey = `${ThemeAiSessionTab}${'History' | 'Result'}`
+type ThemeAiSessionStateKey = `${ThemeAiSessionTab}${'History' | 'Result'}`
+
+function assignSessionTabState(
+  state: ThemeAiModalSessionState,
+  restoredSession: ReturnType<typeof restorePaletteAiSession>,
+  tab: ThemeAiSessionTab,
+) {
+  state[`${tab}History` as ThemeAiSessionStateKey].value = restoredSession[`${tab}History` as ThemeAiSessionRestoredKey]
+  state[`${tab}Result` as ThemeAiSessionStateKey].value = restoredSession[`${tab}Result` as ThemeAiSessionRestoredKey]
+}
+
+function clearSessionTabState(
+  state: ThemeAiModalSessionState,
+  tab: ThemeAiSessionTab,
+) {
+  state[`${tab}History` as ThemeAiSessionStateKey].value = []
+  state[`${tab}Result` as ThemeAiSessionStateKey].value = null
+}
+
+function buildPersistedSessionPayload(state: ThemeAiModalSessionState) {
+  return {
+    starterHistory: state.starterHistory.value,
+    starterResult: state.starterResult.value,
+    auditHistory: state.auditHistory.value,
+    auditResult: state.auditResult.value,
+    directionsHistory: state.directionsHistory.value,
+    directionsResult: state.directionsResult.value,
+    rampsHistory: state.rampsHistory.value,
+    rampsResult: state.rampsResult.value,
+    variantsHistory: state.variantsHistory.value,
+    variantsResult: state.variantsResult.value,
+  }
+}
+
+function getSessionPersistenceSources(
+  paletteSessionKey: ComputedRef<string | null>,
+  state: ThemeAiModalSessionState,
+) {
+  return [
+    paletteSessionKey,
+    ...sessionTabs.flatMap(tab => [
+      state[`${tab}History` as ThemeAiSessionStateKey],
+      state[`${tab}Result` as ThemeAiSessionStateKey],
+    ]),
+  ]
+}
+
 export function clearThemeAiModalSessionState(state: ThemeAiModalSessionState) {
-  state.auditResult.value = null
-  state.starterResult.value = null
-  state.directionsResult.value = null
-  state.rampsResult.value = null
-  state.variantsResult.value = null
-  state.starterHistory.value = []
-  state.auditHistory.value = []
-  state.directionsHistory.value = []
-  state.rampsHistory.value = []
-  state.variantsHistory.value = []
+  sessionTabs.forEach(tab => clearSessionTabState(state, tab))
 }
 
 export function restoreThemeAiModalSessionState(
@@ -53,16 +95,7 @@ export function restoreThemeAiModalSessionState(
 
   const restoredSession = restorePaletteAiSession(persistedSessions.value[sessionKey] ?? createEmptyPersistedAiSession())
 
-  state.starterHistory.value = restoredSession.starterHistory
-  state.auditHistory.value = restoredSession.auditHistory
-  state.directionsHistory.value = restoredSession.directionsHistory
-  state.rampsHistory.value = restoredSession.rampsHistory
-  state.variantsHistory.value = restoredSession.variantsHistory
-  state.starterResult.value = restoredSession.starterResult
-  state.auditResult.value = restoredSession.auditResult
-  state.directionsResult.value = restoredSession.directionsResult
-  state.rampsResult.value = restoredSession.rampsResult
-  state.variantsResult.value = restoredSession.variantsResult
+  sessionTabs.forEach(tab => assignSessionTabState(state, restoredSession, tab))
   state.historyId.value = restoredSession.historyId
 }
 
@@ -75,18 +108,7 @@ export function syncThemeAiModalPersistedSession(
     return
   }
 
-  persistedSessions.value[sessionKey] = buildPaletteAiPersistedSession({
-    starterHistory: state.starterHistory.value,
-    starterResult: state.starterResult.value,
-    auditHistory: state.auditHistory.value,
-    auditResult: state.auditResult.value,
-    directionsHistory: state.directionsHistory.value,
-    directionsResult: state.directionsResult.value,
-    rampsHistory: state.rampsHistory.value,
-    rampsResult: state.rampsResult.value,
-    variantsHistory: state.variantsHistory.value,
-    variantsResult: state.variantsResult.value,
-  })
+  persistedSessions.value[sessionKey] = buildPaletteAiPersistedSession(buildPersistedSessionPayload(state))
 }
 
 export function watchThemeAiModalSessionPersistence(
@@ -109,19 +131,7 @@ export function watchThemeAiModalSessionPersistence(
     restoreThemeAiModalSessionState(state, persistedSessions, paletteSessionKey.value)
   }, { immediate: true })
 
-  watch([
-    paletteSessionKey,
-    state.starterHistory,
-    state.auditHistory,
-    state.directionsHistory,
-    state.rampsHistory,
-    state.variantsHistory,
-    state.starterResult,
-    state.auditResult,
-    state.directionsResult,
-    state.rampsResult,
-    state.variantsResult,
-  ], () => {
+  watch(getSessionPersistenceSources(paletteSessionKey, state), () => {
     syncThemeAiModalPersistedSession(state, persistedSessions, paletteSessionKey.value)
   }, { deep: true })
 }

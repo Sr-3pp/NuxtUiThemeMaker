@@ -32,6 +32,35 @@ import {
 } from '~/utils/theme-ai-modal-session'
 import { runThemeAiModalAction } from '~/utils/theme-ai-modal-actions'
 
+const themeAiMessages = {
+  starter: {
+    generateError: 'Failed to generate the starter theme.',
+    applyDescription: 'Applied the generated starter theme to the current draft.',
+  },
+  audit: {
+    generateError: 'Failed to generate the audit repair.',
+    applyDescription: 'Applied the generated audit repair to the current draft.',
+  },
+  directions: {
+    generateError: 'Failed to generate theme directions.',
+    applyDescription: (name: string) => `Applied the ${name} direction to the current draft.`,
+  },
+  ramps: {
+    generateError: 'Failed to generate color ramps.',
+    applyTitle: 'Ramps updated',
+    applyDescription: (paletteName: string) => `Applied the generated ramps to ${paletteName}.`,
+  },
+  variants: {
+    defaultPrompt: 'Generate practical component variants for this palette.',
+    generateError: 'Failed to generate component variants.',
+    applyTitle: 'Variants updated',
+    applyDescription: 'Applied the generated component variants to the current draft.',
+  },
+  palette: {
+    applyTitle: 'Palette updated',
+  },
+} as const
+
 export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette | null>) {
   const toast = useToast()
   const { showErrorToast } = useErrorToast()
@@ -125,47 +154,45 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     })
   }
 
-  function selectHistoryResult<T>(
-    history: PaletteAiResultHistoryEntry<T>[],
-    id: number,
-  ) {
-    return selectThemeAiHistoryResult(history, id)
-  }
-
-  function getSelectedHistoryId<T>(
-    history: PaletteAiResultHistoryEntry<T>[],
-    result: T | null,
-  ) {
-    return getSelectedThemeAiHistoryId(history, result)
-  }
-
   function addBrandColor(target: Ref<string[]>, input: Ref<string>, label: string) {
     addThemeAiBrandColor(target, input, label, showValidationToast)
   }
 
+  function clearResult<T>(
+    result: Ref<T | null>,
+    history: Ref<PaletteAiResultHistoryEntry<T>[]>,
+  ) {
+    result.value = null
+    history.value = []
+  }
+
+  function closeWithSuccessToast(title: string, description: string) {
+    toast.add({
+      title,
+      description,
+      color: 'success',
+    })
+    open.value = false
+  }
+
   function clearStarterResult() {
-    starterResult.value = null
-    starterHistory.value = []
+    clearResult(starterResult, starterHistory)
   }
 
   function clearAuditResult() {
-    auditResult.value = null
-    auditHistory.value = []
+    clearResult(auditResult, auditHistory)
   }
 
   function clearDirectionsResult() {
-    directionsResult.value = null
-    directionsHistory.value = []
+    clearResult(directionsResult, directionsHistory)
   }
 
   function clearRampsResult() {
-    rampsResult.value = null
-    rampsHistory.value = []
+    clearResult(rampsResult, rampsHistory)
   }
 
   function clearVariantsResult() {
-    variantsResult.value = null
-    variantsHistory.value = []
+    clearResult(variantsResult, variantsHistory)
   }
 
   async function handleAudit() {
@@ -181,7 +208,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
         pushThemeAiResultHistory(auditHistory, historyId, result, result.summary, summarizeThemeAiPrompt(auditPrompt.value, 'Default repair brief'))
       },
       handleError: async (error) => {
-        showErrorToast(error, 'Failed to generate an AI repair pass.')
+        showErrorToast(error, themeAiMessages.audit.generateError)
         await access.refresh()
       },
     })
@@ -223,7 +250,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
         pushThemeAiResultHistory(starterHistory, historyId, result, result.name, summarizeThemeAiPrompt(starterPrompt.value, 'Starter theme'))
       },
       handleError: async (error) => {
-        showErrorToast(error, 'Failed to generate a starter theme.')
+        showErrorToast(error, themeAiMessages.starter.generateError)
         await access.refresh()
       },
     })
@@ -249,7 +276,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
         )
       },
       handleError: async (error) => {
-        showErrorToast(error, 'Failed to generate alternative directions.')
+        showErrorToast(error, themeAiMessages.directions.generateError)
         await access.refresh()
       },
     })
@@ -283,7 +310,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
         )
       },
       handleError: async (error) => {
-        showErrorToast(error, 'Failed to generate color ramps.')
+        showErrorToast(error, themeAiMessages.ramps.generateError)
         await access.refresh()
       },
     })
@@ -295,7 +322,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
       canRun: Boolean(palette.value) && canGenerateVariants.value,
       execute: async () => {
         const result = await generatePaletteVariants({
-          prompt: variantsPrompt.value.trim() || 'Generate practical component variants for this palette.',
+          prompt: variantsPrompt.value.trim() || themeAiMessages.variants.defaultPrompt,
           palette: clonePaletteDefinition(palette.value!),
           componentKeys: selectedVariantComponents.value,
         })
@@ -309,7 +336,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
         )
       },
       handleError: async (error) => {
-        showErrorToast(error, 'Failed to generate component variants.')
+        showErrorToast(error, themeAiMessages.variants.generateError)
         await access.refresh()
       },
     })
@@ -317,12 +344,19 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
 
   function applyPaletteSuggestion(targetPalette: PaletteDefinition, message: string) {
     applyGeneratedPalette(targetPalette)
-    toast.add({
-      title: 'Palette updated',
-      description: message,
-      color: 'success',
-    })
-    open.value = false
+    closeWithSuccessToast(themeAiMessages.palette.applyTitle, message)
+  }
+
+  function applyStarterSuggestion(targetPalette: PaletteDefinition) {
+    applyPaletteSuggestion(targetPalette, themeAiMessages.starter.applyDescription)
+  }
+
+  function applyAuditSuggestion(targetPalette: PaletteDefinition) {
+    applyPaletteSuggestion(targetPalette, themeAiMessages.audit.applyDescription)
+  }
+
+  function applyDirectionSuggestion(direction: { name: string, palette: PaletteDefinition }) {
+    applyPaletteSuggestion(direction.palette, themeAiMessages.directions.applyDescription(direction.name))
   }
 
   function applyRampSuggestion() {
@@ -331,12 +365,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     }
 
     applyGeneratedRamps(rampsResult.value.ramps)
-    toast.add({
-      title: 'Ramps updated',
-      description: `Applied AI-generated ramps to ${rampsResult.value.paletteName}.`,
-      color: 'success',
-    })
-    open.value = false
+    closeWithSuccessToast(themeAiMessages.ramps.applyTitle, themeAiMessages.ramps.applyDescription(rampsResult.value.paletteName))
   }
 
   function applyVariantSuggestion() {
@@ -345,12 +374,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     }
 
     applyGeneratedComponents(variantsResult.value.components)
-    toast.add({
-      title: 'Variants updated',
-      description: 'Applied the generated component variants to the current draft.',
-      color: 'success',
-    })
-    open.value = false
+    closeWithSuccessToast(themeAiMessages.variants.applyTitle, themeAiMessages.variants.applyDescription)
   }
 
   return {
@@ -408,9 +432,12 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     handleRamps,
     handleVariants,
     applyPaletteSuggestion,
+    applyStarterSuggestion,
+    applyAuditSuggestion,
+    applyDirectionSuggestion,
     applyRampSuggestion,
     applyVariantSuggestion,
-    getSelectedHistoryId,
-    selectHistoryResult,
+    getSelectedHistoryId: getSelectedThemeAiHistoryId,
+    selectHistoryResult: selectThemeAiHistoryResult,
   }
 }

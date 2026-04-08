@@ -66,6 +66,9 @@ const {
   handleRamps,
   handleVariants,
   applyPaletteSuggestion,
+  applyStarterSuggestion,
+  applyAuditSuggestion,
+  applyDirectionSuggestion,
   applyRampSuggestion,
   applyVariantSuggestion,
   selectHistoryResult,
@@ -147,7 +150,7 @@ const {
               @generate="handleStarterTheme()"
               @clear-result="clearStarterResult()"
               @select-history="starterResult = selectHistoryResult(starterHistory, $event)"
-              @apply-result="applyPaletteSuggestion($event, 'Applied the generated starter theme to the current draft.')"
+              @apply-result="applyStarterSuggestion($event)"
             />
           </template>
 
@@ -163,7 +166,7 @@ const {
               @generate="handleAudit()"
               @clear-result="clearAuditResult()"
               @select-history="auditResult = selectHistoryResult(auditHistory, $event)"
-              @apply="applyPaletteSuggestion($event, 'Applied the AI repair pass to the current draft.')"
+              @apply="applyAuditSuggestion($event)"
             />
           </template>
 
@@ -225,7 +228,7 @@ const {
               @reset="directionsPrompt = ''; directionsCount = 3; clearDirectionsResult()"
               @generate="handleDirections()"
               @select-history="directionsResult = selectHistoryResult(directionsHistory, $event)"
-              @apply-direction="applyPaletteSuggestion($event.palette, `Applied the ${$event.name} direction to the current draft.`)"
+              @apply-direction="applyDirectionSuggestion($event)"
             />
           </template>
         </UTabs>
