@@ -4,9 +4,12 @@ import { auditPaletteTheme } from '~/utils/palette-qa'
 
 const props = withDefaults(defineProps<ThemeQaPanelProps>(), {
   compact: false,
+  report: null,
+  source: 'local',
+  loading: false,
 })
 
-const report = computed(() => auditPaletteTheme(props.palette))
+const report = computed(() => props.report ?? auditPaletteTheme(props.palette))
 
 const statusMeta = computed<ThemeQaStatusMeta>(() => {
   if (report.value.status === 'healthy') {
@@ -56,6 +59,9 @@ function getSeverityColor(severity: ThemeQaSeverity) {
             <p class="text-sm font-medium text-highlighted">
               Theme QA
             </p>
+            <UBadge color="neutral" variant="outline">
+              {{ props.source === 'server' ? 'Saved on server' : 'Current draft' }}
+            </UBadge>
             <UBadge :color="statusMeta.color" variant="soft">
               {{ statusMeta.label }}
             </UBadge>
@@ -77,6 +83,15 @@ function getSeverityColor(severity: ThemeQaSeverity) {
     </template>
 
     <div class="space-y-4">
+      <UAlert
+        v-if="props.loading"
+        color="neutral"
+        variant="soft"
+        icon="i-lucide-loader-circle"
+        title="Refreshing QA"
+        description="Loading the latest report for this palette."
+      />
+
       <div class="space-y-2">
         <div class="flex items-center justify-between text-xs text-muted">
           <span>Theme health</span>

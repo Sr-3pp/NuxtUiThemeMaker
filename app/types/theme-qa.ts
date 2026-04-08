@@ -37,8 +37,11 @@ export interface StoredPaletteQaReport {
 }
 
 export interface ThemeQaPanelProps {
-  palette: import('~/types/palette').PaletteDefinition | null
+  palette: import('~/types/palette').PaletteDefinition | import('~/types/palette-editor').EditablePalette | null
   compact?: boolean
+  report?: ThemeQaReport | null
+  source?: 'local' | 'server'
+  loading?: boolean
 }
 
 export interface ThemeQaStatusMeta {
