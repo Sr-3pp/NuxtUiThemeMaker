@@ -27,9 +27,11 @@ import {
   selectThemeAiHistoryResult,
   summarizeThemeAiPrompt,
 } from '~/utils/theme-ai-modal-history'
-
-const MAX_REFERENCE_IMAGE_BYTES = 5 * 1024 * 1024
-const SUPPORTED_REFERENCE_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'] as const
+import {
+  addThemeAiBrandColor,
+  handleThemeAiReferenceImageUpload,
+  removeThemeAiBrandColor,
+} from '~/utils/theme-ai-modal-starter'
 
 export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette | null>) {
   const toast = useToast()
@@ -178,16 +180,6 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     })
   }
 
-  function normalizeHexColor(value: string) {
-    const color = value.trim().toLowerCase()
-
-    if (!/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/.test(color)) {
-      return null
-    }
-
-    return color
-  }
-
   function selectHistoryResult<T>(
     history: PaletteAiResultHistoryEntry<T>[],
     id: number,
@@ -203,21 +195,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   }
 
   function addBrandColor(target: Ref<string[]>, input: Ref<string>, label: string) {
-    const color = normalizeHexColor(input.value)
-
-    if (!color) {
-      showValidationToast('Invalid brand color', `Use a hex color like #0ea5e9 for ${label}.`)
-      return
-    }
-
-    if (target.value.includes(color)) {
-      showValidationToast('Duplicate brand color', `${color} is already included in ${label}.`)
-      input.value = ''
-      return
-    }
-
-    target.value = [...target.value, color]
-    input.value = ''
+    addThemeAiBrandColor(target, input, label, showValidationToast)
   }
 
   function clearStarterResult() {
@@ -288,7 +266,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   }
 
   function removeStarterBrandColor(color: string) {
-    starterBrandColors.value = starterBrandColors.value.filter(entry => entry !== color)
+    removeThemeAiBrandColor(starterBrandColors, color)
   }
 
   function clearStarterReferenceImage() {
@@ -296,46 +274,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   }
 
   async function handleStarterImageUpload(event: Event) {
-    const input = event.target as HTMLInputElement
-    const file = input.files?.[0]
-
-    if (!file) {
-      return
-    }
-
-    if (!SUPPORTED_REFERENCE_IMAGE_TYPES.includes(file.type as typeof SUPPORTED_REFERENCE_IMAGE_TYPES[number])) {
-      starterReferenceImage.value = null
-      showValidationToast('Unsupported image type', 'Use a PNG, JPEG, WEBP, or GIF reference image.')
-      input.value = ''
-      return
-    }
-
-    if (file.size > MAX_REFERENCE_IMAGE_BYTES) {
-      starterReferenceImage.value = null
-      showValidationToast('Image too large', 'Reference images must be 5 MB or smaller.')
-      input.value = ''
-      return
-    }
-
-    try {
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => resolve(String(reader.result ?? ''))
-        reader.onerror = () => reject(reader.error)
-        reader.readAsDataURL(file)
-      })
-      const [, base64 = ''] = dataUrl.split(',', 2)
-
-      starterReferenceImage.value = {
-        data: base64,
-        mimeType: file.type || 'image/png',
-        name: file.name,
-      }
-    } catch (error) {
-      showErrorToast(error, 'Failed to read the reference image.')
-    } finally {
-      input.value = ''
-    }
+    await handleThemeAiReferenceImageUpload(event, starterReferenceImage, showValidationToast, showErrorToast)
   }
 
   async function handleStarterTheme() {
@@ -401,7 +340,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   }
 
   function removeRampBrandColor(color: string) {
-    rampBrandColors.value = rampBrandColors.value.filter(entry => entry !== color)
+    removeThemeAiBrandColor(rampBrandColors, color)
   }
 
   async function handleRamps() {
