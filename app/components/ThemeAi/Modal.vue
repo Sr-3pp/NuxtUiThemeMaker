@@ -3,6 +3,8 @@ import type { Ref } from 'vue'
 import type { EditablePalette } from '~/types/palette-editor'
 import type { PaletteDefinition } from '~/types/palette'
 import type {
+  PaletteAiPersistedSession,
+  PaletteAiResultHistoryEntry,
   PaletteAuditGenerateResult,
   PaletteDirectionsGenerateResult,
   PaletteRampGenerateResult,
@@ -13,6 +15,11 @@ import {
   createPaletteWithGeneratedComponents,
   createPaletteWithGeneratedRamps,
 } from '~/utils/palette-domain'
+import {
+  buildPaletteAiPersistedSession,
+  createEmptyPersistedAiSession,
+  restorePaletteAiSession,
+} from '~/utils/palette-ai-session'
 import { getComponentThemeEditorDefinitions } from '~/utils/component-theme-editor'
 
 const props = defineProps<{
@@ -30,12 +37,6 @@ const { cta, helperText, isDisabled, refresh } = usePaletteGenerationAccess()
 const MAX_REFERENCE_IMAGE_BYTES = 5 * 1024 * 1024
 const SUPPORTED_REFERENCE_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'] as const
 const MAX_RESULT_HISTORY = 4
-
-interface ResultHistoryEntry<T> {
-  id: number
-  label: string
-  result: T
-}
 
 const activeTab = ref<'starter' | 'audit' | 'directions' | 'ramps' | 'variants'>('starter')
 const starterPrompt = ref('')
@@ -61,14 +62,22 @@ const auditResult = ref<PaletteAuditGenerateResult | null>(null)
 const directionsResult = ref<PaletteDirectionsGenerateResult | null>(null)
 const rampsResult = ref<PaletteRampGenerateResult | null>(null)
 const variantsResult = ref<PaletteVariantGenerateResult | null>(null)
-const starterHistory = ref<ResultHistoryEntry<PaletteDefinition>[]>([])
-const auditHistory = ref<ResultHistoryEntry<PaletteAuditGenerateResult>[]>([])
-const directionsHistory = ref<ResultHistoryEntry<PaletteDirectionsGenerateResult>[]>([])
-const rampsHistory = ref<ResultHistoryEntry<PaletteRampGenerateResult>[]>([])
-const variantsHistory = ref<ResultHistoryEntry<PaletteVariantGenerateResult>[]>([])
+const starterHistory = ref<PaletteAiResultHistoryEntry<PaletteDefinition>[]>([])
+const auditHistory = ref<PaletteAiResultHistoryEntry<PaletteAuditGenerateResult>[]>([])
+const directionsHistory = ref<PaletteAiResultHistoryEntry<PaletteDirectionsGenerateResult>[]>([])
+const rampsHistory = ref<PaletteAiResultHistoryEntry<PaletteRampGenerateResult>[]>([])
+const variantsHistory = ref<PaletteAiResultHistoryEntry<PaletteVariantGenerateResult>[]>([])
 const historyId = ref(0)
+const persistedSessions = useState<Record<string, PaletteAiPersistedSession>>('theme-ai-modal-sessions', () => ({}))
 
 const hasPalette = computed(() => Boolean(props.palette))
+const paletteSessionKey = computed(() => {
+  if (!props.palette) {
+    return null
+  }
+
+  return props.palette._id || props.palette.slug || props.palette.name
+})
 const canGenerateStarter = computed(() => Boolean(starterPrompt.value.trim()) && !isDisabled.value)
 const canGenerateRamps = computed(() => rampBrandColors.value.length > 0 && !isDisabled.value)
 const canGenerateVariants = computed(() => hasPalette.value && selectedVariantComponents.value.length > 0 && !isDisabled.value)
@@ -91,36 +100,75 @@ const variantPreviewPalette = computed(() => {
   return createPaletteWithGeneratedComponents(clonePaletteDefinition(props.palette), variantsResult.value.components)
 })
 
+function clearSessionState() {
+  auditResult.value = null
+  starterResult.value = null
+  directionsResult.value = null
+  rampsResult.value = null
+  variantsResult.value = null
+  starterHistory.value = []
+  auditHistory.value = []
+  directionsHistory.value = []
+  rampsHistory.value = []
+  variantsHistory.value = []
+}
+
+function restorePersistedSession() {
+  const sessionKey = paletteSessionKey.value
+
+  if (!sessionKey) {
+    clearSessionState()
+    return
+  }
+
+  const restoredSession = restorePaletteAiSession(persistedSessions.value[sessionKey] ?? createEmptyPersistedAiSession())
+
+  starterHistory.value = restoredSession.starterHistory
+  auditHistory.value = restoredSession.auditHistory
+  directionsHistory.value = restoredSession.directionsHistory
+  rampsHistory.value = restoredSession.rampsHistory
+  variantsHistory.value = restoredSession.variantsHistory
+  starterResult.value = restoredSession.starterResult
+  auditResult.value = restoredSession.auditResult
+  directionsResult.value = restoredSession.directionsResult
+  rampsResult.value = restoredSession.rampsResult
+  variantsResult.value = restoredSession.variantsResult
+  historyId.value = restoredSession.historyId
+}
+
+function syncPersistedSession() {
+  const sessionKey = paletteSessionKey.value
+
+  if (!sessionKey) {
+    return
+  }
+
+  persistedSessions.value[sessionKey] = buildPaletteAiPersistedSession({
+    starterHistory: starterHistory.value,
+    starterResult: starterResult.value,
+    auditHistory: auditHistory.value,
+    auditResult: auditResult.value,
+    directionsHistory: directionsHistory.value,
+    directionsResult: directionsResult.value,
+    rampsHistory: rampsHistory.value,
+    rampsResult: rampsResult.value,
+    variantsHistory: variantsHistory.value,
+    variantsResult: variantsResult.value,
+  })
+}
+
 watch(open, (value) => {
   if (!value) {
     activeTab.value = 'starter'
     return
   }
 
-  starterResult.value = null
-  auditResult.value = null
-  directionsResult.value = null
-  rampsResult.value = null
-  variantsResult.value = null
-  starterHistory.value = []
-  auditHistory.value = []
-  directionsHistory.value = []
-  rampsHistory.value = []
-  variantsHistory.value = []
+  restorePersistedSession()
 }, { immediate: false })
 
-watch(() => props.palette?.name, () => {
-  auditResult.value = null
-  starterResult.value = null
-  directionsResult.value = null
-  rampsResult.value = null
-  variantsResult.value = null
-  starterHistory.value = []
-  auditHistory.value = []
-  directionsHistory.value = []
-  rampsHistory.value = []
-  variantsHistory.value = []
-})
+watch(paletteSessionKey, () => {
+  restorePersistedSession()
+}, { immediate: true })
 
 function showValidationToast(title: string, description: string) {
   toast.add({
@@ -184,7 +232,7 @@ function clearVariantsResult() {
 }
 
 function pushResultHistory<T>(
-  history: Ref<ResultHistoryEntry<T>[]>,
+  history: Ref<PaletteAiResultHistoryEntry<T>[]>,
   result: T,
   label: string,
 ) {
@@ -198,6 +246,22 @@ function pushResultHistory<T>(
     ...history.value,
   ].slice(0, MAX_RESULT_HISTORY)
 }
+
+watch([
+  paletteSessionKey,
+  starterHistory,
+  auditHistory,
+  directionsHistory,
+  rampsHistory,
+  variantsHistory,
+  starterResult,
+  auditResult,
+  directionsResult,
+  rampsResult,
+  variantsResult,
+], () => {
+  syncPersistedSession()
+}, { deep: true })
 
 async function handleAudit() {
   if (!props.palette || isDisabled.value || isAuditLoading.value) {

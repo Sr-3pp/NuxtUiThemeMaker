@@ -78,3 +78,22 @@ export interface PaletteDirectionResult {
 export interface PaletteDirectionsGenerateResult {
   directions: PaletteDirectionResult[]
 }
+
+export interface PaletteAiResultHistoryEntry<T> {
+  id: number
+  label: string
+  result: T
+}
+
+export interface PaletteAiPersistedHistoryState<T> {
+  items: PaletteAiResultHistoryEntry<T>[]
+  selectedId: number | null
+}
+
+export interface PaletteAiPersistedSession {
+  starter: PaletteAiPersistedHistoryState<PaletteDefinition>
+  audit: PaletteAiPersistedHistoryState<PaletteAuditGenerateResult>
+  directions: PaletteAiPersistedHistoryState<PaletteDirectionsGenerateResult>
+  ramps: PaletteAiPersistedHistoryState<PaletteRampGenerateResult>
+  variants: PaletteAiPersistedHistoryState<PaletteVariantGenerateResult>
+}
