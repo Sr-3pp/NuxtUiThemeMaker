@@ -1,4 +1,5 @@
 import type { EditablePalette } from '~/types/palette-editor'
+import type { CreatePaletteReviewPayload, PaletteReview, PaletteReviewThread } from '~/types/palette-review'
 import type { StoredPalette, UpdatePalettePayload, UpdatePaletteVisibilityPayload } from '~/types/palette-store'
 import type { PaletteGenerationAccess } from '~/types/palette-generation'
 import type { PaletteVersionSnapshot } from '~/types/palette-version'
@@ -88,6 +89,20 @@ export function usePaletteApi() {
     })
   }
 
+  const getPaletteReviews = async (id: string) => {
+    return $fetch<PaletteReviewThread>(`/api/palettes/${id}/reviews`, {
+      credentials: 'include',
+    })
+  }
+
+  const createPaletteReview = async (id: string, payload: CreatePaletteReviewPayload) => {
+    return $fetch<PaletteReview>(`/api/palettes/${id}/reviews`, {
+      method: 'POST',
+      credentials: 'include',
+      body: payload,
+    })
+  }
+
   const getUserPalettes = () => useFetch<StoredPalette[]>('/api/palettes/user', {
     key: 'user-palettes',
     credentials: 'include',
@@ -129,8 +144,10 @@ export function usePaletteApi() {
     forkPalette,
     getPaletteGenerationAccess,
     getPaletteHistory,
+    getPaletteReviews,
     getPublicPalettes,
     getUserPalettes,
+    createPaletteReview,
     saveNewPalette,
     savePalette,
     updatePaletteVisibility,

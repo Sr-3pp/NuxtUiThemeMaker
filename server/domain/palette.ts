@@ -1,8 +1,10 @@
 import type { StoredPalette } from '~/types/palette-store'
 import type { PaletteDefinition } from '~/types/palette'
+import type { PaletteReview, PaletteReviewSummary } from '~/types/palette-review'
 import type { PaletteLifecycleStatus, PaletteVersionSnapshot } from '~/types/palette-version'
 import { normalizePaletteDefinition } from '../../app/utils/palette-domain'
 import type { PaletteDocument } from '~~/server/types/palette-document'
+import type { PaletteReviewDocument } from '~~/server/types/palette-review-document'
 import type { PaletteVersionDocument } from '~~/server/types/palette-version-document'
 
 export function toStoredPalette(document: PaletteDocument): StoredPalette {
@@ -42,6 +44,46 @@ export function toPaletteVersionSnapshot(document: PaletteVersionDocument): Pale
     event: document.event,
     createdAt: document.createdAt.toISOString(),
   }
+}
+
+export function toPaletteReview(document: PaletteReviewDocument): PaletteReview {
+  if (!document._id) {
+    throw new Error('Palette review document is missing _id')
+  }
+
+  return {
+    id: document._id.toHexString(),
+    paletteId: document.paletteId.toHexString(),
+    userId: document.userId,
+    userName: document.userName,
+    status: document.status,
+    message: document.message,
+    createdAt: document.createdAt.toISOString(),
+  }
+}
+
+export function summarizePaletteReviews(reviews: PaletteReview[]): PaletteReviewSummary {
+  return reviews.reduce<PaletteReviewSummary>((summary, review) => {
+    summary.total += 1
+
+    if (review.status === 'approved') {
+      summary.approvals += 1
+      return summary
+    }
+
+    if (review.status === 'changes_requested') {
+      summary.changesRequested += 1
+      return summary
+    }
+
+    summary.comments += 1
+    return summary
+  }, {
+    total: 0,
+    approvals: 0,
+    comments: 0,
+    changesRequested: 0,
+  })
 }
 
 export function normalizePaletteForStorage(name: string, palette: PaletteDefinition): PaletteDefinition {

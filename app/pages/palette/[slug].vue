@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { PaletteReviewStatus, PaletteReviewThread } from '~/types/palette-review'
 import type { StoredPalette } from '~/types/palette-store'
 import { buildPaletteDescription, buildPaletteJsonLd } from '~/utils/seo'
 
@@ -6,11 +7,16 @@ const route = useRoute()
 const slug = computed(() => String(route.params.slug))
 const requestHeaders = import.meta.server ? useRequestHeaders(['cookie']) : undefined
 const toast = useToast()
-const { forkPalette } = usePaletteApi()
+const { createPaletteReview, forkPalette, getPaletteReviews } = usePaletteApi()
 const { isAuthenticated, normalizeRedirectTarget, user } = useAuth()
 const { setCurrentPalette } = usePaletteState()
 const { showErrorToast } = useErrorToast()
 const isForking = ref(false)
+const isSubmittingReview = ref(false)
+const reviewState = reactive({
+  status: 'commented' as PaletteReviewStatus,
+  message: '',
+})
 
 const { data: palette, error } = await useAsyncData(
   () => `palette-${slug.value}`,
@@ -28,7 +34,45 @@ if (error.value) {
 
 const paletteValue = computed(() => palette.value)
 const isOwner = computed(() => Boolean(user.value && paletteValue.value && user.value.id === paletteValue.value.userId))
+const { data: reviewThread, refresh: refreshReviewThread } = await useAsyncData(
+  () => `palette-reviews-${paletteValue.value?._id ?? slug.value}`,
+  () => paletteValue.value
+    ? getPaletteReviews(paletteValue.value._id)
+    : Promise.resolve<PaletteReviewThread>({
+        summary: {
+          total: 0,
+          approvals: 0,
+          comments: 0,
+          changesRequested: 0,
+        },
+        reviews: [],
+      }),
+  {
+    watch: [paletteValue],
+    default: () => ({
+      summary: {
+        total: 0,
+        approvals: 0,
+        comments: 0,
+        changesRequested: 0,
+      },
+      reviews: [],
+    }),
+  },
+)
 const siteConfig = useRuntimeConfig()
+const reviewStatusOptions = [
+  { label: 'Comment', value: 'commented' },
+  { label: 'Approve', value: 'approved' },
+  { label: 'Request changes', value: 'changes_requested' },
+]
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat('en-US', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value))
+}
 
 async function handleFork() {
   if (!paletteValue.value) {
@@ -58,6 +102,40 @@ async function handleFork() {
     showErrorToast(error, 'Failed to fork palette.')
   } finally {
     isForking.value = false
+  }
+}
+
+async function handleReviewSubmit() {
+  if (!paletteValue.value) {
+    return
+  }
+
+  if (!isAuthenticated.value) {
+    const redirect = normalizeRedirectTarget(route.fullPath, '/')
+    await navigateTo(`/login?redirect=${encodeURIComponent(redirect)}`)
+    return
+  }
+
+  isSubmittingReview.value = true
+
+  try {
+    await createPaletteReview(paletteValue.value._id, {
+      status: reviewState.status,
+      message: reviewState.message,
+    })
+
+    reviewState.status = 'commented'
+    reviewState.message = ''
+    await refreshReviewThread()
+    toast.add({
+      title: 'Review added',
+      description: 'Your feedback is now attached to this palette.',
+      color: 'success',
+    })
+  } catch (error) {
+    showErrorToast(error, 'Failed to add review.')
+  } finally {
+    isSubmittingReview.value = false
   }
 }
 
@@ -128,11 +206,125 @@ usePageSeo({
     </header>
 
     <div class="min-h-[calc(100vh-89px)] px-4 py-6">
-      <UDashboardPanel>
-        <ClientOnly>
-          <PreviewPanel :palette="palette?.palette ?? null" />
-        </ClientOnly>
-      </UDashboardPanel>
+      <div class="space-y-6">
+        <UDashboardPanel>
+          <ClientOnly>
+            <PreviewPanel :palette="palette?.palette ?? null" />
+          </ClientOnly>
+        </UDashboardPanel>
+
+        <div class="grid gap-6 xl:grid-cols-[minmax(0,2fr)_360px]">
+          <UCard variant="outline">
+            <template #header>
+              <div class="space-y-1">
+                <p class="text-sm font-medium text-highlighted">
+                  Reviews
+                </p>
+                <p class="text-sm text-muted">
+                  Comments, approvals, and change requests attached to this palette.
+                </p>
+              </div>
+            </template>
+
+            <div class="space-y-4">
+              <div class="flex flex-wrap gap-2">
+                <UBadge color="neutral" variant="soft">
+                  {{ reviewThread.summary.total }} total
+                </UBadge>
+                <UBadge color="success" variant="soft">
+                  {{ reviewThread.summary.approvals }} approved
+                </UBadge>
+                <UBadge color="warning" variant="soft">
+                  {{ reviewThread.summary.changesRequested }} changes requested
+                </UBadge>
+                <UBadge color="neutral" variant="outline">
+                  {{ reviewThread.summary.comments }} comments
+                </UBadge>
+              </div>
+
+              <div
+                v-if="!reviewThread.reviews.length"
+                class="rounded-2xl border border-default px-4 py-4 text-sm text-muted"
+              >
+                No reviews yet. Use the form to start the review thread.
+              </div>
+
+              <div v-else class="space-y-3">
+                <div
+                  v-for="review in reviewThread.reviews"
+                  :key="review.id"
+                  class="rounded-2xl border border-default px-4 py-4"
+                >
+                  <div class="flex flex-wrap items-center gap-2">
+                    <p class="text-sm font-medium text-highlighted">
+                      {{ review.userName }}
+                    </p>
+                    <UBadge
+                      :color="review.status === 'approved' ? 'success' : review.status === 'changes_requested' ? 'warning' : 'neutral'"
+                      variant="soft"
+                    >
+                      {{ review.status }}
+                    </UBadge>
+                    <p class="text-xs text-muted">
+                      {{ formatDate(review.createdAt) }}
+                    </p>
+                  </div>
+
+                  <p class="mt-3 whitespace-pre-wrap text-sm text-toned">
+                    {{ review.message }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </UCard>
+
+          <UCard variant="outline">
+            <template #header>
+              <div class="space-y-1">
+                <p class="text-sm font-medium text-highlighted">
+                  Add review
+                </p>
+                <p class="text-sm text-muted">
+                  Leave a comment, approve the palette, or request changes.
+                </p>
+              </div>
+            </template>
+
+            <div class="space-y-4">
+              <UFormField label="Status" name="review-status">
+                <USelect
+                  v-model="reviewState.status"
+                  :items="reviewStatusOptions"
+                  value-key="value"
+                  variant="outline"
+                />
+              </UFormField>
+
+              <UFormField label="Message" name="review-message">
+                <UTextarea
+                  v-model="reviewState.message"
+                  :rows="6"
+                  placeholder="What should the next version keep, change, or revisit?"
+                />
+              </UFormField>
+
+              <UButton
+                block
+                color="primary"
+                icon="i-lucide-message-square-plus"
+                :loading="isSubmittingReview"
+                @click="handleReviewSubmit"
+              >
+                Submit review
+              </UButton>
+
+              <p class="text-xs text-muted">
+                {{ isAuthenticated ? 'Reviews are attached to your account name.' : 'Sign in to participate in the review thread.' }}
+              </p>
+            </div>
+          </UCard>
+        </div>
+      </div>
     </div>
   </UMain>
 </template>
