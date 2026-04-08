@@ -19,6 +19,22 @@ export function getPaletteQaReport(palette: PaletteDefinition) {
   return auditPaletteTheme(palette)
 }
 
+function serializePaletteId(paletteId: { toHexString?: () => string } | string | undefined) {
+  if (!paletteId) {
+    return ''
+  }
+
+  if (typeof paletteId === 'string') {
+    return paletteId
+  }
+
+  if (typeof paletteId.toHexString === 'function') {
+    return paletteId.toHexString()
+  }
+
+  return String(paletteId)
+}
+
 export async function getPaletteQaReportForUser(id: string, userId: string): Promise<StoredPaletteQaReport> {
   const objectId = parsePaletteObjectId(id)
   const palette = await findPaletteById(objectId)
@@ -38,7 +54,7 @@ export async function getPaletteQaReportForUser(id: string, userId: string): Pro
   }
 
   return {
-    paletteId: palette._id.toHexString(),
+    paletteId: serializePaletteId(palette._id),
     report: getPaletteQaReport(palette.palette),
   }
 }
