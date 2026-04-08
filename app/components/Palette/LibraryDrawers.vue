@@ -14,6 +14,7 @@ const { createEmptyPalette, currentPalette, setCurrentPalette } = usePaletteStat
 const { deletePalette, getPublicPalettes, getUserPalettes, updatePaletteVisibility } = usePaletteApi()
 const { user } = useAuth()
 const { togglePalettesSidebar } = useSidebar()
+const { showErrorToast } = useErrorToast()
 
 const { data: userPalettes, refresh: refreshUserPalettes } = await getUserPalettes()
 const { data: publicPalettes } = await getPublicPalettes()
@@ -44,13 +45,17 @@ async function handlePaletteDelete(palette: StoredPalette) {
 }
 
 async function handlePaletteVisibilityToggle(palette: StoredPalette) {
-  const updatedPalette = await updatePaletteVisibility(palette._id, !palette.isPublic)
+  try {
+    const updatedPalette = await updatePaletteVisibility(palette._id, !palette.isPublic)
 
-  if (currentPalette.value?._id === palette._id && updatedPalette) {
-    setCurrentPalette(updatedPalette)
+    if (currentPalette.value?._id === palette._id && updatedPalette) {
+      setCurrentPalette(updatedPalette)
+    }
+
+    await refreshUserPalettes()
+  } catch (error) {
+    showErrorToast(error, 'Failed to update palette visibility.')
   }
-
-  await refreshUserPalettes()
 }
 
 watch(user, async (currentUser) => {

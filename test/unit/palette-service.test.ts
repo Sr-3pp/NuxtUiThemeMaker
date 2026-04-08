@@ -9,6 +9,7 @@ const parsePaletteObjectIdMock = vi.fn((id: string) => `object:${id}`)
 const updatePaletteByIdMock = vi.fn()
 const normalizePaletteForStorageMock = vi.fn()
 const toStoredPaletteMock = vi.fn()
+const assertPalettePublishReadyMock = vi.fn()
 
 vi.mock('h3', () => ({
   createError: (input: { statusCode: number, statusMessage: string }) =>
@@ -33,6 +34,10 @@ vi.mock('~~/server/services/palette-helpers', () => ({
   parsePaletteObjectId: parsePaletteObjectIdMock,
 }))
 
+vi.mock('~~/server/services/palette-qa-service', () => ({
+  assertPalettePublishReady: assertPalettePublishReadyMock,
+}))
+
 describe('palette service', () => {
   beforeEach(() => {
     vi.resetModules()
@@ -45,6 +50,7 @@ describe('palette service', () => {
     updatePaletteByIdMock.mockReset()
     normalizePaletteForStorageMock.mockReset()
     toStoredPaletteMock.mockReset()
+    assertPalettePublishReadyMock.mockReset()
   })
 
   it('blocks free users at the palette limit during create', async () => {
@@ -127,6 +133,7 @@ describe('palette service', () => {
     )
 
     expect(generateUniquePaletteSlugMock).toHaveBeenCalledWith('Forest Glow')
+    expect(assertPalettePublishReadyMock).not.toHaveBeenCalled()
     expect(createPaletteMock).toHaveBeenCalledWith({
       userId: 'user-1',
       slug: 'forest-glow',
@@ -199,6 +206,67 @@ describe('palette service', () => {
 
     expect(countPalettesByUserIdMock).not.toHaveBeenCalled()
     expect(result).toEqual(storedPalette)
+  })
+
+  it('checks publish readiness before creating a public palette', async () => {
+    const document = {
+      _id: 'palette-id',
+      userId: 'user-1',
+      slug: 'forest-glow',
+      name: 'Forest Glow',
+      palette: {
+        name: 'Forest Glow',
+        modes: {
+          light: {},
+          dark: {},
+        },
+      },
+      isPublic: true,
+      createdAt: new Date('2026-03-15T12:00:00.000Z'),
+      updatedAt: new Date('2026-03-15T12:00:00.000Z'),
+    }
+
+    generateUniquePaletteSlugMock.mockResolvedValueOnce('forest-glow')
+    normalizePaletteForStorageMock.mockImplementationOnce((name, palette) => ({
+      ...palette,
+      name,
+    }))
+    createPaletteMock.mockResolvedValueOnce(document)
+    toStoredPaletteMock.mockReturnValueOnce({
+      _id: 'palette-id',
+      userId: 'user-1',
+      slug: 'forest-glow',
+      name: 'Forest Glow',
+      palette: document.palette,
+      isPublic: true,
+      createdAt: '2026-03-15T12:00:00.000Z',
+      updatedAt: '2026-03-15T12:00:00.000Z',
+    })
+
+    const { createPaletteForUser } = await import('../../server/services/palette-service')
+
+    await createPaletteForUser(
+      { id: 'user-1', plan: 'pro' },
+      {
+        name: 'Forest Glow',
+        palette: {
+          name: 'Draft',
+          modes: {
+            light: {},
+            dark: {},
+          },
+        },
+        isPublic: true,
+      }
+    )
+
+    expect(assertPalettePublishReadyMock).toHaveBeenCalledWith({
+      name: 'Forest Glow',
+      modes: {
+        light: {},
+        dark: {},
+      },
+    })
   })
 
   it('blocks pro users at the palette limit during create', async () => {
@@ -318,6 +386,7 @@ describe('palette service', () => {
     })
 
     expect(generateUniquePaletteSlugMock).toHaveBeenCalledWith('Aurora', 'palette-id')
+    expect(assertPalettePublishReadyMock).not.toHaveBeenCalled()
     expect(updatePaletteByIdMock).toHaveBeenCalledWith('palette-id', {
       slug: 'aurora',
       name: 'Aurora',
@@ -332,6 +401,84 @@ describe('palette service', () => {
       updatedAt: expect.any(Date),
     })
     expect(result).toEqual(storedPalette)
+  })
+
+  it('checks publish readiness before updating a public palette', async () => {
+    findPaletteByIdMock.mockResolvedValueOnce({
+      _id: 'palette-id',
+      userId: 'user-1',
+      slug: 'old-slug',
+      name: 'Forest Glow',
+      palette: {
+        name: 'Forest Glow',
+        modes: {
+          light: {},
+          dark: {},
+        },
+      },
+      isPublic: false,
+      createdAt: new Date('2026-03-09T10:00:00.000Z'),
+      updatedAt: new Date('2026-03-09T10:00:00.000Z'),
+    })
+    generateUniquePaletteSlugMock.mockResolvedValueOnce('aurora')
+    normalizePaletteForStorageMock.mockImplementationOnce((name, palette) => ({
+      ...palette,
+      name,
+    }))
+    updatePaletteByIdMock.mockResolvedValueOnce({
+      _id: 'palette-id',
+      userId: 'user-1',
+      slug: 'aurora',
+      name: 'Aurora',
+      palette: {
+        name: 'Aurora',
+        modes: {
+          light: {},
+          dark: {},
+        },
+      },
+      isPublic: true,
+      createdAt: new Date('2026-03-09T10:00:00.000Z'),
+      updatedAt: new Date('2026-03-10T10:00:00.000Z'),
+    })
+    toStoredPaletteMock.mockReturnValueOnce({
+      _id: 'palette-id',
+      userId: 'user-1',
+      slug: 'aurora',
+      name: 'Aurora',
+      palette: {
+        name: 'Aurora',
+        modes: {
+          light: {},
+          dark: {},
+        },
+      },
+      isPublic: true,
+      createdAt: '2026-03-09T10:00:00.000Z',
+      updatedAt: '2026-03-10T10:00:00.000Z',
+    })
+
+    const { updatePaletteForUser } = await import('../../server/services/palette-service')
+
+    await updatePaletteForUser('69af8b6940280b9bc83c3c07', 'user-1', {
+      name: 'Aurora',
+      palette: {
+        name: 'Draft',
+        modes: {
+          light: {},
+          dark: {},
+        },
+      },
+      isPublic: true,
+    })
+
+    expect(assertPalettePublishReadyMock).toHaveBeenCalledWith({
+      name: 'Aurora',
+      modes: {
+        light: {},
+        dark: {},
+      },
+    })
   })
 
   it('throws when an owned palette cannot be found', async () => {
@@ -370,5 +517,47 @@ describe('palette service', () => {
     await deletePaletteForUser('69af8b6940280b9bc83c3c07', 'user-1')
 
     expect(deletePaletteByIdMock).toHaveBeenCalledWith('palette-id')
+  })
+
+  it('checks publish readiness before making a palette public', async () => {
+    const existingPalette = {
+      _id: 'palette-id',
+      userId: 'user-1',
+      slug: 'forest-glow',
+      name: 'Forest Glow',
+      palette: {
+        name: 'Forest Glow',
+        modes: {
+          light: {},
+          dark: {},
+        },
+      },
+      isPublic: false,
+      createdAt: new Date('2026-03-09T10:00:00.000Z'),
+      updatedAt: new Date('2026-03-09T10:00:00.000Z'),
+    }
+
+    findPaletteByIdMock.mockResolvedValueOnce(existingPalette)
+    updatePaletteByIdMock.mockResolvedValueOnce({
+      ...existingPalette,
+      isPublic: true,
+      updatedAt: new Date('2026-03-10T10:00:00.000Z'),
+    })
+    toStoredPaletteMock.mockReturnValueOnce({
+      _id: 'palette-id',
+      userId: 'user-1',
+      slug: 'forest-glow',
+      name: 'Forest Glow',
+      palette: existingPalette.palette,
+      isPublic: true,
+      createdAt: '2026-03-09T10:00:00.000Z',
+      updatedAt: '2026-03-10T10:00:00.000Z',
+    })
+
+    const { setPaletteVisibilityForUser } = await import('../../server/services/palette-service')
+
+    await setPaletteVisibilityForUser('69af8b6940280b9bc83c3c07', 'user-1', true)
+
+    expect(assertPalettePublishReadyMock).toHaveBeenCalledWith(existingPalette.palette)
   })
 })

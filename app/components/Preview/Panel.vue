@@ -14,6 +14,7 @@ const previewTab = ref<PreviewTabValue>('browser')
 const previewMode = ref<PreviewFrameMode>('current')
 const previewViewport = ref<PreviewViewport>('desktop')
 const inspectTokens = ref(false)
+const isQaModalOpen = ref(false)
 const previewTabs = [
   { label: 'Browser', value: 'browser', slot: 'browser' },
   { label: 'Components', value: 'components', slot: 'components' },
@@ -70,7 +71,7 @@ const previewViewportClass = computed(() => {
 
 <template>
   <div class="space-y-4">
-    <ThemeQaPanel :palette="props.palette" compact />
+    <ThemeQaModal v-model:open="isQaModalOpen" :palette="props.palette" />
 
     <UCard variant="outline" class="rounded-2xl shadow-none dark:border-white/10 dark:bg-black/40">
       <template #header>
@@ -84,7 +85,7 @@ const previewViewportClass = computed(() => {
         </div>
       </template>
 
-      <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_220px_auto]">
+      <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_220px_auto_auto]">
         <div class="rounded-xl border border-default/60 bg-muted/20 px-3 py-2 text-xs text-muted">
           Browser mode helps scan coverage quickly. Split compare renders light and dark previews side by side.
         </div>
@@ -109,6 +110,15 @@ const previewViewportClass = computed(() => {
           <span class="text-sm text-muted">Inspect tokens</span>
           <USwitch v-model="inspectTokens" />
         </div>
+
+        <UButton
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-shield-check"
+          @click="isQaModalOpen = true"
+        >
+          QA report
+        </UButton>
       </div>
     </UCard>
 

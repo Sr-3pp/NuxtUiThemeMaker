@@ -31,6 +31,11 @@ export interface ThemeQaReport {
   counts: Record<ThemeQaSeverity, number>
 }
 
+export interface StoredPaletteQaReport {
+  paletteId: string
+  report: ThemeQaReport
+}
+
 export interface ThemeQaPanelProps {
   palette: import('~/types/palette').PaletteDefinition | null
   compact?: boolean

@@ -18,6 +18,7 @@ const {
 const { savePalette, saveNewPalette } = usePaletteApi()
 const { editorSidebarSw } = useSidebar()
 const { showErrorToast } = useErrorToast()
+const isQaModalOpen = ref(false)
 
 const saveItems = computed<DropdownMenuItem[][]>(() => [[
   {
@@ -92,6 +93,8 @@ const handlePaletteNameInput = (event: Event) => {
         </div>
       </template>
       <div v-if="currentPalette" class="space-y-4">
+        <ThemeQaModal v-model:open="isQaModalOpen" :palette="currentPalette" />
+
         <UFormField label="Palette name">
           <UInput
             :model-value="currentPalette.name"
@@ -100,7 +103,15 @@ const handlePaletteNameInput = (event: Event) => {
           />
         </UFormField>
 
-        <ThemeQaPanel :palette="currentPalette" />
+        <UButton
+          block
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-shield-check"
+          @click="isQaModalOpen = true"
+        >
+          Open Theme QA Report
+        </UButton>
 
         <EditorContent
           :palette="currentPalette"

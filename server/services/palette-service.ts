@@ -12,6 +12,7 @@ import {
 } from '~~/server/db/repositories/palette-repository'
 import { normalizePaletteForStorage, toStoredPalette } from '~~/server/domain/palette'
 import { generateUniquePaletteSlug, parsePaletteObjectId } from '~~/server/services/palette-helpers'
+import { assertPalettePublishReady } from '~~/server/services/palette-qa-service'
 
 function getPaletteLimitMessage(plan: string | undefined, saveLimit: number) {
   const planName = plan === 'pro' ? 'Pro' : 'Free plan'
@@ -66,6 +67,11 @@ export async function createPaletteForUser(
   const now = new Date()
   const slug = await generateUniquePaletteSlug(name)
   const palette = normalizePaletteForStorage(name, input.palette)
+
+  if (input.isPublic) {
+    assertPalettePublishReady(palette)
+  }
+
   const document = await createPalette({
     userId: user.id,
     slug,
@@ -99,6 +105,11 @@ export async function updatePaletteForUser(
   const name = input.name.trim()
   const palette = normalizePaletteForStorage(name, input.palette)
   const slug = await generateUniquePaletteSlug(name, existing._id)
+
+  if (input.isPublic) {
+    assertPalettePublishReady(palette)
+  }
+
   const updated = await updatePaletteById(existing._id, {
     slug,
     name,
@@ -123,6 +134,11 @@ export async function setPaletteVisibilityForUser(
   isPublic: boolean
 ): Promise<StoredPalette> {
   const existing = await getOwnedPaletteByIdOrThrow(id, userId)
+
+  if (isPublic) {
+    assertPalettePublishReady(existing.palette)
+  }
+
   const updated = await updatePaletteById(existing._id, {
     isPublic,
     updatedAt: new Date(),
