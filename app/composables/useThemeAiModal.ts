@@ -111,6 +111,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   const canGenerateStarter = computed(() => Boolean(starterPrompt.value.trim()) && !access.isDisabled.value)
   const canGenerateRamps = computed(() => rampBrandColors.value.length > 0 && !access.isDisabled.value)
   const canGenerateVariants = computed(() => hasPalette.value && selectedVariantComponents.value.length > 0 && !access.isDisabled.value)
+  const canGenerateFromPalette = computed(() => hasPalette.value && !access.isDisabled.value)
   const componentOptions = computed(() => getComponentThemeEditorDefinitions(palette.value?.components).map(definition => ({
     label: definition.label,
     value: definition.value,
@@ -158,6 +159,10 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     addThemeAiBrandColor(target, input, label, showValidationToast)
   }
 
+  function getCurrentPaletteClone() {
+    return palette.value ? clonePaletteDefinition(palette.value) : null
+  }
+
   function clearResult<T>(
     result: Ref<T | null>,
     history: Ref<PaletteAiResultHistoryEntry<T>[]>,
@@ -198,10 +203,16 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   async function handleAudit() {
     await runThemeAiModalAction({
       loading: isAuditLoading,
-      canRun: Boolean(palette.value) && !access.isDisabled.value,
+      canRun: canGenerateFromPalette.value,
       execute: async () => {
+        const currentPalette = getCurrentPaletteClone()
+
+        if (!currentPalette) {
+          return
+        }
+
         const result = await generatePaletteAudit({
-          palette: clonePaletteDefinition(palette.value!),
+          palette: currentPalette,
           prompt: auditPrompt.value.trim() || undefined,
         })
         auditResult.value = result
@@ -259,10 +270,16 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   async function handleDirections() {
     await runThemeAiModalAction({
       loading: isDirectionsLoading,
-      canRun: Boolean(palette.value) && !access.isDisabled.value,
+      canRun: canGenerateFromPalette.value,
       execute: async () => {
+        const currentPalette = getCurrentPaletteClone()
+
+        if (!currentPalette) {
+          return
+        }
+
         const result = await generatePaletteDirections({
-          palette: clonePaletteDefinition(palette.value!),
+          palette: currentPalette,
           prompt: directionsPrompt.value.trim() || undefined,
           count: directionsCount.value,
         })
@@ -319,11 +336,17 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   async function handleVariants() {
     await runThemeAiModalAction({
       loading: isVariantsLoading,
-      canRun: Boolean(palette.value) && canGenerateVariants.value,
+      canRun: canGenerateVariants.value,
       execute: async () => {
+        const currentPalette = getCurrentPaletteClone()
+
+        if (!currentPalette) {
+          return
+        }
+
         const result = await generatePaletteVariants({
           prompt: variantsPrompt.value.trim() || themeAiMessages.variants.defaultPrompt,
-          palette: clonePaletteDefinition(palette.value!),
+          palette: currentPalette,
           componentKeys: selectedVariantComponents.value,
         })
         variantsResult.value = result
