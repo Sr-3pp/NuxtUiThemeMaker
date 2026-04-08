@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import type { PreviewPanelContentProps } from '~/types/theme-preview'
 
-const props = defineProps<PreviewPanelContentProps>()
+defineProps<PreviewPanelContentProps>()
+
+const sections = [
+  { area: 'typography', component: 'PreviewTypography' },
+] as const
 </script>
 
 <template>
-  <div class="space-y-6">
-    <PreviewInspectLegend v-if="props.inspectTokens" area="typography" />
-    <PreviewTypography :disable-interactive="props.disableInteractive" :palette="props.palette" />
-  </div>
+  <PreviewSectionStack
+    :sections="sections"
+    :disable-interactive="disableInteractive"
+    :palette="palette"
+    :inspect-tokens="inspectTokens"
+  />
 </template>

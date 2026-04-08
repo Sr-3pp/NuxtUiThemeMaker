@@ -1,22 +1,24 @@
 <script setup lang="ts">
 import type { PreviewPanelContentProps } from '~/types/theme-preview'
 
-const props = defineProps<PreviewPanelContentProps>()
+defineProps<PreviewPanelContentProps>()
+
+const sections = [
+  { area: 'surfaces', component: 'PreviewSurfaces' },
+  { area: 'dataDisplay', component: 'PreviewDataDisplay' },
+  { area: 'feedback', component: 'PreviewFeedback' },
+  { area: 'systemStates', component: 'PreviewSystemStates' },
+  { area: 'commandCenter', component: 'PreviewCommandCenter' },
+  { area: 'notifications', component: 'PreviewNotifications' },
+] as const
 </script>
 
 <template>
-  <div class="space-y-10">
-    <PreviewInspectLegend v-if="props.inspectTokens" area="surfaces" />
-    <PreviewSurfaces :disable-interactive="props.disableInteractive" :palette="props.palette" />
-    <PreviewInspectLegend v-if="props.inspectTokens" area="dataDisplay" />
-    <PreviewDataDisplay :disable-interactive="props.disableInteractive" :palette="props.palette" />
-    <PreviewInspectLegend v-if="props.inspectTokens" area="feedback" />
-    <PreviewFeedback :disable-interactive="props.disableInteractive" :palette="props.palette" />
-    <PreviewInspectLegend v-if="props.inspectTokens" area="systemStates" />
-    <PreviewSystemStates :disable-interactive="props.disableInteractive" :palette="props.palette" />
-    <PreviewInspectLegend v-if="props.inspectTokens" area="commandCenter" />
-    <PreviewCommandCenter :disable-interactive="props.disableInteractive" :palette="props.palette" />
-    <PreviewInspectLegend v-if="props.inspectTokens" area="notifications" />
-    <PreviewNotifications :disable-interactive="props.disableInteractive" :palette="props.palette" />
-  </div>
+  <PreviewSectionStack
+    :sections="sections"
+    spacing-class="space-y-10"
+    :disable-interactive="disableInteractive"
+    :palette="palette"
+    :inspect-tokens="inspectTokens"
+  />
 </template>
