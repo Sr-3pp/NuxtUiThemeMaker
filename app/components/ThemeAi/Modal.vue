@@ -485,6 +485,13 @@ function applyVariantSuggestion() {
                     </div>
                   </div>
 
+                  <ThemeAiComparison
+                    v-if="props.palette"
+                    :from-palette="clonePaletteDefinition(props.palette)"
+                    :to-palette="starterResult"
+                    title="Starter theme diff"
+                  />
+
                   <UButton
                     block
                     color="primary"
@@ -935,6 +942,13 @@ function applyVariantSuggestion() {
                       </div>
                     </div>
                   </div>
+
+                  <ThemeAiComparison
+                    v-if="props.palette"
+                    :from-palette="clonePaletteDefinition(props.palette)"
+                    :to-palette="direction.palette"
+                    :title="`${direction.name} diff`"
+                  />
                 </UCard>
 
                 <div
