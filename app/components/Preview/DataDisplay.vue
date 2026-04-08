@@ -30,33 +30,21 @@ function buttonStyle(variant: string, color: string) {
 
 <template>
   <section class="space-y-4">
-    <div class="space-y-1">
-      <h3 class="text-lg font-semibold text-highlighted">
-        Data display
-      </h3>
-      <p class="text-sm text-muted">
-        Small-data table, avatar grouping and compact display helpers for support UI.
-      </p>
-    </div>
+    <PreviewSectionIntro
+      title="Data display"
+      description="Small-data table, avatar grouping and compact display helpers for support UI."
+    />
 
     <div class="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-      <UCard variant="outline">
-        <template #header>
-          <p class="text-sm font-medium text-highlighted">Table preview</p>
-        </template>
-
+      <PreviewCard title="Table preview">
         <UTable
           :data="tableRows"
           :columns="tableColumns"
         />
-      </UCard>
+      </PreviewCard>
 
       <div class="grid gap-6">
-        <UCard variant="soft">
-          <template #header>
-            <p class="text-sm font-medium text-highlighted">Avatars and assistive labels</p>
-          </template>
-
+        <PreviewCard title="Avatars and assistive labels" variant="soft">
           <div class="space-y-4">
             <div class="flex items-center gap-4">
               <UAvatarGroup>
@@ -76,18 +64,14 @@ function buttonStyle(variant: string, color: string) {
               <UBadge color="success" variant="subtle" label="Success tag" />
             </div>
           </div>
-        </UCard>
+        </PreviewCard>
 
-        <UCard variant="outline">
-          <template #header>
-            <p class="text-sm font-medium text-highlighted">Hover target</p>
-          </template>
-
+        <PreviewCard title="Hover target">
           <div class="flex items-center gap-3">
             <UButton color="neutral" variant="outline" icon="i-lucide-info" label="Hover target" :style="buttonStyle('outline', 'neutral')" />
             <p class="text-sm text-muted">Overlay contrast check temporarily rendered as static content while the tooltip integration is removed from this preview.</p>
           </div>
-        </UCard>
+        </PreviewCard>
       </div>
     </div>
   </section>

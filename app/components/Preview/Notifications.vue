@@ -27,20 +27,12 @@ const notifications = [
 
 <template>
   <section class="space-y-4">
-    <div class="space-y-1">
-      <h3 class="text-lg font-semibold text-highlighted">
-        Notifications
-      </h3>
-      <p class="text-sm text-muted">
-        Toast-style messaging for status confirmation, warnings and lightweight operational feedback.
-      </p>
-    </div>
+    <PreviewSectionIntro
+      title="Notifications"
+      description="Toast-style messaging for status confirmation, warnings and lightweight operational feedback."
+    />
 
-    <UCard variant="outline">
-      <template #header>
-        <p class="text-sm font-medium text-highlighted">Toast stack</p>
-      </template>
-
+    <PreviewCard title="Toast stack">
       <div class="space-y-3 rounded-3xl border border-default bg-muted/30 p-4">
         <UToast
           v-for="notification in notifications"
@@ -56,6 +48,6 @@ const notifications = [
           class="relative inset-auto translate-x-0 translate-y-0"
         />
       </div>
-    </UCard>
+    </PreviewCard>
   </section>
 </template>

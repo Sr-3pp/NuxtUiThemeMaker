@@ -114,24 +114,16 @@ function stateCardClass(label: string) {
 
 <template>
   <section class="space-y-4">
-    <div class="space-y-1">
-      <h3 class="text-lg font-semibold text-highlighted">
-        State Matrix
-      </h3>
-      <p class="text-sm text-muted">
-        QA-oriented state sweep for buttons, fields, badges and alerts before exporting a theme.
-      </p>
-    </div>
+    <PreviewSectionIntro
+      title="State Matrix"
+      description="QA-oriented state sweep for buttons, fields, badges and alerts before exporting a theme."
+    />
 
     <div class="grid gap-6">
-      <UCard variant="outline">
-        <template #header>
-          <div class="space-y-1">
-            <p class="text-sm font-medium text-highlighted">Action states</p>
-            <p class="text-sm text-muted">Review default, hover-target, active-target and disabled button treatments side by side.</p>
-          </div>
-        </template>
-
+      <PreviewCard
+        title="Action states"
+        description="Review default, hover-target, active-target and disabled button treatments side by side."
+      >
         <div class="space-y-4">
           <div
             v-for="row in buttonRows"
@@ -172,17 +164,13 @@ function stateCardClass(label: string) {
             </div>
           </div>
         </div>
-      </UCard>
+      </PreviewCard>
 
       <div class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <UCard variant="outline">
-          <template #header>
-            <div class="space-y-1">
-              <p class="text-sm font-medium text-highlighted">Field states</p>
-              <p class="text-sm text-muted">Input matrix focused on placeholder, focus ring, error contrast and disabled readability.</p>
-            </div>
-          </template>
-
+        <PreviewCard
+          title="Field states"
+          description="Input matrix focused on placeholder, focus ring, error contrast and disabled readability."
+        >
           <div class="grid gap-4 md:grid-cols-2">
             <div
               v-for="fieldState in fieldStates"
@@ -210,17 +198,13 @@ function stateCardClass(label: string) {
               />
             </div>
           </div>
-        </UCard>
+        </PreviewCard>
 
         <div class="space-y-6">
-          <UCard variant="outline">
-            <template #header>
-              <div class="space-y-1">
-                <p class="text-sm font-medium text-highlighted">Badge states</p>
-                <p class="text-sm text-muted">Compact status labels should keep hierarchy at small sizes.</p>
-              </div>
-            </template>
-
+          <PreviewCard
+            title="Badge states"
+            description="Compact status labels should keep hierarchy at small sizes."
+          >
             <div class="flex flex-wrap gap-2">
               <UBadge
                 v-for="badgeState in badgeStates"
@@ -231,16 +215,12 @@ function stateCardClass(label: string) {
                 {{ badgeState.label }}
               </UBadge>
             </div>
-          </UCard>
+          </PreviewCard>
 
-          <UCard variant="outline">
-            <template #header>
-              <div class="space-y-1">
-                <p class="text-sm font-medium text-highlighted">Alert states</p>
-                <p class="text-sm text-muted">Message containers help verify semantic fills, icon visibility and body copy weight.</p>
-              </div>
-            </template>
-
+          <PreviewCard
+            title="Alert states"
+            description="Message containers help verify semantic fills, icon visibility and body copy weight."
+          >
             <div class="space-y-3">
               <UAlert
                 v-for="alertState in alertStates"
@@ -252,7 +232,7 @@ function stateCardClass(label: string) {
                 icon="i-lucide-shield-alert"
               />
             </div>
-          </UCard>
+          </PreviewCard>
         </div>
       </div>
     </div>

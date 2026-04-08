@@ -53,20 +53,12 @@ const commandGroups = [
 
 <template>
   <section class="space-y-4">
-    <div class="space-y-1">
-      <h3 class="text-lg font-semibold text-highlighted">
-        Command palette
-      </h3>
-      <p class="text-sm text-muted">
-        Embedded command palette coverage for grouped search, keyboard hints and compact action density.
-      </p>
-    </div>
+    <PreviewSectionIntro
+      title="Command palette"
+      description="Embedded command palette coverage for grouped search, keyboard hints and compact action density."
+    />
 
-    <UCard variant="outline">
-      <template #header>
-        <p class="text-sm font-medium text-highlighted">Command browser</p>
-      </template>
-
+    <PreviewCard title="Command browser">
       <div class="rounded-3xl border border-default bg-default p-3">
         <UCommandPalette
           v-model="selectedCommand"
@@ -77,6 +69,6 @@ const commandGroups = [
           :back="false"
         />
       </div>
-    </UCard>
+    </PreviewCard>
   </section>
 </template>

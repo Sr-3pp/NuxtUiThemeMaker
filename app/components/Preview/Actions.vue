@@ -15,24 +15,16 @@ function buttonStyle(variant: ButtonVariant, color: ButtonColor) {
 
 <template>
   <section class="space-y-4">
-    <div class="space-y-1">
-      <h3 class="text-lg font-semibold text-highlighted">
-        Actions
-      </h3>
-      <p class="text-sm text-muted">
-        Primary and semantic call-to-action states, emphasis levels and compact badge checks.
-      </p>
-    </div>
+    <PreviewSectionIntro
+      title="Actions"
+      description="Primary and semantic call-to-action states, emphasis levels and compact badge checks."
+    />
 
     <div class="grid gap-6 xl:grid-cols-[1.45fr_0.55fr]">
-      <UCard variant="outline">
-        <template #header>
-          <div class="space-y-1">
-            <p class="text-sm font-medium text-highlighted">Button variants by semantic color</p>
-            <p class="text-sm text-muted">Each row keeps the same semantic color while the variant shifts emphasis.</p>
-          </div>
-        </template>
-
+      <PreviewCard
+        title="Button variants by semantic color"
+        description="Each row keeps the same semantic color while the variant shifts emphasis."
+      >
         <div class="space-y-4">
           <div
             v-for="color in buttonColors"
@@ -58,16 +50,13 @@ function buttonStyle(variant: ButtonVariant, color: ButtonColor) {
             </UButton>
           </div>
         </div>
-      </UCard>
+      </PreviewCard>
 
-      <UCard variant="soft">
-        <template #header>
-          <div class="space-y-1">
-            <p class="text-sm font-medium text-highlighted">State samples</p>
-            <p class="text-sm text-muted">Loading, disabled, icon-only and directional icon treatments.</p>
-          </div>
-        </template>
-
+      <PreviewCard
+        title="State samples"
+        description="Loading, disabled, icon-only and directional icon treatments."
+        variant="soft"
+      >
         <div class="space-y-3">
           <div class="flex flex-wrap gap-3">
             <UButton color="primary" icon="i-lucide-sparkles" :style="buttonStyle('solid', 'primary')">
@@ -104,7 +93,7 @@ function buttonStyle(variant: ButtonVariant, color: ButtonColor) {
             </div>
           </div>
         </div>
-      </UCard>
+      </PreviewCard>
     </div>
   </section>
 </template>

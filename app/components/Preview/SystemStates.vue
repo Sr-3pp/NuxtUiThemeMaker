@@ -28,21 +28,13 @@ const timelineItems: TimelineItem[] = [
 
 <template>
   <section class="space-y-4">
-    <div class="space-y-1">
-      <h3 class="text-lg font-semibold text-highlighted">
-        Empty states and progressions
-      </h3>
-      <p class="text-sm text-muted">
-        Empty states, CTAs and step-based communication patterns for production dashboards and product flows.
-      </p>
-    </div>
+    <PreviewSectionIntro
+      title="Empty states and progressions"
+      description="Empty states, CTAs and step-based communication patterns for production dashboards and product flows."
+    />
 
     <div class="grid gap-6 xl:grid-cols-[1fr_1.05fr]">
-      <UCard variant="outline">
-        <template #header>
-          <p class="text-sm font-medium text-highlighted">Empty state</p>
-        </template>
-
+      <PreviewCard title="Empty state">
         <div class="rounded-3xl border border-default bg-default p-4">
           <UEmpty
             icon="i-lucide-inbox"
@@ -54,13 +46,9 @@ const timelineItems: TimelineItem[] = [
             ]"
           />
         </div>
-      </UCard>
+      </PreviewCard>
 
-      <UCard variant="soft">
-        <template #header>
-          <p class="text-sm font-medium text-highlighted">Timeline</p>
-        </template>
-
+      <PreviewCard title="Timeline" variant="soft">
         <div class="rounded-3xl border border-default bg-default p-5">
           <UTimeline
             :items="timelineItems"
@@ -68,7 +56,7 @@ const timelineItems: TimelineItem[] = [
             default-value="1"
           />
         </div>
-      </UCard>
+      </PreviewCard>
     </div>
   </section>
 </template>

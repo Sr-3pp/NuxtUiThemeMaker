@@ -19,21 +19,13 @@ function buttonStyle(variant: string, color: string) {
 
 <template>
   <section class="space-y-4">
-    <div class="space-y-1">
-      <h3 class="text-lg font-semibold text-highlighted">
-        Typography
-      </h3>
-      <p class="text-sm text-muted">
-        Headings, body copy, inline emphasis and supporting text for quick readability checks.
-      </p>
-    </div>
+    <PreviewSectionIntro
+      title="Typography"
+      description="Headings, body copy, inline emphasis and supporting text for quick readability checks."
+    />
 
     <div class="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-      <UCard variant="outline">
-        <template #header>
-          <p class="text-sm font-medium text-highlighted">Type scale</p>
-        </template>
-
+      <PreviewCard title="Type scale">
         <div class="space-y-5 rounded-3xl border border-default bg-default p-5">
           <div
             v-for="item in textScale"
@@ -48,14 +40,10 @@ function buttonStyle(variant: string, color: string) {
             </p>
           </div>
         </div>
-      </UCard>
+      </PreviewCard>
 
       <div class="grid gap-6">
-        <UCard variant="soft">
-          <template #header>
-            <p class="text-sm font-medium text-highlighted">Typography helper block</p>
-          </template>
-
+        <PreviewCard title="Typography helper block" variant="soft">
           <div class="space-y-4 rounded-3xl border border-default bg-default p-5">
             <p class="text-xs font-medium uppercase tracking-[0.2em] text-muted">Editorial check</p>
             <h2 class="text-2xl font-semibold tracking-tight text-highlighted">
@@ -68,13 +56,9 @@ function buttonStyle(variant: string, color: string) {
               <span class="rounded bg-accented px-1.5 py-0.5 text-highlighted"> highlighted inline labels</span>.
             </p>
           </div>
-        </UCard>
+        </PreviewCard>
 
-        <UCard variant="outline">
-          <template #header>
-            <p class="text-sm font-medium text-highlighted">Small text and tokens</p>
-          </template>
-
+        <PreviewCard title="Small text and tokens">
           <div class="space-y-4 rounded-3xl border border-default bg-muted/40 p-5">
             <div class="flex flex-wrap items-center gap-3">
               <UKbd value="cmd" />
@@ -90,7 +74,7 @@ function buttonStyle(variant: string, color: string) {
               Dimmed text should fall behind primary content without disappearing into the container.
             </p>
           </div>
-        </UCard>
+        </PreviewCard>
       </div>
     </div>
   </section>

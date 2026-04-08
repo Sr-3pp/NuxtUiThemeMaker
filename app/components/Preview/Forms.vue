@@ -29,21 +29,13 @@ const inputStyle = computed(() => getPreviewInputStyle(props.palette))
 
 <template>
   <section class="space-y-4">
-    <div class="space-y-1">
-      <h3 class="text-lg font-semibold text-highlighted">
-        Forms
-      </h3>
-      <p class="text-sm text-muted">
-        Focus, placeholder, error, disabled and selection states across the main input controls.
-      </p>
-    </div>
+    <PreviewSectionIntro
+      title="Forms"
+      description="Focus, placeholder, error, disabled and selection states across the main input controls."
+    />
 
     <div class="grid gap-6 xl:grid-cols-2">
-      <UCard variant="outline">
-        <template #header>
-          <p class="text-sm font-medium text-highlighted">Inputs and selection fields</p>
-        </template>
-
+      <PreviewCard title="Inputs and selection fields">
         <div class="grid gap-4 md:grid-cols-2">
           <div class="space-y-2">
             <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
@@ -155,13 +147,9 @@ const inputStyle = computed(() => getPreviewInputStyle(props.palette))
             </div>
           </div>
         </div>
-      </UCard>
+      </PreviewCard>
 
-      <UCard variant="outline">
-        <template #header>
-          <p class="text-sm font-medium text-highlighted">Choices and toggles</p>
-        </template>
-
+      <PreviewCard title="Choices and toggles">
         <div class="space-y-5">
           <div class="space-y-2">
             <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
@@ -218,7 +206,7 @@ const inputStyle = computed(() => getPreviewInputStyle(props.palette))
             </div>
           </div>
         </div>
-      </UCard>
+      </PreviewCard>
     </div>
   </section>
 </template>

@@ -30,20 +30,12 @@ const surfaceCards = [
 
 <template>
   <section class="space-y-4">
-    <div class="space-y-1">
-      <h3 class="text-lg font-semibold text-highlighted">
-        Containers and surfaces
-      </h3>
-      <p class="text-sm text-muted">
-        Surface layering, separators, nested cards and elevation checks for quick container contrast inspection.
-      </p>
-    </div>
+    <PreviewSectionIntro
+      title="Containers and surfaces"
+      description="Surface layering, separators, nested cards and elevation checks for quick container contrast inspection."
+    />
 
-    <UCard variant="outline">
-      <template #header>
-        <p class="text-sm font-medium text-highlighted">Surface tokens in context</p>
-      </template>
-
+    <PreviewCard title="Surface tokens in context">
       <div class="grid gap-4 md:grid-cols-2">
         <div
           v-for="surface in surfaceCards"
@@ -61,25 +53,19 @@ const surfaceCards = [
 
       <div class="rounded-3xl border border-default bg-muted/60 p-4">
         <div class="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
-          <UCard variant="outline">
-            <template #header>
-              <p class="text-sm font-medium text-highlighted">Outer card</p>
-            </template>
+          <PreviewCard title="Outer card">
             <p class="text-sm text-muted">
               Outer surface uses the default container and border tokens.
             </p>
-          </UCard>
+          </PreviewCard>
 
-          <UCard variant="soft" class="border border-default/70">
-            <template #header>
-              <p class="text-sm font-medium text-highlighted">Nested card</p>
-            </template>
+          <PreviewCard title="Nested card" variant="soft" card-class="border border-default/70">
             <p class="text-sm text-muted">
               The nested layer exposes elevation contrast and softened backgrounds.
             </p>
-          </UCard>
+          </PreviewCard>
         </div>
       </div>
-    </UCard>
+    </PreviewCard>
   </section>
 </template>
