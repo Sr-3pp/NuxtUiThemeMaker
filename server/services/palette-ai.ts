@@ -7,6 +7,11 @@ import {
 } from '~~/server/services/palette-generation-access'
 import type { AuthSession } from '~~/server/types/auth-session'
 
+const GEMINI_MODEL = 'gemini-flash-latest'
+const TRANSIENT_AI_STATUS_CODES = new Set([429, 500, 502, 503, 504])
+const TRANSIENT_AI_STATUS_TEXTS = new Set(['RESOURCE_EXHAUSTED', 'UNAVAILABLE'])
+const AI_RETRY_DELAYS_MS = [250, 750]
+
 function extractJsonPayload(text: string) {
   const fencedMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)
   const raw = (fencedMatch?.[1] ?? text).trim()
@@ -105,6 +110,108 @@ function formatSchemaError(error: ZodError) {
     .join('; ')
 }
 
+function getAiRetryDelay(delayMs: number) {
+  if (process.env.VITEST) {
+    return 0
+  }
+
+  return delayMs
+}
+
+async function waitForAiRetry(delayMs: number) {
+  const effectiveDelay = getAiRetryDelay(delayMs)
+
+  if (!effectiveDelay) {
+    return
+  }
+
+  await new Promise(resolve => setTimeout(resolve, effectiveDelay))
+}
+
+function extractAiErrorDetails(error: unknown) {
+  if (!error || typeof error !== 'object') {
+    return {
+      statusCode: null,
+      statusText: '',
+      message: '',
+    }
+  }
+
+  const candidate = error as {
+    message?: unknown
+    statusCode?: unknown
+    code?: unknown
+    status?: unknown
+    error?: {
+      code?: unknown
+      status?: unknown
+      message?: unknown
+    }
+  }
+
+  const nestedError = candidate.error
+  const statusCode = [candidate.statusCode, candidate.code, nestedError?.code]
+    .find(value => typeof value === 'number')
+
+  const statusText = [candidate.status, nestedError?.status]
+    .find(value => typeof value === 'string') ?? ''
+
+  const message = [candidate.message, nestedError?.message]
+    .find(value => typeof value === 'string') ?? ''
+
+  return {
+    statusCode: statusCode ?? null,
+    statusText,
+    message,
+  }
+}
+
+function isRetryableAiError(error: unknown) {
+  const { statusCode, statusText, message } = extractAiErrorDetails(error)
+
+  if (statusCode !== null && TRANSIENT_AI_STATUS_CODES.has(statusCode)) {
+    return true
+  }
+
+  if (TRANSIENT_AI_STATUS_TEXTS.has(statusText)) {
+    return true
+  }
+
+  return /high demand|try again later|temporar(?:ily)? unavailable/i.test(message)
+}
+
+async function requestStructuredPaletteAiContent(
+  ai: GoogleGenAI,
+  contents: ContentListUnion,
+  responseSchema?: Record<string, unknown>,
+) {
+  let lastError: unknown
+
+  for (let attempt = 0; attempt <= AI_RETRY_DELAYS_MS.length; attempt += 1) {
+    try {
+      return await ai.models.generateContent({
+        model: GEMINI_MODEL,
+        contents,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema,
+          maxOutputTokens: 4096,
+        },
+      })
+    } catch (error) {
+      lastError = error
+
+      if (!isRetryableAiError(error) || attempt === AI_RETRY_DELAYS_MS.length) {
+        throw error
+      }
+
+      await waitForAiRetry(AI_RETRY_DELAYS_MS[attempt]!)
+    }
+  }
+
+  throw lastError
+}
+
 export async function assertPaletteAiAccess(session: AuthSession | null) {
   const access = assertPaletteGenerationAllowed(session)
 
@@ -148,15 +255,7 @@ export async function generateStructuredPaletteAiResult<T>({
 }) {
   try {
     const ai = new GoogleGenAI({ apiKey: getGeminiApiKey() })
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: contents ?? [prompt],
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema,
-        maxOutputTokens: 4096,
-      },
-    })
+    const response = await requestStructuredPaletteAiContent(ai, contents ?? [prompt], responseSchema)
 
     if (!response.text) {
       throw new Error('Gemini returned an empty response')
@@ -173,6 +272,15 @@ export async function generateStructuredPaletteAiResult<T>({
 
     if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error
+    }
+
+    if (isRetryableAiError(error)) {
+      console.error('AI provider temporarily unavailable:', error)
+
+      throw createError({
+        statusCode: 503,
+        statusMessage: 'AI provider is temporarily unavailable. Please try again shortly.',
+      })
     }
 
     console.error('Error generating AI content:', error)

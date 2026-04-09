@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { paletteDefinitionSchema } from '~~/server/domain/palette-schema'
+import { paletteDefinitionSchema, paletteResponseSchema } from '~~/server/domain/palette-schema'
 
 const hexColorSchema = z.string().trim().regex(/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, 'Expected a hex color')
 const optionalHexColorSchema = z.union([hexColorSchema, z.null()])
@@ -67,6 +67,36 @@ export const paletteAuditGenerateResponseSchema = z.object({
   summary: z.string().trim().min(1),
   fixes: z.array(aiFixSchema).min(1),
   patchedPalette: paletteDefinitionSchema,
+})
+
+const stringResponseSchema = {
+  type: 'string',
+} as const
+
+function createObjectResponseSchema<T extends Record<string, unknown>>(properties: T) {
+  return {
+    type: 'object',
+    properties,
+    required: Object.keys(properties),
+  } as const
+}
+
+export const paletteAuditResponseSchema = createObjectResponseSchema({
+  summary: stringResponseSchema,
+  fixes: {
+    type: 'array',
+    items: createObjectResponseSchema({
+      token: stringResponseSchema,
+      mode: {
+        type: 'string',
+        enum: ['light', 'dark', 'shared'],
+      },
+      currentValue: stringResponseSchema,
+      suggestedValue: stringResponseSchema,
+      reason: stringResponseSchema,
+    }),
+  },
+  patchedPalette: paletteResponseSchema,
 })
 
 export const paletteDirectionsGenerateRequestSchema = z.object({

@@ -244,6 +244,60 @@ describe('phase 7 AI palette endpoints', () => {
     }))
   })
 
+  it('normalizes string-based audit fixes and falls back to the submitted palette', async () => {
+    getPaletteQaReportMock.mockReturnValueOnce({
+      score: 78,
+      status: 'warning',
+      issues: [{
+        id: 'semantic-hierarchy',
+        category: 'semantic-mapping',
+        severity: 'warning',
+        mode: 'shared',
+        title: 'Semantic mapping',
+        description: 'Accent colors stay visible on the main surface and preserve hierarchy.',
+        tokens: ['bg.accented', 'color.primary'],
+      }],
+      readiness: [],
+      counts: {
+        critical: 0,
+        warning: 1,
+        info: 0,
+      },
+    })
+    generateContentMock.mockResolvedValueOnce({
+      text: JSON.stringify({
+        summary: 'Reduced accent bleed on the main surface.',
+        fixes: [
+          'light bg.accented: shift this surface away from the primary hue so accents remain special.',
+          'shared color.primary: keep brand emphasis concentrated in actions instead of default surfaces.',
+        ],
+      }),
+    })
+
+    const { default: handler } = await import('~~/server/api/palettes/generate/audit.post')
+    const result = await handler(createPostEvent('/api/palettes/generate/audit', {
+      palette: basePalette,
+      prompt: 'fix this: Semantic mapping Accent colors stay visible on the main surface and preserve hierarchy.',
+    }) as H3Event)
+
+    expect(result).toMatchObject({
+      summary: 'Reduced accent bleed on the main surface.',
+      fixes: [
+        {
+          token: 'bg.accented',
+          mode: 'light',
+        },
+        {
+          token: 'color.primary',
+          mode: 'shared',
+        },
+      ],
+      patchedPalette: {
+        name: 'Baseline',
+      },
+    })
+  })
+
   it('generates alternative directions from an existing palette', async () => {
     generateContentMock.mockResolvedValueOnce({
       text: JSON.stringify({
