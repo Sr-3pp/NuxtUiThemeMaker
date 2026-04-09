@@ -65,7 +65,6 @@ const {
   removeRampBrandColor,
   handleRamps,
   handleVariants,
-  applyPaletteSuggestion,
   applyStarterSuggestion,
   applyAuditSuggestion,
   applyDirectionSuggestion,

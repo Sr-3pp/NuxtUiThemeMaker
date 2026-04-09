@@ -1,11 +1,11 @@
-import { describe, expect, it } from 'vitest'
-import { vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { PricingPlanId } from '../../app/types/pricing'
 import {
   FREE_PLAN_PALETTE_GENERATION_LIMIT,
   PRO_PLAN_PALETTE_GENERATION_LIMIT,
   STUDIO_PLAN_PALETTE_GENERATION_LIMIT,
 } from '../../app/data/pricing'
+import { getPaletteGenerationAccess } from '../../server/services/palette-generation-access'
 
 vi.mock('h3', () => ({
   createError: (input: { statusCode: number, statusMessage: string }) =>
@@ -15,8 +15,6 @@ vi.mock('h3', () => ({
 vi.mock('~~/server/db/repositories/user-repository', () => ({
   incrementAiPaletteGenerationsUsed: vi.fn(),
 }))
-
-import { getPaletteGenerationAccess } from '../../server/services/palette-generation-access'
 
 function createSession(overrides: Partial<{
   isAdmin: boolean

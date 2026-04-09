@@ -79,8 +79,8 @@ function importPaletteFromTextarea() {
 
         <UFormField label="Paste palette JSON">
           <UTextarea
-            class="w-full"
             v-model="pastedPaletteJson"
+            class="w-full"
             :rows="12"
             placeholder="{&#10;  &quot;name&quot;: &quot;My Palette&quot;,&#10;  &quot;modes&quot;: { ... }&#10;}&#10;&#10;or&#10;&#10;:root {&#10;  --ui-primary: #11aa55;&#10;}"
           />

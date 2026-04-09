@@ -1,4 +1,4 @@
-import { createError, createEvent, type H3Event } from 'h3'
+import { createEvent, type H3Event } from 'h3'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const requireAuthSessionMock = vi.fn()

@@ -127,8 +127,8 @@ const handlePaletteNameInput = (event: Event) => {
 
         <EditorContent
           :palette="currentPalette"
-          :sourcePalette="sourcePalette ?? currentPalette"
-          defaultMode="dark"
+          :source-palette="sourcePalette ?? currentPalette"
+          default-mode="dark"
           tab="tokens"
           @update-token="handleUpdateToken"
           @update-color-scale="handleUpdateColorScale"

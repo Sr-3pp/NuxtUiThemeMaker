@@ -1,4 +1,8 @@
 <script setup lang="ts">
+defineOptions({
+  name: 'AppNavigation',
+})
+
 const { togglePalettesSidebar, toggleEditorSidebar } = useSidebar()
 const { currentPalette, setCurrentPalette } = usePaletteState()
 const { generatePalette } = usePaletteApi()

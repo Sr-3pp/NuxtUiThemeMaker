@@ -40,7 +40,7 @@ export interface SavePalettePayload {
   isPublic?: boolean
 }
 
-export interface UpdatePalettePayload extends SavePalettePayload {}
+export type UpdatePalettePayload = SavePalettePayload
 
 export interface UpdatePaletteVisibilityPayload {
   isPublic: boolean

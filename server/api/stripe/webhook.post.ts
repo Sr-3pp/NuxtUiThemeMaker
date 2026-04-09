@@ -9,7 +9,7 @@ import {
 import { sendPricingPlanPurchaseConfirmationEmail } from '~~/server/services/email-service'
 import { verifyStripeWebhookSignature } from '~~/server/services/stripe-service'
 import { getDefaultPaidPricingPlanId, isPaidPricingPlanId } from '../../../app/data/pricing'
-import type { BillingInterval, PaidPricingPlan, PricingPlanId } from '~/types/pricing'
+import type { BillingInterval, PricingPlanId } from '~/types/pricing'
 import type { PaidUserPlan, StripeEvent, UserPlan, UserPlanStatus } from '~~/server/types/stripe-webhook'
 
 function toDateFromUnix(timestamp: unknown) {

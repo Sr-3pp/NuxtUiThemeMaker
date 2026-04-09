@@ -338,7 +338,7 @@ watch(user, async (currentUser) => {
           </div>
         </div>
 
-        <div class="space-y-3" v-if="sharedPalettes.length">
+        <div v-if="sharedPalettes.length" class="space-y-3">
           <p class="text-sm font-medium text-highlighted">
             Shared with you
           </p>

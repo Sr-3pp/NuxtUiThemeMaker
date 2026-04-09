@@ -19,7 +19,7 @@ function apiFetch<T>(
   return $fetch<T>(url, options) as Promise<T>
 }
 
-const fetchWorkspaceApi = <T>(url: string) => {
+const fetchWorkspaceApi = <T,>(url: string) => {
   return apiFetch<T>(url, {
     credentials: 'include',
   })

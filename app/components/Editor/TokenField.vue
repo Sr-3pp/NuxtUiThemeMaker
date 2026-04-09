@@ -9,7 +9,7 @@ import {
   paletteTokenStyle,
 } from '~/utils/paletteEditor'
 
-const props = defineProps<{
+defineProps<{
   sectionKey: string
   tokenKey: string
   tokenValue: PaletteTokenValue

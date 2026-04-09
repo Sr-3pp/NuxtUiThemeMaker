@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb'
+import type { ObjectId } from 'mongodb'
 import { getPaletteReviewCollection } from '~~/server/db/collections/palette-reviews'
 import type { PaletteReviewDocument } from '~~/server/types/palette-review-document'
 

@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb'
+import type { ObjectId } from 'mongodb'
 import type { PaletteDocument } from '~~/server/types/palette-document'
 import { getPaletteCollection } from '~~/server/db/collections/palettes'
 

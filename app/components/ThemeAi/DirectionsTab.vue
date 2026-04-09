@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { EditablePalette } from '~/types/palette-editor'
 import type { PaletteDefinition } from '~/types/palette'
-import type { PaletteDirectionsGenerateResult } from '~/types/palette-generation'
-import type { PaletteAiResultHistoryEntry } from '~/types/palette-generation'
+import type { PaletteAiResultHistoryEntry, PaletteDirectionsGenerateResult } from '~/types/palette-generation'
 import { clonePaletteDefinition } from '~/utils/palette-domain'
 
 const props = defineProps<{

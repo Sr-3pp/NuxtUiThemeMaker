@@ -25,8 +25,6 @@ export interface RestoredPaletteAiSession {
 
 const sessionTabs = ['starter', 'audit', 'directions', 'ramps', 'variants'] as const
 
-type PaletteAiSessionTab = typeof sessionTabs[number]
-
 export function createEmptyPersistedHistoryState<T>(): PaletteAiPersistedHistoryState<T> {
   return {
     items: [],

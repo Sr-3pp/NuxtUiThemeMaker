@@ -28,13 +28,13 @@ const areaDefinition = computed(() => getPreviewAreaDefinition(props.area))
 
     <div class="space-y-3">
       <div class="flex flex-wrap gap-2">
-        <UBadge color="neutral" variant="outline" v-for="component in areaDefinition.components" :key="component">
+        <UBadge v-for="component in areaDefinition.components" :key="component" color="neutral" variant="outline">
           {{ component }}
         </UBadge>
       </div>
 
       <div class="flex flex-wrap gap-2">
-        <UBadge color="primary" variant="soft" v-for="token in areaDefinition.tokens" :key="token">
+        <UBadge v-for="token in areaDefinition.tokens" :key="token" color="primary" variant="soft">
           {{ token }}
         </UBadge>
       </div>
