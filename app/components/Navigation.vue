@@ -82,15 +82,15 @@ const handleGenertion = async () => {
                     variant="link"
                     :disabled="isDisabled"
                     :loading="isGenerating"
-                    @click="handleGenertion()"
                     icon="mingcute:ai-line"
+                    @click="handleGenertion()"
                 />
             </template>
         </UInput>
 
         <UButton
-            class="ml-auto"
             v-else
+            class="ml-auto"
             :to="cta?.to"
             color="primary"
             variant="link"
@@ -101,10 +101,10 @@ const handleGenertion = async () => {
         </UButton>
 
         <UButton
+            v-if="isDisabled"
             class="ml-auto"
             color="secondary"
             variant="ghost"
-            v-if="isDisabled"
             to="/pricing"
             icon="mynaui:label"
         >

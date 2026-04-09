@@ -82,7 +82,7 @@ const handlePaletteNameInput = (event: Event) => {
 </script>
 
 <template>
-    <UDashboardSidebar id="theme-editor-sidebar" v-model:open="editorSidebarSw" side="right" mode="drawer" resizable :min-size="400">
+    <UDashboardSidebar id="theme-editor-sidebar" v-model:open="editorSidebarSw" side="right" mode="drawer" :default-size="30" :max-size="30">
       <template #header>
         <div class="w-full flex items-center">
           <UIcon class="mr-2" name="i-lucide:palette" />

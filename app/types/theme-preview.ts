@@ -54,6 +54,5 @@ export interface AlertStateSample {
   description: string
 }
 
-export type PreviewTabValue = 'browser' | 'components' | 'forms' | 'surfaces' | 'typography'
 export type PreviewFrameMode = 'current' | 'light' | 'dark' | 'split'
 export type PreviewViewport = 'mobile' | 'tablet' | 'desktop' | 'full'
