@@ -60,7 +60,6 @@ export const paletteVariantGenerateResponseSchema = z.object({
 
 export const paletteAuditGenerateRequestSchema = z.object({
   palette: paletteDefinitionSchema,
-  prompt: z.string().trim().min(1).max(1500).optional(),
 })
 
 export const paletteAuditGenerateResponseSchema = z.object({

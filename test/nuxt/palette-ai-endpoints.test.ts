@@ -225,7 +225,6 @@ describe('phase 7 AI palette endpoints', () => {
     const { default: handler } = await import('~~/server/api/palettes/generate/audit.post')
     const result = await handler(createPostEvent('/api/palettes/generate/audit', {
       palette: basePalette,
-      prompt: 'Prioritize body copy and focus visibility.',
     }) as H3Event)
 
     expect(result).toMatchObject({
@@ -277,7 +276,6 @@ describe('phase 7 AI palette endpoints', () => {
     const { default: handler } = await import('~~/server/api/palettes/generate/audit.post')
     const result = await handler(createPostEvent('/api/palettes/generate/audit', {
       palette: basePalette,
-      prompt: 'fix this: Semantic mapping Accent colors stay visible on the main surface and preserve hierarchy.',
     }) as H3Event)
 
     expect(result).toMatchObject({

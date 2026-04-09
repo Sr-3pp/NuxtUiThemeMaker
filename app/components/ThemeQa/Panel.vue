@@ -1,15 +1,39 @@
 <script setup lang="ts">
 import type { ThemeQaPanelProps, ThemeQaSeverity, ThemeQaStatusMeta } from '~/types/theme-qa'
+import { clonePaletteDefinition } from '~/utils/palette-domain'
 import { auditPaletteTheme } from '~/utils/palette-qa'
+import { emptyPalette } from '~/utils/paletteRegistry'
 
 const props = withDefaults(defineProps<ThemeQaPanelProps>(), {
   compact: false,
   report: null,
   source: 'local',
   loading: false,
+  showRepairAction: false,
+  repairLoading: false,
 })
 
+const emit = defineEmits<{
+  repair: []
+}>()
+
 const report = computed(() => props.report ?? auditPaletteTheme(props.palette))
+const defaultPaletteSignature = JSON.stringify(clonePaletteDefinition(emptyPalette))
+const isDefaultPalette = computed(() => {
+  if (!props.palette) {
+    return false
+  }
+
+  return JSON.stringify(clonePaletteDefinition(props.palette)) === defaultPaletteSignature
+})
+const canRepair = computed(() => {
+  return props.showRepairAction
+    && props.source === 'local'
+    && !props.loading
+    && !props.repairLoading
+    && !isDefaultPalette.value
+    && Boolean(report.value.issues.length)
+})
 
 const statusMeta = computed<ThemeQaStatusMeta>(() => {
   if (report.value.status === 'healthy') {
@@ -71,13 +95,28 @@ function getSeverityColor(severity: ThemeQaSeverity) {
           </p>
         </div>
 
-        <div class="text-right">
-          <p class="text-2xl font-semibold text-highlighted">
-            {{ report.score }}
-          </p>
-          <p class="text-xs uppercase tracking-[0.18em] text-muted">
-            health score
-          </p>
+        <div class="flex flex-col items-end gap-3">
+          <div class="text-right">
+            <p class="text-2xl font-semibold text-highlighted">
+              {{ report.score }}
+            </p>
+            <p class="text-xs uppercase tracking-[0.18em] text-muted">
+              health score
+            </p>
+          </div>
+
+          <UButton
+            v-if="props.showRepairAction && props.source === 'local'"
+            color="primary"
+            variant="soft"
+            size="sm"
+            icon="i-lucide-wand-sparkles"
+            :disabled="!canRepair"
+            :loading="props.repairLoading"
+            @click="emit('repair')"
+          >
+            Repair with AI
+          </UButton>
         </div>
       </div>
     </template>

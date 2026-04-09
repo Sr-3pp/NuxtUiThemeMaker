@@ -15,6 +15,8 @@ import {
   createPaletteWithGeneratedComponents,
   createPaletteWithGeneratedRamps,
 } from '~/utils/palette-domain'
+import { auditPaletteTheme } from '../utils/palette-qa'
+import { emptyPalette } from '~/utils/paletteRegistry'
 import { getComponentThemeEditorDefinitions } from '~/utils/component-theme-editor'
 import {
   getSelectedThemeAiHistoryId,
@@ -68,13 +70,12 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   const { applyGeneratedPalette, applyGeneratedComponents, applyGeneratedRamps } = usePaletteState()
   const access = usePaletteGenerationAccess()
 
-  const activeTab = ref<'starter' | 'audit' | 'directions' | 'ramps' | 'variants'>('starter')
+  const activeTab = ref<'starter' | 'directions' | 'ramps' | 'variants'>('starter')
   const starterPrompt = ref('')
   const starterReferenceSummary = ref('')
   const starterBrandColors = ref<string[]>([])
   const starterBrandInput = ref('')
   const starterReferenceImage = ref<PaletteReferenceImageAsset | null>(null)
-  const auditPrompt = ref('')
   const directionsPrompt = ref('')
   const rampsPrompt = ref('')
   const variantsPrompt = ref('')
@@ -87,6 +88,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   const isRampsLoading = ref(false)
   const isVariantsLoading = ref(false)
   const isStarterLoading = ref(false)
+  const lastAutoAuditSignature = ref<string | null>(null)
   const starterResult = ref<PaletteDefinition | null>(null)
   const auditResult = ref<PaletteAuditGenerateResult | null>(null)
   const directionsResult = ref<PaletteDirectionsGenerateResult | null>(null)
@@ -99,6 +101,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   const variantsHistory = ref<PaletteAiResultHistoryEntry<PaletteVariantGenerateResult>[]>([])
   const historyId = ref(0)
   const persistedSessions = useState<Record<string, PaletteAiPersistedSession>>('theme-ai-modal-sessions', () => ({}))
+  const defaultAuditPaletteSignature = JSON.stringify(clonePaletteDefinition(emptyPalette))
 
   const hasPalette = computed(() => Boolean(palette.value))
   const paletteSessionKey = computed(() => {
@@ -112,6 +115,34 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   const canGenerateRamps = computed(() => rampBrandColors.value.length > 0 && !access.isDisabled.value)
   const canGenerateVariants = computed(() => hasPalette.value && selectedVariantComponents.value.length > 0 && !access.isDisabled.value)
   const canGenerateFromPalette = computed(() => hasPalette.value && !access.isDisabled.value)
+  const isDefaultAuditPalette = computed(() => {
+    if (!palette.value) {
+      return false
+    }
+
+    return JSON.stringify(clonePaletteDefinition(palette.value)) === defaultAuditPaletteSignature
+  })
+  const auditQaReport = computed(() => hasPalette.value ? auditPaletteTheme(palette.value) : null)
+  const canGenerateAudit = computed(() => {
+    return canGenerateFromPalette.value
+      && !isDefaultAuditPalette.value
+      && Boolean(auditQaReport.value?.issues.length)
+  })
+  const auditIssueSignature = computed(() => {
+    if (!palette.value || !auditQaReport.value?.issues.length) {
+      return null
+    }
+
+    if (isDefaultAuditPalette.value) {
+      return null
+    }
+
+    return JSON.stringify({
+      paletteKey: paletteSessionKey.value,
+      issueIds: auditQaReport.value.issues.map(issue => issue.id),
+      counts: auditQaReport.value.counts,
+    })
+  })
   const componentOptions = computed(() => getComponentThemeEditorDefinitions(palette.value?.components).map(definition => ({
     label: definition.label,
     value: definition.value,
@@ -146,6 +177,28 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   }
 
   watchThemeAiModalSessionPersistence(open, activeTab, paletteSessionKey, sessionState, persistedSessions)
+
+  watch([open, auditIssueSignature, access.isDisabled], async ([isOpen, signature, disabled]) => {
+    if (!isOpen || disabled || !signature) {
+      if (!signature) {
+        lastAutoAuditSignature.value = null
+      }
+
+      return
+    }
+
+    if (lastAutoAuditSignature.value === signature || isAuditLoading.value) {
+      return
+    }
+
+    lastAutoAuditSignature.value = signature
+
+    const succeeded = await handleAudit()
+
+    if (!succeeded) {
+      lastAutoAuditSignature.value = null
+    }
+  })
 
   function showValidationToast(title: string, description: string) {
     toast.add({
@@ -201,9 +254,11 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   }
 
   async function handleAudit() {
+    let succeeded = false
+
     await runThemeAiModalAction({
       loading: isAuditLoading,
-      canRun: canGenerateFromPalette.value,
+      canRun: canGenerateAudit.value,
       execute: async () => {
         const currentPalette = getCurrentPaletteClone()
 
@@ -211,18 +266,31 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
           return
         }
 
+        if (!auditQaReport.value?.issues.length) {
+          showValidationToast('No issues found', 'Theme QA did not flag any issues to send to the AI repair flow.')
+          return
+        }
+
         const result = await generatePaletteAudit({
           palette: currentPalette,
-          prompt: auditPrompt.value.trim() || undefined,
         })
         auditResult.value = result
-        pushThemeAiResultHistory(auditHistory, historyId, result, result.summary, summarizeThemeAiPrompt(auditPrompt.value, 'Default repair brief'))
+        pushThemeAiResultHistory(
+          auditHistory,
+          historyId,
+          result,
+          result.summary,
+          `${auditQaReport.value.counts.critical} critical, ${auditQaReport.value.counts.warning} warning`,
+        )
+        succeeded = true
       },
       handleError: async (error) => {
         showErrorToast(error, themeAiMessages.audit.generateError)
         await access.refresh()
       },
     })
+
+    return succeeded
   }
 
   function addStarterBrandColor() {
@@ -409,7 +477,6 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     starterBrandColors,
     starterBrandInput,
     starterReferenceImage,
-    auditPrompt,
     directionsPrompt,
     rampsPrompt,
     variantsPrompt,
@@ -433,8 +500,11 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     rampsHistory,
     variantsHistory,
     canGenerateStarter,
+    canGenerateAudit,
     canGenerateRamps,
     canGenerateVariants,
+    auditQaReport,
+    isDefaultAuditPalette,
     componentOptions,
     rampPreviewPalette,
     variantPreviewPalette,

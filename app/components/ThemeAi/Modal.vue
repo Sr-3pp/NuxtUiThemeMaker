@@ -20,7 +20,6 @@ const {
   starterBrandColors,
   starterBrandInput,
   starterReferenceImage,
-  auditPrompt,
   directionsPrompt,
   rampsPrompt,
   variantsPrompt,
@@ -28,18 +27,15 @@ const {
   rampBrandColors,
   rampInput,
   selectedVariantComponents,
-  isAuditLoading,
   isDirectionsLoading,
   isRampsLoading,
   isVariantsLoading,
   isStarterLoading,
   starterResult,
-  auditResult,
   directionsResult,
   rampsResult,
   variantsResult,
   starterHistory,
-  auditHistory,
   directionsHistory,
   rampsHistory,
   variantsHistory,
@@ -50,7 +46,6 @@ const {
   rampPreviewPalette,
   variantPreviewPalette,
   clearStarterResult,
-  clearAuditResult,
   clearDirectionsResult,
   clearRampsResult,
   clearVariantsResult,
@@ -59,14 +54,12 @@ const {
   clearStarterReferenceImage,
   handleStarterImageUpload,
   handleStarterTheme,
-  handleAudit,
   handleDirections,
   addRampBrandColor,
   removeRampBrandColor,
   handleRamps,
   handleVariants,
   applyStarterSuggestion,
-  applyAuditSuggestion,
   applyDirectionSuggestion,
   applyRampSuggestion,
   applyVariantSuggestion,
@@ -78,7 +71,7 @@ const {
   <UModal
     v-model:open="open"
     title="AI Theme Assist"
-    description="Repair accessibility issues or generate alternative directions from the current palette."
+    description="Generate starter themes, color ramps, variants, and alternative directions from the current palette."
     :ui="{ content: 'sm:max-w-5xl' }"
   >
     <template #body>
@@ -117,7 +110,6 @@ const {
           v-model="activeTab"
           :items="[
             { label: 'Starter', value: 'starter', slot: 'starter' },
-            { label: 'Audit', value: 'audit', slot: 'audit' },
             { label: 'Ramps', value: 'ramps', slot: 'ramps' },
             { label: 'Variants', value: 'variants', slot: 'variants' },
             { label: 'Directions', value: 'directions', slot: 'directions' },
@@ -150,22 +142,6 @@ const {
               @clear-result="clearStarterResult()"
               @select-history="starterResult = selectHistoryResult(starterHistory, $event)"
               @apply-result="applyStarterSuggestion($event)"
-            />
-          </template>
-
-          <template #audit>
-            <ThemeAiAuditTab
-              :prompt="auditPrompt"
-              :has-palette="hasPalette"
-              :is-disabled="isDisabled"
-              :is-loading="isAuditLoading"
-              :result="auditResult"
-              :history="auditHistory"
-              @update:prompt="auditPrompt = $event"
-              @generate="handleAudit()"
-              @clear-result="clearAuditResult()"
-              @select-history="auditResult = selectHistoryResult(auditHistory, $event)"
-              @apply="applyAuditSuggestion($event)"
             />
           </template>
 

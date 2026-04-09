@@ -89,7 +89,7 @@ export default defineEventHandler(async (event) => {
   const report = getPaletteQaReport(body.palette)
 
   const prompt = [
-    body.prompt ? `Repair goal: ${body.prompt}.` : null,
+    `Repair every issue flagged in the QA report, prioritizing critical issues before warnings and warnings before informational cleanup.`,
     `Palette JSON: ${JSON.stringify(body.palette)}.`,
     `Theme QA report JSON: ${JSON.stringify(report)}.`,
     'Example fix object: {"token":"text.default","mode":"light","currentValue":"#94a3b8","suggestedValue":"#0f172a","reason":"Raises body copy contrast on the default background."}.',

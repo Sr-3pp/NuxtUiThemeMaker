@@ -79,6 +79,7 @@ const handleUpdateComponentToken = (payload: UpdateEditablePaletteComponentToken
 const handlePaletteNameInput = (event: Event) => {
   updatePaletteName((event.target as HTMLInputElement).value)
 }
+
 </script>
 
 <template>
@@ -94,7 +95,11 @@ const handlePaletteNameInput = (event: Event) => {
         </div>
       </template>
       <div v-if="currentPalette" class="space-y-4">
-        <ThemeQaModal v-model:open="isQaModalOpen" :palette="currentPalette" />
+        <ThemeQaModal
+          v-model:open="isQaModalOpen"
+          :palette="currentPalette"
+          :show-repair-action="true"
+        />
         <ThemeAiModal v-model:open="isAiAssistOpen" :palette="currentPalette" />
 
         <UFormField label="Palette name">

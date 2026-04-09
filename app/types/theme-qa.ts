@@ -42,6 +42,8 @@ export interface ThemeQaPanelProps {
   report?: ThemeQaReport | null
   source?: 'local' | 'server'
   loading?: boolean
+  showRepairAction?: boolean
+  repairLoading?: boolean
 }
 
 export interface ThemeQaStatusMeta {

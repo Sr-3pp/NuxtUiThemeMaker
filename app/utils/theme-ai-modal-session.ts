@@ -113,7 +113,7 @@ export function syncThemeAiModalPersistedSession(
 
 export function watchThemeAiModalSessionPersistence(
   open: Ref<boolean>,
-  activeTab: Ref<'starter' | 'audit' | 'directions' | 'ramps' | 'variants'>,
+  activeTab: Ref<'starter' | 'directions' | 'ramps' | 'variants'>,
   paletteSessionKey: ComputedRef<string | null>,
   state: ThemeAiModalSessionState,
   persistedSessions: Ref<Record<string, PaletteAiPersistedSession>>,

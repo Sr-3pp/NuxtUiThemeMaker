@@ -63,7 +63,11 @@ const previewViewportClass = computed(() => {
 
 <template>
   <div class="space-y-4">
-    <ThemeQaModal v-model:open="isQaModalOpen" :palette="props.palette" />
+    <ThemeQaModal
+      v-model:open="isQaModalOpen"
+      :palette="props.palette"
+      :show-repair-action="true"
+    />
 
     <UCard variant="outline" class="rounded-2xl shadow-none dark:border-white/10 dark:bg-black/40">
       <template #header>

@@ -52,7 +52,6 @@ export interface PaletteVariantGenerateResult {
 
 export interface PaletteAuditGeneratePayload {
   palette: PaletteDefinition
-  prompt?: string
 }
 
 export interface PaletteAuditFix {

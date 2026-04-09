@@ -1,14 +1,22 @@
 <script setup lang="ts">
+import { clonePaletteDefinition } from '~/utils/palette-domain'
+import { auditPaletteTheme } from '~/utils/palette-qa'
+import { emptyPalette } from '~/utils/paletteRegistry'
 import type { EditablePalette } from '~/types/palette-editor'
 import type { StoredPaletteQaReport, ThemeQaPanelProps } from '~/types/theme-qa'
 
 const props = defineProps<ThemeQaPanelProps>()
-
 const open = defineModel<boolean>('open', { default: false })
+const toast = useToast()
+const { showErrorToast } = useErrorToast()
+const { generatePaletteAudit } = usePaletteApi()
+const { applyGeneratedPalette } = usePaletteState()
+const access = usePaletteGenerationAccess()
 const reportTab = ref<'draft' | 'server'>('draft')
 const serverReport = ref<StoredPaletteQaReport | null>(null)
 const isLoadingServerReport = ref(false)
 const serverReportError = ref<string | null>(null)
+const isAuditLoading = ref(false)
 
 const paletteId = computed(() => {
   const palette = props.palette as EditablePalette | null
@@ -16,6 +24,42 @@ const paletteId = computed(() => {
 })
 
 const canLoadServerReport = computed(() => Boolean(paletteId.value))
+const isDraftReportTab = computed(() => reportTab.value === 'draft' || !canLoadServerReport.value)
+const activePanelProps = computed(() => {
+  if (isDraftReportTab.value) {
+    return {
+      report: null,
+      source: 'local' as const,
+      loading: false,
+      showRepairAction: props.showRepairAction,
+      repairLoading: isAuditLoading.value,
+    }
+  }
+
+  return {
+    report: serverReport.value?.report ?? null,
+    source: 'server' as const,
+    loading: isLoadingServerReport.value,
+    showRepairAction: false,
+    repairLoading: false,
+  }
+})
+const defaultPaletteSignature = JSON.stringify(clonePaletteDefinition(emptyPalette))
+const draftReport = computed(() => props.palette ? auditPaletteTheme(props.palette) : null)
+const isDefaultAuditPalette = computed(() => {
+  if (!props.palette) {
+    return false
+  }
+
+  return JSON.stringify(clonePaletteDefinition(props.palette)) === defaultPaletteSignature
+})
+const canGenerateRepair = computed(() => {
+  return reportTab.value === 'draft'
+    && props.showRepairAction
+    && !access.isDisabled.value
+    && !isDefaultAuditPalette.value
+    && Boolean(draftReport.value?.issues.length)
+})
 
 async function loadServerReport() {
   if (!paletteId.value) {
@@ -37,6 +81,31 @@ async function loadServerReport() {
     serverReportError.value = error instanceof Error ? error.message : 'Failed to load saved QA report.'
   } finally {
     isLoadingServerReport.value = false
+  }
+}
+
+async function handleRepair() {
+  if (!props.palette || !canGenerateRepair.value || isAuditLoading.value) {
+    return
+  }
+
+  isAuditLoading.value = true
+
+  try {
+    const auditResult = await generatePaletteAudit({
+      palette: clonePaletteDefinition(props.palette),
+    })
+    applyGeneratedPalette(auditResult.patchedPalette)
+    toast.add({
+      title: 'Palette updated',
+      description: 'Applied the generated audit repair to the current draft.',
+      color: 'success',
+    })
+  } catch (error) {
+    showErrorToast(error, 'Failed to generate the audit repair.')
+    await access.refresh()
+  } finally {
+    isAuditLoading.value = false
   }
 }
 
@@ -110,17 +179,13 @@ watch(paletteId, () => {
         />
 
         <ThemeQaPanel
-          v-if="reportTab === 'draft' || !canLoadServerReport"
           :palette="palette"
-          source="local"
-        />
-
-        <ThemeQaPanel
-          v-else
-          :palette="palette"
-          :report="serverReport?.report ?? null"
-          :loading="isLoadingServerReport"
-          source="server"
+          :report="activePanelProps.report"
+          :loading="activePanelProps.loading"
+          :show-repair-action="activePanelProps.showRepairAction"
+          :repair-loading="activePanelProps.repairLoading"
+          :source="activePanelProps.source"
+          @repair="handleRepair()"
         />
       </div>
     </template>
