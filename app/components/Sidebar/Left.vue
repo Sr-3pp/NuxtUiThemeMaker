@@ -2,10 +2,17 @@
 import type { DropdownMenuItem, NavigationMenuItem } from '~/types/ui-local'
 
 const {
-  openOwnPalettes,
-  openDefaultPresets,
-  openCommunityPalettes
-} = useDrawers()
+  open: openOwnPalettesModal,
+  close: closeOwnPalettes,
+} = useModal('own-palettes')
+const {
+  open: openDefaultPresetsModal,
+  close: closeDefaultPresets,
+} = useModal('default-presets')
+const {
+  open: openCommunityPalettesModal,
+  close: closeCommunityPalettes,
+} = useModal('community-palettes')
 
 const { currentPalette, resetCurrentPalette } = usePaletteState()
 const { open: openImportModal } = useModal('import-palette')
@@ -21,10 +28,43 @@ function handleExportOpen() {
 
 const { signOut, user } = useAuth()
 
-const { palettesSidebarSw } = useSidebar()
+const { palettesSidebarSw, closePalettesSidebar } = useSidebar()
 
 function toggleSidebar() {
   palettesSidebarSw.value = !palettesSidebarSw.value
+}
+
+function closePaletteDrawers() {
+  closeOwnPalettes()
+  closeDefaultPresets()
+  closeCommunityPalettes()
+}
+
+function isMobileSidebar() {
+  return import.meta.client && window.matchMedia('(max-width: 639px)').matches
+}
+
+async function openPaletteDrawer(openDrawer: () => void) {
+  closePaletteDrawers()
+
+  if (isMobileSidebar()) {
+    closePalettesSidebar()
+    await nextTick()
+  }
+
+  openDrawer()
+}
+
+async function openOwnPalettes() {
+  await openPaletteDrawer(openOwnPalettesModal)
+}
+
+async function openDefaultPresets() {
+  await openPaletteDrawer(openDefaultPresetsModal)
+}
+
+async function openCommunityPalettes() {
+  await openPaletteDrawer(openCommunityPalettesModal)
 }
 
 const authItems = computed<DropdownMenuItem[][]>(() => {

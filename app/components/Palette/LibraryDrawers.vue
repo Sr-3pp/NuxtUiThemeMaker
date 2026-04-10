@@ -5,17 +5,23 @@ import type { PaletteVersionSnapshot } from '~/types/palette-version'
 import { defaultPalettes, emptyPalette } from '~/utils/paletteRegistry'
 
 const {
-  ownPalettesOpen,
-  defaultPresetsOpen,
-  communityPalettesOpen,
-  closeAllDrawers,
-} = useDrawers()
+  isOpen: ownPalettesOpen,
+  close: closeOwnPalettes,
+} = useModal('own-palettes')
+const {
+  isOpen: defaultPresetsOpen,
+  close: closeDefaultPresets,
+} = useModal('default-presets')
+const {
+  isOpen: communityPalettesOpen,
+  close: closeCommunityPalettes,
+} = useModal('community-palettes')
 
 const { createEmptyPalette, currentPalette, setCurrentPalette } = usePaletteState()
 const { deletePalette, getPaletteHistory, getPublicPalettes, getUserPalettes, sharePalette, unsharePalette, updatePaletteVisibility } = usePaletteApi()
 const { user } = useAuth()
 const toast = useToast()
-const { togglePalettesSidebar } = useSidebar()
+const { closePalettesSidebar } = useSidebar()
 const { showErrorToast } = useErrorToast()
 const { isOpen: isHistoryOpen, open: openHistoryModal } = useModal('palette-history')
 const { isOpen: isShareOpen, open: openShareModal } = useModal('palette-share')
@@ -47,9 +53,15 @@ function syncSharePaletteTarget() {
   sharePaletteTarget.value = nextPalette
 }
 
+function closeAllDrawers() {
+  closeOwnPalettes()
+  closeDefaultPresets()
+  closeCommunityPalettes()
+}
+
 function closeLibrary() {
   closeAllDrawers()
-  togglePalettesSidebar()
+  closePalettesSidebar()
 }
 
 function handlePaletteSelect(option: PaletteDefinition | StoredPalette) {
