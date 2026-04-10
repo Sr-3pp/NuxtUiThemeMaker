@@ -53,4 +53,3 @@ export interface AlertStateSample {
 }
 
 export type PreviewFrameMode = 'current' | 'light' | 'dark' | 'split'
-export type PreviewViewport = 'mobile' | 'tablet' | 'desktop' | 'full'

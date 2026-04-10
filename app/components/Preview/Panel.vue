@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PaletteDefinition } from '~/types/palette'
-import type { PreviewFrameMode, PreviewViewport } from '~/types/theme-preview'
+import type { PreviewFrameMode } from '~/types/theme-preview'
 
 const props = withDefaults(defineProps<{
   disableInteractive?: boolean
@@ -11,18 +11,11 @@ const props = withDefaults(defineProps<{
 
 const colorMode = useColorMode()
 const previewMode = ref<PreviewFrameMode>('current')
-const previewViewport = ref<PreviewViewport>('desktop')
 const previewModeItems = [
   { label: 'Current mode', value: 'current' },
   { label: 'Light only', value: 'light' },
   { label: 'Dark only', value: 'dark' },
   { label: 'Split compare', value: 'split' },
-]
-const previewViewportItems = [
-  { label: 'Mobile', value: 'mobile' },
-  { label: 'Tablet', value: 'tablet' },
-  { label: 'Desktop', value: 'desktop' },
-  { label: 'Full width', value: 'full' },
 ]
 
 const currentMode = computed(() => {
@@ -44,19 +37,6 @@ const previewFrames = computed(() => {
     theme: themeBuilder(props.palette!.modes[mode]),
   }))
 })
-
-const previewViewportClass = computed(() => {
-  switch (previewViewport.value) {
-    case 'mobile':
-      return 'mx-auto w-full max-w-sm'
-    case 'tablet':
-      return 'mx-auto w-full max-w-3xl'
-    case 'full':
-      return 'w-full'
-    default:
-      return 'mx-auto w-full max-w-6xl'
-  }
-})
 </script>
 
 <template>
@@ -68,7 +48,7 @@ const previewViewportClass = computed(() => {
             Preview controls
           </p>
           <p class="text-xs text-muted">
-            Compare light and dark themes, switch viewport widths, and review palette health in the QA report.
+            Compare light and dark themes and review palette health in the QA report.
           </p>
         </div>
       </template>
@@ -85,15 +65,6 @@ const previewViewportClass = computed(() => {
           color="neutral"
           variant="outline"
         />
-
-        <USelect
-          v-model="previewViewport"
-          :items="previewViewportItems"
-          value-key="value"
-          color="neutral"
-          variant="outline"
-        />
-
       </div>
     </UCard>
 
@@ -116,7 +87,7 @@ const previewViewportClass = computed(() => {
           </UBadge>
         </div>
 
-        <div :style="frame.theme" :class="previewViewportClass">
+        <div :style="frame.theme" class="mx-auto w-full max-w-6xl">
           <PreviewBrowserTab
             :disable-interactive="props.disableInteractive"
             :palette="props.palette"
