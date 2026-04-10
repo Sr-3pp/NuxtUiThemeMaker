@@ -8,7 +8,7 @@ const props = defineProps<{
   initialTab?: 'starter' | 'directions' | 'ramps' | 'variants'
 }>()
 
-const open = defineModel<boolean>('open', { default: false })
+const { isOpen: open } = useModal('theme-ai-modal')
 
 const {
   activeTab,

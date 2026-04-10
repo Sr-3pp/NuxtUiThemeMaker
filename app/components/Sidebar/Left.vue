@@ -7,24 +7,16 @@ const {
   openCommunityPalettes
 } = useDrawers()
 
-const { currentPalette, resetCurrentPalette, setCurrentPalette } = usePaletteState()
-const importModalOpen = ref(false)
-const exportModalOpen = ref(false)
+const { currentPalette, resetCurrentPalette } = usePaletteState()
+const { open: openImportModal } = useModal('import-palette')
+const { open: openExportModal } = useModal('export-palette')
 
-function openExportModal() {
+function handleExportOpen() {
   if (!currentPalette.value) {
     return
   }
 
-  exportModalOpen.value = true
-}
-
-function openImportModal() {
-  importModalOpen.value = true
-}
-
-function handlePaletteImport(palette: Parameters<typeof setCurrentPalette>[0]) {
-  setCurrentPalette(palette)
+  openExportModal()
 }
 
 const { signOut, user } = useAuth()
@@ -111,16 +103,13 @@ const palettesItems = computed<NavigationMenuItem[][]>(() => [[
   {
     label: 'Export',
     icon: 'i-lucide-file-output',
-    onSelect: () => openExportModal()
+    onSelect: () => handleExportOpen()
   }
 ]])
 </script>
 
 
 <template>
-  <SidebarImportModal v-model:open="importModalOpen" @import="handlePaletteImport" />
-  <SidebarExportModal v-model:open="exportModalOpen" :palette="currentPalette" />
-
   <USidebar
     v-model:open="palettesSidebarSw"
     collapsible="icon"

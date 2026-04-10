@@ -2,7 +2,7 @@
 import type { PaletteDefinition } from '~/types/palette'
 import { normalizeImportedPaletteFromText } from '~/utils/palette-io'
 
-const open = defineModel<boolean>('open', { default: false })
+const { isOpen: open } = useModal('import-palette')
 
 const emit = defineEmits<{
   import: [palette: PaletteDefinition]

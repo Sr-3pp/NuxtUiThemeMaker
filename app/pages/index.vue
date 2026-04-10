@@ -28,9 +28,13 @@ usePageSeo({
   ],
 })
 
-const { currentPalette } = usePaletteState()
+const { currentPalette, setCurrentPalette } = usePaletteState()
 
 const disableInteractivePreviews = ref(false)
+
+function handlePaletteImport(palette: Parameters<typeof setCurrentPalette>[0]) {
+  setCurrentPalette(palette)
+}
 
 watch(() => route.query.checkout, async (value) => {
   if (value !== 'success') {
@@ -50,7 +54,6 @@ watch(() => route.query.checkout, async (value) => {
 <template>
   <UDashboardGroup>
     <SidebarLeft />
-    <PaletteLibraryDrawers />
 
     <UDashboardPanel>
       <template #header>
@@ -64,5 +67,20 @@ watch(() => route.query.checkout, async (value) => {
     </UDashboardPanel>
 
     <SidebarRight />
+
+    <PaletteLibraryDrawers />
+
+    <ModalImport @import="handlePaletteImport" />
+
+    <ModalExport :palette="currentPalette" />
+
+    <ModalQa
+      :palette="currentPalette"
+      :show-repair-action="true"
+    />
+
+    <ModalAi
+      :palette="currentPalette"
+    />
   </UDashboardGroup>
 </template>

@@ -14,7 +14,7 @@ const props = defineProps<{
   palette: PaletteDefinition | null
 }>()
 
-const open = defineModel<boolean>('open', { default: false })
+const { isOpen: open } = useModal('export-palette')
 const selectedExport = ref<'json' | 'bundle' | 'appConfig' | 'ts' | 'components' | 'snippet' | 'js' | 'css'>('json')
 const copyState = ref<'idle' | 'copied' | 'error'>('idle')
 

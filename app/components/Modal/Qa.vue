@@ -6,7 +6,7 @@ import type { EditablePalette } from '~/types/palette-editor'
 import type { StoredPaletteQaReport, ThemeQaPanelProps } from '~/types/theme-qa'
 
 const props = defineProps<ThemeQaPanelProps>()
-const open = defineModel<boolean>('open', { default: false })
+const { isOpen: open} = useModal('qa-modal')
 const toast = useToast()
 const { showErrorToast } = useErrorToast()
 const { generatePaletteAudit } = usePaletteApi()

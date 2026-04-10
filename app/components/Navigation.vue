@@ -6,15 +6,17 @@ defineOptions({
 const { togglePalettesSidebar, toggleEditorSidebar } = useSidebar()
 const { currentPalette } = usePaletteState()
 const { cta, helperText, isDisabled, refresh } = usePaletteGenerationAccess()
-const { isAiAssistOpen } = useThemeModals()
+
+const { open: openQaReport } = useModal('qa-modal')
+const { open: openAiAssist } = useModal('theme-ai-modal')
 
 const openAiTools = async () => {
-    if (isDisabled.value) {
-        await refresh()
-        return
-    }
+  if (isDisabled.value) {
+    await refresh()
+    return
+  }
 
-    isAiAssistOpen.value = true
+  openAiAssist()
 }
 </script>
 
@@ -53,12 +55,21 @@ const openAiTools = async () => {
     </div>
 
     <div class="ml-auto flex w-full max-w-2xl gap-2 items-center justify-end flex-wrap">
+        <UButton
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-shield-check"
+            @click="openQaReport"
+        >
+            QA report
+        </UButton>
+
         <template v-if="!isDisabled">
             <UButton
                 color="primary"
                 variant="soft"
                 icon="i-lucide-sparkles"
-                @click="openAiTools()"
+                @click="openAiTools"
             >
                 AI tools
             </UButton>

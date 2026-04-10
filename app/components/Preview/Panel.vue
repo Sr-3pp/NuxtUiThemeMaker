@@ -12,7 +12,6 @@ const props = withDefaults(defineProps<{
 const colorMode = useColorMode()
 const previewMode = ref<PreviewFrameMode>('current')
 const previewViewport = ref<PreviewViewport>('desktop')
-const { isQaModalOpen } = useThemeModals()
 const previewModeItems = [
   { label: 'Current mode', value: 'current' },
   { label: 'Light only', value: 'light' },
@@ -95,14 +94,6 @@ const previewViewportClass = computed(() => {
           variant="outline"
         />
 
-        <UButton
-          color="neutral"
-          variant="outline"
-          icon="i-lucide-shield-check"
-          @click="isQaModalOpen = true"
-        >
-          QA report
-        </UButton>
       </div>
     </UCard>
 

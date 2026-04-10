@@ -17,11 +17,11 @@ const { user } = useAuth()
 const toast = useToast()
 const { togglePalettesSidebar } = useSidebar()
 const { showErrorToast } = useErrorToast()
-const isHistoryOpen = ref(false)
+const { isOpen: isHistoryOpen, open: openHistoryModal } = useModal('palette-history')
+const { isOpen: isShareOpen, open: openShareModal } = useModal('palette-share')
 const isHistoryLoading = ref(false)
 const historyPalette = ref<StoredPalette | null>(null)
 const paletteHistory = ref<PaletteVersionSnapshot[]>([])
-const isShareOpen = ref(false)
 const isSharing = ref(false)
 const isUnsharing = ref(false)
 const sharePaletteTarget = ref<StoredPalette | null>(null)
@@ -88,7 +88,7 @@ async function handlePaletteVisibilityToggle(palette: StoredPalette) {
 
 async function handlePaletteHistoryOpen(palette: StoredPalette) {
   historyPalette.value = palette
-  isHistoryOpen.value = true
+  openHistoryModal()
   isHistoryLoading.value = true
 
   try {
@@ -104,7 +104,7 @@ async function handlePaletteHistoryOpen(palette: StoredPalette) {
 function handlePaletteShareOpen(palette: StoredPalette) {
   sharePaletteTarget.value = palette
   shareEmail.value = ''
-  isShareOpen.value = true
+  openShareModal()
 }
 
 async function handlePaletteShareSubmit() {
