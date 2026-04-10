@@ -5,38 +5,35 @@ defineOptions({
 
 const { togglePalettesSidebar, toggleEditorSidebar } = useSidebar()
 const { currentPalette, setCurrentPalette } = usePaletteState()
-const { generatePalette } = usePaletteApi()
 const { cta, helperText, isDisabled, refresh } = usePaletteGenerationAccess()
 const { showErrorToast } = useErrorToast()
 
-const prompt = ref('')
-const isGenerating = ref(false)
+const isAiAssistOpen = ref(false)
+const requestedAiTab = ref<'starter' | 'directions' | 'ramps' | 'variants'>('starter')
 
-const handleGenertion = async () => {
-    if (!prompt.value.trim() || isDisabled.value || isGenerating.value) {
+const openAiTool = async (tab: 'starter' | 'directions' | 'ramps' | 'variants') => {
+    if (isDisabled.value) {
+        await refresh()
         return
     }
 
-    isGenerating.value = true
-
-    try {
-        const generatedPalette = await generatePalette(prompt.value)
-        if (generatedPalette) {
-            setCurrentPalette(generatedPalette)
-            prompt.value = ''
-        }
-    } catch (error) {
-        console.error('Error generating palette:', error)
-        showErrorToast(error, 'Failed to generate palette.')
-        await refresh()
-    } finally {
-        isGenerating.value = false
+    if (!currentPalette.value) {
+        showErrorToast(new Error('No palette loaded'), 'Load or create a palette before using AI tools.')
+        return
     }
+
+    requestedAiTab.value = tab
+    isAiAssistOpen.value = true
 }
 </script>
 
 <template>
 <div class="flex flex-col sm:flex-row gap-4 items-center justify-between p-2 sm:p-4">
+    <ThemeAiModal
+        v-model:open="isAiAssistOpen"
+        :palette="currentPalette"
+        :initial-tab="requestedAiTab"
+    />
     
     <div class="flex min-w-0 gap-2 w-full sm:w-auto">
         <UButton
@@ -70,27 +67,44 @@ const handleGenertion = async () => {
         </UButton>
     </div>
 
-    <div class="ml-auto flex w-full max-w-sm gap-2 items-center">
-        <UInput
-            v-if="!isDisabled"
-            v-model="prompt"
-            class="w-full"
-            label="Generate Palette"
-            placeholder="Describe your palette..."
-            @keydown.enter="handleGenertion()"
-        >
-            <template #trailing>
-                <UButton
-                    class="px-0"
-                    color="primary"
-                    variant="link"
-                    :disabled="isDisabled"
-                    :loading="isGenerating"
-                    icon="mingcute:ai-line"
-                    @click="handleGenertion()"
-                />
-            </template>
-        </UInput>
+    <div class="ml-auto flex w-full max-w-2xl gap-2 items-center justify-end flex-wrap">
+        <template v-if="!isDisabled">
+            <UButton
+                color="primary"
+                variant="soft"
+                icon="i-lucide-sparkles"
+                @click="openAiTool('starter')"
+            >
+                Generate Theme
+            </UButton>
+
+            <UButton
+                color="neutral"
+                variant="outline"
+                icon="i-lucide-swatch-book"
+                @click="openAiTool('ramps')"
+            >
+                Ramps
+            </UButton>
+
+            <UButton
+                color="neutral"
+                variant="outline"
+                icon="i-lucide-box"
+                @click="openAiTool('variants')"
+            >
+                Variants
+            </UButton>
+
+            <UButton
+                color="neutral"
+                variant="outline"
+                icon="i-lucide-compass"
+                @click="openAiTool('directions')"
+            >
+                Directions
+            </UButton>
+        </template>
 
         <UButton
             v-else

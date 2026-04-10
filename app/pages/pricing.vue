@@ -151,12 +151,20 @@ function getPlanAction(planId: PricingPlanId) {
           Pricing
         </p>
         <h1 class="text-4xl font-semibold tracking-tight sm:text-5xl">
-          Pick the plan that matches your palette workload
+          Pick the plan that matches your AI theme workflow
         </h1>
         <p class="mx-auto max-w-2xl text-sm text-muted">
-          Every registered account starts with limited usage, then paid plans unlock larger generation and save limits for heavier palette workflows.
+          Every registered account starts with a limited AI run budget, then paid plans unlock more runs and larger save limits for heavier theme workflows.
         </p>
       </div>
+
+      <UAlert
+        color="neutral"
+        variant="soft"
+        icon="i-lucide-info"
+        title="How AI runs work"
+        description="All AI tools use the same shared monthly run budget. Each successful AI action counts as 1 run, including Generate Theme, Ramps, Variants, Directions, and QA Repair."
+      />
 
       <UAlert
         v-if="checkoutBanner"

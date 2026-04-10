@@ -10,7 +10,7 @@ describe('pricing config', () => {
         yearlyPrice: expect.any(Number),
       }),
       expect.objectContaining({
-        id: 'studio',
+        id: 'teams',
         monthlyPrice: expect.any(Number),
         yearlyPrice: expect.any(Number),
       }),
@@ -21,17 +21,17 @@ describe('pricing config', () => {
     expect(pricingPlans).toEqual(expect.arrayContaining([
       expect.objectContaining({
         id: 'free',
-        paletteGenerationLimit: 3,
+        paletteGenerationLimit: 5,
         paletteSaveLimit: 1,
       }),
       expect.objectContaining({
         id: 'pro',
-        paletteGenerationLimit: 30,
-        paletteSaveLimit: 20,
+        paletteGenerationLimit: 60,
+        paletteSaveLimit: 25,
       }),
       expect.objectContaining({
-        id: 'studio',
-        paletteGenerationLimit: 100,
+        id: 'teams',
+        paletteGenerationLimit: 300,
         paletteSaveLimit: null,
       }),
     ]))

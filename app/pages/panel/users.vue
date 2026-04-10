@@ -266,7 +266,7 @@ const tableColumns: TableColumn<AdminUserListItem>[] = [
                 Admin access
               </p>
               <p class="text-xs text-muted">
-                Grant panel access and unlimited AI generations.
+                Grant panel access and unlimited AI runs.
               </p>
             </div>
 

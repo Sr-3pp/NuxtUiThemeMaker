@@ -79,7 +79,7 @@ export function assertPaletteGenerationAllowed(session: AuthSession | null) {
   if (!access.canGenerate) {
     throw createError({
       statusCode: 403,
-      statusMessage: `Your plan only includes ${access.freeLimit} AI palette generations`,
+      statusMessage: `Your plan only includes ${access.freeLimit} AI runs`,
     })
   }
 

@@ -1,14 +1,14 @@
 export type BillingInterval = 'monthly' | 'yearly'
 
-export const FREE_PLAN_PALETTE_GENERATION_LIMIT = 3
-export const PRO_PLAN_PALETTE_GENERATION_LIMIT = 30
-export const STUDIO_PLAN_PALETTE_GENERATION_LIMIT = 100
+export const FREE_PLAN_PALETTE_GENERATION_LIMIT = 5
+export const PRO_PLAN_PALETTE_GENERATION_LIMIT = 60
+export const TEAMS_PLAN_PALETTE_GENERATION_LIMIT = 300
 export const FREE_PLAN_PALETTE_SAVE_LIMIT = 1
-export const PRO_PLAN_PALETTE_SAVE_LIMIT = 20
-export const STUDIO_PLAN_PALETTE_SAVE_LIMIT = null
+export const PRO_PLAN_PALETTE_SAVE_LIMIT = 25
+export const TEAMS_PLAN_PALETTE_SAVE_LIMIT = null
 
 function formatPaletteGenerationLimitFeature(limit: number) {
-  return `${limit} AI palette generations per month`
+  return `${limit} AI runs per month`
 }
 
 function formatPaletteSaveLimitFeature(limit: number | null) {
@@ -23,7 +23,7 @@ export const pricingPlans = [
   {
     id: 'free',
     name: 'Free',
-    description: 'Try the theme creator with limited AI generations and basic features.',
+    description: 'Try the builder with a small monthly AI run budget and basic export tools.',
     monthlyPrice: 0,
     yearlyPrice: 0,
     currency: 'usd',
@@ -32,13 +32,15 @@ export const pricingPlans = [
     features: [
       formatPaletteGenerationLimitFeature(FREE_PLAN_PALETTE_GENERATION_LIMIT),
       formatPaletteSaveLimitFeature(FREE_PLAN_PALETTE_SAVE_LIMIT),
+      'Generate themes, ramps, variants, and directions',
+      'QA repair',
       'Export theme JSON',
     ],
   },
   {
     id: 'pro',
     name: 'Pro',
-    description: 'For creators who need more flexibility and frequent palette generation.',
+    description: 'For solo designers and developers who iterate often across the full AI toolkit.',
     monthlyPrice: 15,
     yearlyPrice: 150,
     currency: 'usd',
@@ -47,24 +49,31 @@ export const pricingPlans = [
     features: [
       formatPaletteGenerationLimitFeature(PRO_PLAN_PALETTE_GENERATION_LIMIT),
       formatPaletteSaveLimitFeature(PRO_PLAN_PALETTE_SAVE_LIMIT),
+      'All AI tools included',
+      'QA repair',
       'Priority generation access',
       'Advanced export options',
     ],
   },
   {
-    id: 'studio',
-    name: 'Studio',
-    description: 'For heavy workflows and power users who need higher limits and faster access.',
-    monthlyPrice: 29,
-    yearlyPrice: 290,
+    id: 'teams',
+    name: 'Teams',
+    description: 'For shared theme workflows with collaborators, larger AI budgets, and a common palette library.',
+    monthlyPrice: 49,
+    yearlyPrice: 490,
     currency: 'usd',
-    paletteGenerationLimit: STUDIO_PLAN_PALETTE_GENERATION_LIMIT,
-    paletteSaveLimit: STUDIO_PLAN_PALETTE_SAVE_LIMIT,
+    paletteGenerationLimit: TEAMS_PLAN_PALETTE_GENERATION_LIMIT,
+    paletteSaveLimit: TEAMS_PLAN_PALETTE_SAVE_LIMIT,
     features: [
-      formatPaletteGenerationLimitFeature(STUDIO_PLAN_PALETTE_GENERATION_LIMIT),
-      formatPaletteSaveLimitFeature(STUDIO_PLAN_PALETTE_SAVE_LIMIT),
+      formatPaletteGenerationLimitFeature(TEAMS_PLAN_PALETTE_GENERATION_LIMIT),
+      formatPaletteSaveLimitFeature(TEAMS_PLAN_PALETTE_SAVE_LIMIT),
+      'All AI tools included',
+      'QA repair',
+      'Team collaboration workflow',
+      'Shared palette library',
+      'Up to 5 collaborators',
       'Faster generation during peak usage',
-      'Early access to new features',
+      'Priority support',
     ],
   },
 ] as const

@@ -5,6 +5,7 @@ import { useThemeAiModal } from '~/composables/useThemeAiModal'
 
 const props = defineProps<{
   palette: EditablePalette | null
+  initialTab?: 'starter' | 'directions' | 'ramps' | 'variants'
 }>()
 
 const open = defineModel<boolean>('open', { default: false })
@@ -65,6 +66,14 @@ const {
   applyVariantSuggestion,
   selectHistoryResult,
 } = useThemeAiModal(open, toRef(props, 'palette'))
+
+watch(open, (value) => {
+  if (!value || !props.initialTab) {
+    return
+  }
+
+  activeTab.value = props.initialTab
+})
 </script>
 
 <template>
