@@ -68,7 +68,15 @@ watch(() => route.query.checkout, async (value) => {
 
     <SidebarRight />
 
-    <PaletteLibraryDrawers />
+    <PaletteOwnDrawer />
+
+    <PaletteDefaultPresetsDrawer />
+
+    <PaletteCommunityDrawer />
+
+    <PaletteHistoryModal />
+
+    <PaletteShareModal />
 
     <ModalImport @import="handlePaletteImport" />
 
