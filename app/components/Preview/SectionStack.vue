@@ -17,10 +17,6 @@ defineProps<PreviewPanelContentProps & {
       v-for="section in sections"
       :key="section.area"
     >
-      <PreviewInspectLegend
-        v-if="inspectTokens"
-        :area="section.area"
-      />
       <component
         :is="section.component"
         :disable-interactive="disableInteractive"

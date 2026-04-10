@@ -9,9 +9,7 @@ export interface PreviewInteractiveProps {
   palette?: PaletteDefinition | null
 }
 
-export interface PreviewPanelContentProps extends PreviewInteractiveProps {
-  inspectTokens?: boolean
-}
+export interface PreviewPanelContentProps extends PreviewInteractiveProps {}
 
 export type ButtonColor = NonNullable<ButtonProps['color']>
 export type ButtonVariant = NonNullable<ButtonProps['variant']>

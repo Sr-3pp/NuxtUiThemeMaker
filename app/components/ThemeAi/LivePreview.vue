@@ -43,7 +43,7 @@ const previewFrames = computed(() => {
           </div>
 
           <div :style="frame.theme" class="max-h-[520px] overflow-auto rounded-2xl border border-default/60 bg-default p-3">
-            <PreviewBrowserTab :disable-interactive="true" :palette="props.palette" :inspect-tokens="false" />
+            <PreviewBrowserTab :disable-interactive="true" :palette="props.palette" />
           </div>
         </div>
       </div>

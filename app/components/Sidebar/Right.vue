@@ -110,25 +110,27 @@ const handlePaletteNameInput = (event: Event) => {
           />
         </UFormField>
 
-        <UButton
-          block
-          color="neutral"
-          variant="outline"
-          icon="i-lucide-shield-check"
-          @click="isQaModalOpen = true"
-        >
-          Open Theme QA Report
-        </UButton>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <UButton
+            block
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-shield-check"
+            @click="isQaModalOpen = true"
+          >
+            Open Theme QA Report
+          </UButton>
 
-        <UButton
-          block
-          color="primary"
-          variant="soft"
-          icon="i-lucide-sparkles"
-          @click="isAiAssistOpen = true"
-        >
-          Open AI Theme Assist
-        </UButton>
+          <UButton
+            block
+            color="primary"
+            variant="soft"
+            icon="i-lucide-sparkles"
+            @click="isAiAssistOpen = true"
+          >
+            Open AI Theme Assist
+          </UButton>
+        </div>
 
         <EditorContent
           :palette="currentPalette"

@@ -12,7 +12,6 @@ const props = withDefaults(defineProps<{
 const colorMode = useColorMode()
 const previewMode = ref<PreviewFrameMode>('current')
 const previewViewport = ref<PreviewViewport>('desktop')
-const inspectTokens = ref(false)
 const isQaModalOpen = ref(false)
 const previewModeItems = [
   { label: 'Current mode', value: 'current' },
@@ -76,7 +75,7 @@ const previewViewportClass = computed(() => {
             Preview controls
           </p>
           <p class="text-xs text-muted">
-            Compare light and dark themes, switch viewport widths, and inspect which token groups each section exercises.
+            Compare light and dark themes, switch viewport widths, and review palette health in the QA report.
           </p>
         </div>
       </template>
@@ -101,11 +100,6 @@ const previewViewportClass = computed(() => {
           color="neutral"
           variant="outline"
         />
-
-        <div class="flex items-center justify-between gap-3 rounded-xl border border-default/60 bg-muted/20 px-3 py-2">
-          <span class="text-sm text-muted">Inspect tokens</span>
-          <USwitch v-model="inspectTokens" />
-        </div>
 
         <UButton
           color="neutral"
@@ -141,7 +135,6 @@ const previewViewportClass = computed(() => {
           <PreviewBrowserTab
             :disable-interactive="props.disableInteractive"
             :palette="props.palette"
-            :inspect-tokens="inspectTokens"
           />
         </div>
       </div>

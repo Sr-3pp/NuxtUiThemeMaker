@@ -64,8 +64,6 @@ watchEffect(() => {
       v-if="activeArea"
       class="space-y-6"
     >
-      <PreviewInspectLegend v-if="props.inspectTokens" :area="activeArea.value" />
-
       <PreviewActions
         v-if="activeArea.value === 'actions'"
         :disable-interactive="props.disableInteractive"
