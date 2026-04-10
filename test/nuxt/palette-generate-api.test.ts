@@ -23,17 +23,26 @@ vi.mock('@google/genai', () => ({
   },
 }))
 
-function createPostEvent(body: Record<string, unknown>) {
+function createPostEvent(body: Record<string, unknown>, headers?: Record<string, string>) {
+  const responseHeaders = new Map<string, string>()
+
   return createEvent({
     method: 'POST',
     url: '/api/palettes/generate',
     headers: {
       'content-type': 'application/json',
+      ...headers,
     },
     body,
   } as never, {
     writableEnded: false,
     headersSent: false,
+    setHeader(name: string, value: string) {
+      responseHeaders.set(name.toLowerCase(), value)
+    },
+    getHeader(name: string) {
+      return responseHeaders.get(name.toLowerCase())
+    },
   } as never)
 }
 
@@ -67,6 +76,42 @@ describe('palette generate api handler', () => {
     })
 
     expect(generateContentMock).not.toHaveBeenCalled()
+  })
+
+  it('rejects untrusted browser origins before calling Gemini', async () => {
+    const session = {
+      user: {
+        id: 'user-1',
+        isAdmin: false,
+        plan: 'free',
+        planStatus: 'inactive',
+        aiPaletteGenerationsUsed: 0,
+      },
+    }
+
+    getOptionalAuthSessionMock.mockResolvedValueOnce(session)
+    assertPaletteGenerationAllowedMock.mockReturnValueOnce({
+      canGenerate: true,
+      isPaidUnlimited: false,
+      isAdminUnlimited: false,
+      freeLimit: 5,
+      freeUsed: 0,
+      freeRemaining: 5,
+      reason: 'allowed',
+    })
+
+    const { default: handler } = await import('~~/server/api/palettes/generate')
+
+    await expect(handler(createPostEvent(
+      { prompt: 'Ocean dashboard' },
+      { origin: 'https://evil.example' },
+    ) as H3Event)).rejects.toMatchObject({
+      statusCode: 403,
+      statusMessage: 'Untrusted request origin',
+    })
+
+    expect(generateContentMock).not.toHaveBeenCalled()
+    expect(incrementPaletteGenerationUsageIfNeededMock).not.toHaveBeenCalled()
   })
 
   it('increments usage after a successful free generation', async () => {
@@ -299,6 +344,44 @@ describe('palette generate api handler', () => {
         expect.objectContaining({ type: 'image', data: 'ZmFrZS1pbWFnZS1iYXNlNjQ=', mime_type: 'image/png' }),
       ],
     }))
+  })
+
+  it('rejects oversized reference images before calling Gemini', async () => {
+    const session = {
+      user: {
+        id: 'user-1',
+        isAdmin: false,
+        plan: 'free',
+        planStatus: 'inactive',
+        aiPaletteGenerationsUsed: 0,
+      },
+    }
+
+    getOptionalAuthSessionMock.mockResolvedValueOnce(session)
+    assertPaletteGenerationAllowedMock.mockReturnValueOnce({
+      canGenerate: true,
+      isPaidUnlimited: false,
+      isAdminUnlimited: false,
+      freeLimit: 5,
+      freeUsed: 0,
+      freeRemaining: 5,
+      reason: 'allowed',
+    })
+
+    const { default: handler } = await import('~~/server/api/palettes/generate')
+
+    await expect(handler(createPostEvent({
+      prompt: 'Turn this screenshot into a starter theme',
+      referenceImage: {
+        data: 'a'.repeat(3_000_001),
+        mimeType: 'image/png',
+      },
+    }) as H3Event)).rejects.toMatchObject({
+      name: 'ZodError',
+    })
+
+    expect(generateContentMock).not.toHaveBeenCalled()
+    expect(incrementPaletteGenerationUsageIfNeededMock).not.toHaveBeenCalled()
   })
 
   it('does not increment usage when Gemini generation fails', async () => {

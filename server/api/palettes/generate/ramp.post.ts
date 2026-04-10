@@ -6,6 +6,8 @@ import {
   generateStructuredPaletteAiResult,
 } from '~~/server/services/palette-ai'
 import { getOptionalAuthSession } from '~~/server/utils/auth-session'
+import { enforceAiRateLimit } from '~~/server/utils/rate-limit'
+import { assertTrustedBrowserOrigin } from '~~/server/utils/request-origin'
 
 const instructions = [
   'Return only JSON.',
@@ -19,8 +21,11 @@ const instructions = [
 ].join(' ')
 
 export default defineEventHandler(async (event) => {
+  assertTrustedBrowserOrigin(event)
+
   const session = await getOptionalAuthSession(event)
   const { session: authenticatedSession, access } = await assertPaletteAiAccess(session)
+  enforceAiRateLimit(event, authenticatedSession.user.id)
   const body = paletteRampGenerateRequestSchema.parse(await readBody(event))
 
   const prompt = [

@@ -266,16 +266,16 @@ export async function generateStructuredPaletteAiResult<T>({
 }) {
   try {
     const ai = new GoogleGenAI({ apiKey: getGeminiApiKey() })
+    const response = await requestStructuredPaletteAiContent(ai, contents ?? [prompt], responseSchema)
+
+    if (!response?.text) {
+      throw new IncompleteAiJsonError('Gemini returned an empty response')
+    }
+
     let lastError: unknown
 
     for (let attempt = 0; attempt <= AI_RETRY_DELAYS_MS.length; attempt += 1) {
       try {
-        const response = await requestStructuredPaletteAiContent(ai, contents ?? [prompt], responseSchema)
-
-        if (!response.text) {
-          throw new IncompleteAiJsonError('Gemini returned an empty response')
-        }
-
         return schema.parse(parseStructuredResponse(response.text))
       } catch (error) {
         lastError = error

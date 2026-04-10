@@ -15,10 +15,26 @@ const DEFAULT_RULE: RateLimitRule = {
   windowMs: 60_000,
 }
 
+export const AI_RATE_LIMIT_RULE: RateLimitRule = {
+  id: 'palette-ai',
+  max: 10,
+  windowMs: 60_000,
+}
+
+const AI_USER_RATE_LIMIT_RULE: RateLimitRule = {
+  id: 'palette-ai-user',
+  max: 8,
+  windowMs: 60_000,
+}
+
 const ROUTE_RULES: Array<{
   matches: (pathname: string, method: string) => boolean
   rule: RateLimitRule
 }> = [
+  {
+    matches: (pathname, method) => pathname.startsWith('/api/palettes/generate') && method === 'POST',
+    rule: AI_RATE_LIMIT_RULE,
+  },
   {
     matches: pathname => pathname.startsWith('/api/auth/'),
     rule: {
@@ -77,9 +93,12 @@ function pruneExpiredBuckets(now: number) {
   }
 }
 
-function getRateLimitKey(event: H3Event, rule: RateLimitRule) {
-  const ip = getRequestIP(event, { xForwardedFor: true }) ?? event.node.req.socket.remoteAddress ?? 'unknown'
-  return `${rule.id}:${ip}`
+function getRequestActorKey(event: H3Event) {
+  return getRequestIP(event, { xForwardedFor: true }) ?? event.node.req.socket.remoteAddress ?? 'unknown'
+}
+
+function getRateLimitKey(rule: RateLimitRule, actor: string) {
+  return `${rule.id}:${actor}`
 }
 
 export function resolveRateLimitRule(event: H3Event) {
@@ -93,11 +112,15 @@ export function clearRateLimitBuckets() {
   rateLimitBuckets.clear()
 }
 
-export function enforceRateLimit(event: H3Event, now = Date.now()) {
+export function enforceScopedRateLimit(
+  event: H3Event,
+  rule: RateLimitRule,
+  actor: string,
+  now = Date.now(),
+) {
   pruneExpiredBuckets(now)
 
-  const rule = resolveRateLimitRule(event)
-  const key = getRateLimitKey(event, rule)
+  const key = getRateLimitKey(rule, actor)
   const existingBucket = rateLimitBuckets.get(key)
   const bucket = !existingBucket || existingBucket.resetAt <= now
     ? {
@@ -127,4 +150,17 @@ export function enforceRateLimit(event: H3Event, now = Date.now()) {
       },
     })
   }
+}
+
+export function enforceRateLimit(event: H3Event, now = Date.now()) {
+  const rule = resolveRateLimitRule(event)
+  const actor = getRequestActorKey(event)
+
+  enforceScopedRateLimit(event, rule, actor, now)
+}
+
+export function enforceAiRateLimit(event: H3Event, userId?: string | null, now = Date.now()) {
+  const actor = userId?.trim() ? `user:${userId}` : `ip:${getRequestActorKey(event)}`
+
+  enforceScopedRateLimit(event, AI_USER_RATE_LIMIT_RULE, actor, now)
 }

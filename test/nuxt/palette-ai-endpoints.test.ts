@@ -29,6 +29,8 @@ vi.mock('@google/genai', () => ({
 }))
 
 function createPostEvent(url: string, body: Record<string, unknown>) {
+  const headers = new Map<string, string>()
+
   return createEvent({
     method: 'POST',
     url,
@@ -39,6 +41,12 @@ function createPostEvent(url: string, body: Record<string, unknown>) {
   } as never, {
     writableEnded: false,
     headersSent: false,
+    setHeader(name: string, value: string) {
+      headers.set(name.toLowerCase(), value)
+    },
+    getHeader(name: string) {
+      return headers.get(name.toLowerCase())
+    },
   } as never)
 }
 

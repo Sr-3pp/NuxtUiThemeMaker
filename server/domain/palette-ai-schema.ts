@@ -1,6 +1,10 @@
 import { z } from 'zod'
 import { paletteDefinitionSchema, paletteResponseSchema } from '~~/server/domain/palette-schema'
 
+const AI_PROMPT_MAX_LENGTH = 1500
+const AI_REFERENCE_SUMMARY_MAX_LENGTH = 2500
+const AI_REFERENCE_IMAGE_DATA_MAX_LENGTH = 3_000_000
+
 const hexColorSchema = z.string().trim().regex(/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, 'Expected a hex color')
 const optionalHexColorSchema = z.union([hexColorSchema, z.null()])
 
@@ -27,19 +31,19 @@ const aiFixSchema = z.object({
 })
 
 export const paletteGenerateRequestSchema = z.object({
-  prompt: z.string().trim().min(1, 'Prompt is required.'),
+  prompt: z.string().trim().min(1, 'Prompt is required.').max(AI_PROMPT_MAX_LENGTH),
   brandColors: z.array(hexColorSchema).min(1).max(6).optional(),
-  referenceSummary: z.string().trim().min(1).max(2500).optional(),
+  referenceSummary: z.string().trim().min(1).max(AI_REFERENCE_SUMMARY_MAX_LENGTH).optional(),
   referenceImage: z.object({
-    data: z.string().trim().min(1),
-    mimeType: z.string().trim().regex(/^image\//, 'Expected an image mime type'),
+    data: z.string().trim().min(1).max(AI_REFERENCE_IMAGE_DATA_MAX_LENGTH, 'Reference image is too large.'),
+    mimeType: z.string().trim().regex(/^image\/(?:png|jpeg|webp)$/, 'Expected a PNG, JPEG, or WebP image'),
   }).optional(),
 })
 
 export const paletteRampGenerateRequestSchema = z.object({
   paletteName: z.string().trim().min(1).max(120).optional(),
   brandColors: z.array(hexColorSchema).min(1).max(6, 'Use up to 6 brand colors.'),
-  prompt: z.string().trim().min(1).max(1500).optional(),
+  prompt: z.string().trim().min(1).max(AI_PROMPT_MAX_LENGTH).optional(),
 })
 
 export const paletteRampGenerateResponseSchema = z.object({
@@ -48,7 +52,7 @@ export const paletteRampGenerateResponseSchema = z.object({
 })
 
 export const paletteVariantGenerateRequestSchema = z.object({
-  prompt: z.string().trim().min(1, 'Prompt is required.'),
+  prompt: z.string().trim().min(1, 'Prompt is required.').max(AI_PROMPT_MAX_LENGTH),
   palette: paletteDefinitionSchema.optional(),
   componentKeys: z.array(z.string().trim().min(1)).min(1).max(8).optional(),
 })
@@ -100,7 +104,7 @@ export const paletteAuditResponseSchema = createObjectResponseSchema({
 
 export const paletteDirectionsGenerateRequestSchema = z.object({
   palette: paletteDefinitionSchema,
-  prompt: z.string().trim().min(1).max(1500).optional(),
+  prompt: z.string().trim().min(1).max(AI_PROMPT_MAX_LENGTH).optional(),
   count: z.number().int().min(1).max(3).optional(),
 })
 
