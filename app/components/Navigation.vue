@@ -6,8 +6,7 @@ defineOptions({
 const { togglePalettesSidebar, toggleEditorSidebar } = useSidebar()
 const { currentPalette } = usePaletteState()
 const { cta, helperText, isDisabled, refresh } = usePaletteGenerationAccess()
-
-const isAiAssistOpen = ref(false)
+const { isAiAssistOpen } = useThemeModals()
 
 const openAiTools = async () => {
     if (isDisabled.value) {
@@ -21,11 +20,6 @@ const openAiTools = async () => {
 
 <template>
 <div class="flex flex-col sm:flex-row gap-4 items-center justify-between p-2 sm:p-4">
-    <ThemeAiModal
-        v-model:open="isAiAssistOpen"
-        :palette="currentPalette"
-    />
-    
     <div class="flex min-w-0 gap-2 w-full sm:w-auto">
         <UButton
             class="sm:hidden mb-auto mr-auto" 

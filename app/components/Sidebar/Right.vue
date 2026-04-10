@@ -18,8 +18,6 @@ const {
 const { savePalette, saveNewPalette } = usePaletteApi()
 const { editorSidebarSw } = useSidebar()
 const { showErrorToast } = useErrorToast()
-const isQaModalOpen = ref(false)
-const isAiAssistOpen = ref(false)
 
 const saveItems = computed<DropdownMenuItem[][]>(() => [[
   {
@@ -95,13 +93,6 @@ const handlePaletteNameInput = (event: Event) => {
         </div>
       </template>
       <div v-if="currentPalette" class="space-y-4">
-        <ThemeQaModal
-          v-model:open="isQaModalOpen"
-          :palette="currentPalette"
-          :show-repair-action="true"
-        />
-        <ThemeAiModal v-model:open="isAiAssistOpen" :palette="currentPalette" />
-
         <UFormField label="Palette name">
           <UInput
             :model-value="currentPalette.name"
@@ -109,28 +100,6 @@ const handlePaletteNameInput = (event: Event) => {
             @input="handlePaletteNameInput"
           />
         </UFormField>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <UButton
-            block
-            color="neutral"
-            variant="outline"
-            icon="i-lucide-shield-check"
-            @click="isQaModalOpen = true"
-          >
-            Open Theme QA Report
-          </UButton>
-
-          <UButton
-            block
-            color="primary"
-            variant="soft"
-            icon="i-lucide-sparkles"
-            @click="isAiAssistOpen = true"
-          >
-            Open AI Theme Assist
-          </UButton>
-        </div>
 
         <EditorContent
           :palette="currentPalette"
