@@ -90,12 +90,16 @@ const authItems = computed<DropdownMenuItem[][]>(() => {
       {
         label: 'Workspace',
         icon: 'i-lucide-briefcase',
-        onSelect: () => navigateTo('/workspace')
+        onSelect: () => {
+          void navigateTo('/workspace')
+        }
       },
       {
         label: 'Panel',
         icon: 'i-lucide-inbox',
-        onSelect: () => navigateTo('/panel')
+        onSelect: () => {
+          void navigateTo('/panel')
+        }
       }
     ],
     [
@@ -119,7 +123,9 @@ const palettesItems = computed<NavigationMenuItem[][]>(() => [[
   }, {
     label: 'Workspace',
     icon: 'i-lucide-briefcase',
-    onSelect: () => navigateTo('/workspace')
+    onSelect: () => {
+      void navigateTo('/workspace')
+    }
   }] : []),
   {
     label: 'Default Presets',
