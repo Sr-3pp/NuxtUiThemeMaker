@@ -1,3 +1,4 @@
+import { createPartFromBase64, createPartFromText } from '@google/genai'
 import { defineEventHandler, readBody } from 'h3'
 import { paletteGenerateRequestSchema } from '~~/server/domain/palette-ai-schema'
 import { paletteDefinitionSchema, paletteResponseSchema } from '~~/server/domain/palette-schema'
@@ -53,8 +54,8 @@ export default defineEventHandler(async (event) => {
     prompt: promptParts.join(' '),
     contents: body.referenceImage
       ? [
-          { type: 'text', text: promptParts.join(' ') },
-          { type: 'image', data: body.referenceImage.data, mime_type: body.referenceImage.mimeType },
+          createPartFromText(promptParts.join(' ')),
+          createPartFromBase64(body.referenceImage.data, body.referenceImage.mimeType),
         ]
       : undefined,
     schema: paletteDefinitionSchema,

@@ -21,6 +21,13 @@ vi.mock('@google/genai', () => ({
       generateContent: generateContentMock,
     }
   },
+  createPartFromText: (text: string) => ({ text }),
+  createPartFromBase64: (data: string, mimeType: string) => ({
+    inlineData: {
+      data,
+      mimeType,
+    },
+  }),
 }))
 
 function createPostEvent(body: Record<string, unknown>, headers?: Record<string, string>) {
@@ -340,8 +347,13 @@ describe('palette generate api handler', () => {
 
     expect(generateContentMock).toHaveBeenCalledWith(expect.objectContaining({
       contents: [
-        expect.objectContaining({ type: 'text' }),
-        expect.objectContaining({ type: 'image', data: 'ZmFrZS1pbWFnZS1iYXNlNjQ=', mime_type: 'image/png' }),
+        expect.objectContaining({ text: expect.any(String) }),
+        expect.objectContaining({
+          inlineData: expect.objectContaining({
+            data: 'ZmFrZS1pbWFnZS1iYXNlNjQ=',
+            mimeType: 'image/png',
+          }),
+        }),
       ],
     }))
   })
