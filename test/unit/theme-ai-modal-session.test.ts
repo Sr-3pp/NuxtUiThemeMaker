@@ -16,12 +16,10 @@ vi.mock('~/utils/palette-ai-session', async () => {
 function createSessionState() {
   return {
     starterHistory: ref([{ id: 1, label: 'Starter', createdAt: '2026-04-08T10:00:00.000Z', result: { name: 'Starter', modes: { light: { ui: { primary: '#111111', secondary: '#222222', neutral: '#333333', success: '#444444', info: '#555555', warning: '#666666', error: '#777777' }, color: { primary: '#111111', secondary: '#222222', neutral: '#333333', success: '#444444', info: '#555555', warning: '#666666', error: '#777777' } }, dark: { ui: { primary: '#aaaaaa', secondary: '#bbbbbb', neutral: '#cccccc', success: '#dddddd', info: '#eeeeee', warning: '#999999', error: '#888888' }, color: { primary: '#aaaaaa', secondary: '#bbbbbb', neutral: '#cccccc', success: '#dddddd', info: '#eeeeee', warning: '#999999', error: '#888888' } } } } }]),
-    auditHistory: ref([]),
     directionsHistory: ref([]),
     rampsHistory: ref([]),
     variantsHistory: ref([]),
     starterResult: ref<{ name: string, modes: Record<string, unknown> } | null>(null),
-    auditResult: ref(null),
     directionsResult: ref(null),
     rampsResult: ref(null),
     variantsResult: ref(null),
@@ -38,7 +36,6 @@ describe('theme AI modal session utils', () => {
 
     expect(state.starterHistory.value).toEqual([])
     expect(state.starterResult.value).toBeNull()
-    expect(state.auditHistory.value).toEqual([])
   })
 
   it('restores persisted state for the active palette session', () => {
@@ -49,7 +46,6 @@ describe('theme AI modal session utils', () => {
           items: state.starterHistory.value,
           selectedId: 1,
         },
-        audit: { items: [], selectedId: null },
         directions: { items: [], selectedId: null },
         ramps: { items: [], selectedId: null },
         variants: { items: [], selectedId: null },

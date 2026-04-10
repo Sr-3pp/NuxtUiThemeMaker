@@ -1,10 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, nextTick, ref, watch } from 'vue'
 import type { EditablePalette } from '../../app/types/palette-editor'
-import type {
-  PaletteAiPersistedSession,
-  PaletteAuditGenerateResult,
-} from '../../app/types/palette-generation'
+import type { PaletteAiPersistedSession } from '../../app/types/palette-generation'
 
 vi.mock('~/utils/palette-domain', async () => {
   const actual = await vi.importActual<typeof import('../../app/utils/palette-domain')>('../../app/utils/palette-domain')
@@ -252,7 +249,6 @@ describe('useThemeAiModal', () => {
   const toastAddMock = vi.fn()
   const showErrorToastMock = vi.fn()
   const generatePaletteMock = vi.fn()
-  const generatePaletteAuditMock = vi.fn()
   const generatePaletteDirectionsMock = vi.fn()
   const generatePaletteRampsMock = vi.fn()
   const generatePaletteVariantsMock = vi.fn()
@@ -286,7 +282,6 @@ describe('useThemeAiModal', () => {
     }))
     vi.stubGlobal('usePaletteApi', () => ({
       generatePalette: generatePaletteMock,
-      generatePaletteAudit: generatePaletteAuditMock,
       generatePaletteDirections: generatePaletteDirectionsMock,
       generatePaletteRamps: generatePaletteRampsMock,
       generatePaletteVariants: generatePaletteVariantsMock,
@@ -317,7 +312,6 @@ describe('useThemeAiModal', () => {
         }],
         selectedId: 7,
       },
-      audit: { items: [], selectedId: null },
       directions: { items: [], selectedId: null },
       ramps: { items: [], selectedId: null },
       variants: { items: [], selectedId: null },
@@ -395,60 +389,6 @@ describe('useThemeAiModal', () => {
     expect(open.value).toBe(false)
   })
 
-  it('generates audit repairs and persists the latest selected audit result', async () => {
-    const auditResult: PaletteAuditGenerateResult = {
-      summary: 'Improved contrast and focus states',
-      fixes: [{
-        token: 'primary',
-        mode: 'light',
-        currentValue: '#11aa55',
-        suggestedValue: '#0f8a44',
-        reason: 'Increase contrast on action surfaces.',
-      }],
-      patchedPalette: createGeneratedPalette('Patched Palette'),
-    }
-    generatePaletteAuditMock.mockResolvedValueOnce(auditResult)
-
-    const { useThemeAiModal } = await import('../../app/composables/useThemeAiModal')
-    const modal = useThemeAiModal(ref(true), ref(createEditablePalette()))
-
-    await modal.handleAudit()
-    await nextTick()
-
-    expect(generatePaletteAuditMock).toHaveBeenCalledWith(expect.objectContaining({
-      palette: expect.any(Object),
-    }))
-    expect(modal.auditResult.value?.summary).toBe('Improved contrast and focus states')
-    expect(modal.auditHistory.value).toHaveLength(1)
-    expect(modal.getSelectedHistoryId(modal.auditHistory.value, modal.auditResult.value)).toBe(modal.auditHistory.value[0]?.id ?? null)
-  })
-
-  it('automatically runs audit repair when the modal opens with QA issues', async () => {
-    const auditResult: PaletteAuditGenerateResult = {
-      summary: 'Automatically repaired QA issues',
-      fixes: [{
-        token: 'color.primary',
-        mode: 'light',
-        currentValue: '#11aa55',
-        suggestedValue: '#0f8a44',
-        reason: 'Increase semantic separation on the main surface.',
-      }],
-      patchedPalette: createGeneratedPalette('Auto Patched Palette'),
-    }
-    generatePaletteAuditMock.mockResolvedValueOnce(auditResult)
-
-    const { useThemeAiModal } = await import('../../app/composables/useThemeAiModal')
-    const open = ref(false)
-    const modal = useThemeAiModal(open, ref(createEditablePalette()))
-
-    open.value = true
-    await nextTick()
-    await nextTick()
-
-    expect(generatePaletteAuditMock).toHaveBeenCalledTimes(1)
-    expect(modal.auditResult.value?.summary).toBe('Automatically repaired QA issues')
-  })
-
   it('keeps the primary tool tabs on starter when the modal opens with QA issues', async () => {
     const { useThemeAiModal } = await import('../../app/composables/useThemeAiModal')
     const open = ref(false)
@@ -472,9 +412,6 @@ describe('useThemeAiModal', () => {
     await nextTick()
     await nextTick()
 
-    expect(modal.isDefaultAuditPalette.value).toBe(true)
-    expect(modal.canGenerateAudit.value).toBe(false)
     expect(modal.activeTab.value).toBe('starter')
-    expect(generatePaletteAuditMock).not.toHaveBeenCalled()
   })
 })

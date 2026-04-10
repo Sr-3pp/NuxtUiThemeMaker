@@ -2,7 +2,6 @@ import type {
   PaletteAiPersistedHistoryState,
   PaletteAiPersistedSession,
   PaletteAiResultHistoryEntry,
-  PaletteAuditGenerateResult,
   PaletteDirectionsGenerateResult,
   PaletteRampGenerateResult,
   PaletteVariantGenerateResult,
@@ -11,19 +10,17 @@ import type { PaletteDefinition } from '~/types/palette'
 
 export interface RestoredPaletteAiSession {
   starterHistory: PaletteAiResultHistoryEntry<PaletteDefinition>[]
-  auditHistory: PaletteAiResultHistoryEntry<PaletteAuditGenerateResult>[]
   directionsHistory: PaletteAiResultHistoryEntry<PaletteDirectionsGenerateResult>[]
   rampsHistory: PaletteAiResultHistoryEntry<PaletteRampGenerateResult>[]
   variantsHistory: PaletteAiResultHistoryEntry<PaletteVariantGenerateResult>[]
   starterResult: PaletteDefinition | null
-  auditResult: PaletteAuditGenerateResult | null
   directionsResult: PaletteDirectionsGenerateResult | null
   rampsResult: PaletteRampGenerateResult | null
   variantsResult: PaletteVariantGenerateResult | null
   historyId: number
 }
 
-const sessionTabs = ['starter', 'audit', 'directions', 'ramps', 'variants'] as const
+const sessionTabs = ['starter', 'directions', 'ramps', 'variants'] as const
 
 export function createEmptyPersistedHistoryState<T>(): PaletteAiPersistedHistoryState<T> {
   return {
@@ -35,7 +32,6 @@ export function createEmptyPersistedHistoryState<T>(): PaletteAiPersistedHistory
 export function createEmptyPersistedAiSession(): PaletteAiPersistedSession {
   return {
     starter: createEmptyPersistedHistoryState<PaletteDefinition>(),
-    audit: createEmptyPersistedHistoryState<PaletteAuditGenerateResult>(),
     directions: createEmptyPersistedHistoryState<PaletteDirectionsGenerateResult>(),
     ramps: createEmptyPersistedHistoryState<PaletteRampGenerateResult>(),
     variants: createEmptyPersistedHistoryState<PaletteVariantGenerateResult>(),
@@ -74,12 +70,10 @@ export function restorePaletteAiSession(session?: PaletteAiPersistedSession): Re
 
   return {
     starterHistory: resolvedSession.starter.items,
-    auditHistory: resolvedSession.audit.items,
     directionsHistory: resolvedSession.directions.items,
     rampsHistory: resolvedSession.ramps.items,
     variantsHistory: resolvedSession.variants.items,
     starterResult: getSelectedResult(resolvedSession.starter),
-    auditResult: getSelectedResult(resolvedSession.audit),
     directionsResult: getSelectedResult(resolvedSession.directions),
     rampsResult: getSelectedResult(resolvedSession.ramps),
     variantsResult: getSelectedResult(resolvedSession.variants),
@@ -90,8 +84,6 @@ export function restorePaletteAiSession(session?: PaletteAiPersistedSession): Re
 export function buildPaletteAiPersistedSession(payload: {
   starterHistory: PaletteAiResultHistoryEntry<PaletteDefinition>[]
   starterResult: PaletteDefinition | null
-  auditHistory: PaletteAiResultHistoryEntry<PaletteAuditGenerateResult>[]
-  auditResult: PaletteAuditGenerateResult | null
   directionsHistory: PaletteAiResultHistoryEntry<PaletteDirectionsGenerateResult>[]
   directionsResult: PaletteDirectionsGenerateResult | null
   rampsHistory: PaletteAiResultHistoryEntry<PaletteRampGenerateResult>[]
@@ -101,7 +93,6 @@ export function buildPaletteAiPersistedSession(payload: {
 }): PaletteAiPersistedSession {
   return {
     starter: toPersistedHistoryState(payload.starterHistory, payload.starterResult),
-    audit: toPersistedHistoryState(payload.auditHistory, payload.auditResult),
     directions: toPersistedHistoryState(payload.directionsHistory, payload.directionsResult),
     ramps: toPersistedHistoryState(payload.rampsHistory, payload.rampsResult),
     variants: toPersistedHistoryState(payload.variantsHistory, payload.variantsResult),

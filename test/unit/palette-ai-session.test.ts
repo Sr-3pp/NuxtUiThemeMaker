@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type {
   PaletteAiPersistedSession,
-  PaletteAuditGenerateResult,
   PaletteDirectionsGenerateResult,
   PaletteRampGenerateResult,
   PaletteVariantGenerateResult,
@@ -61,14 +60,6 @@ function createPalette(name: string): PaletteDefinition {
   }
 }
 
-function createAuditResult(summary: string): PaletteAuditGenerateResult {
-  return {
-    summary,
-    fixes: [],
-    patchedPalette: createPalette(`${summary} patched`),
-  }
-}
-
 function createDirectionsResult(name: string): PaletteDirectionsGenerateResult {
   return {
     directions: [
@@ -121,16 +112,13 @@ describe('palette AI session helpers', () => {
     const restored = restorePaletteAiSession(session)
 
     expect(session.starter.items).toEqual([])
-    expect(session.audit.selectedId).toBeNull()
     expect(restored.starterResult).toBeNull()
-    expect(restored.auditHistory).toEqual([])
     expect(restored.historyId).toBe(0)
   })
 
   it('restores selected results and history id from a persisted session', () => {
     const starterA = createPalette('Starter A')
     const starterB = createPalette('Starter B')
-    const auditA = createAuditResult('Audit A')
     const directionsA = createDirectionsResult('Direction A')
     const rampsA = createRampResult('Ramp A')
     const variantsA = createVariantResult('Variants A')
@@ -141,10 +129,6 @@ describe('palette AI session helpers', () => {
           { id: 7, label: 'Starter B', createdAt: '2026-04-08T10:05:00.000Z', detail: 'Prompt B', result: starterB },
         ],
         selectedId: 7,
-      },
-      audit: {
-        items: [{ id: 3, label: 'Audit A', createdAt: '2026-04-08T10:01:00.000Z', result: auditA }],
-        selectedId: 3,
       },
       directions: {
         items: [{ id: 8, label: '1 direction', createdAt: '2026-04-08T10:06:00.000Z', result: directionsA }],
@@ -164,7 +148,6 @@ describe('palette AI session helpers', () => {
 
     expect(restored.starterHistory).toHaveLength(2)
     expect(restored.starterResult).toBe(starterB)
-    expect(restored.auditResult).toBe(auditA)
     expect(restored.directionsResult).toBe(directionsA)
     expect(restored.rampsResult).toBe(rampsA)
     expect(restored.variantsResult).toBe(variantsA)
@@ -174,8 +157,6 @@ describe('palette AI session helpers', () => {
   it('builds a persisted session using the selected in-memory results', () => {
     const starterA = createPalette('Starter A')
     const starterB = createPalette('Starter B')
-    const auditA = createAuditResult('Audit A')
-    const auditB = createAuditResult('Audit B')
     const directionsA = createDirectionsResult('Direction A')
     const rampsA = createRampResult('Ramp A')
     const variantsA = createVariantResult('Variants A')
@@ -186,11 +167,6 @@ describe('palette AI session helpers', () => {
         { id: 2, label: 'Starter B', createdAt: '2026-04-08T10:02:00.000Z', detail: 'Prompt B', result: starterB },
       ],
       starterResult: starterA,
-      auditHistory: [
-        { id: 3, label: 'Audit A', createdAt: '2026-04-08T10:01:00.000Z', result: auditA },
-        { id: 4, label: 'Audit B', createdAt: '2026-04-08T10:03:00.000Z', result: auditB },
-      ],
-      auditResult: auditB,
       directionsHistory: [{ id: 5, label: '1 direction', createdAt: '2026-04-08T10:04:00.000Z', result: directionsA }],
       directionsResult: directionsA,
       rampsHistory: [{ id: 6, label: '1 ramp', createdAt: '2026-04-08T10:05:00.000Z', result: rampsA }],
@@ -200,7 +176,6 @@ describe('palette AI session helpers', () => {
     })
 
     expect(session.starter.selectedId).toBe(1)
-    expect(session.audit.selectedId).toBe(4)
     expect(session.directions.selectedId).toBe(5)
     expect(session.ramps.selectedId).toBe(6)
     expect(session.variants.selectedId).toBe(7)
@@ -216,8 +191,6 @@ describe('palette AI session helpers', () => {
         { id: 9, label: 'Starter A', createdAt: '2026-04-08T10:12:00.000Z', detail: 'Same prompt', result: starterB },
       ],
       starterResult: starterB,
-      auditHistory: [],
-      auditResult: null,
       directionsHistory: [],
       directionsResult: null,
       rampsHistory: [],

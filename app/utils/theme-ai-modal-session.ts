@@ -3,7 +3,6 @@ import type { PaletteDefinition } from '~/types/palette'
 import type {
   PaletteAiPersistedSession,
   PaletteAiResultHistoryEntry,
-  PaletteAuditGenerateResult,
   PaletteDirectionsGenerateResult,
   PaletteRampGenerateResult,
   PaletteVariantGenerateResult,
@@ -16,19 +15,17 @@ import {
 
 export interface ThemeAiModalSessionState {
   starterHistory: Ref<PaletteAiResultHistoryEntry<PaletteDefinition>[]>
-  auditHistory: Ref<PaletteAiResultHistoryEntry<PaletteAuditGenerateResult>[]>
   directionsHistory: Ref<PaletteAiResultHistoryEntry<PaletteDirectionsGenerateResult>[]>
   rampsHistory: Ref<PaletteAiResultHistoryEntry<PaletteRampGenerateResult>[]>
   variantsHistory: Ref<PaletteAiResultHistoryEntry<PaletteVariantGenerateResult>[]>
   starterResult: Ref<PaletteDefinition | null>
-  auditResult: Ref<PaletteAuditGenerateResult | null>
   directionsResult: Ref<PaletteDirectionsGenerateResult | null>
   rampsResult: Ref<PaletteRampGenerateResult | null>
   variantsResult: Ref<PaletteVariantGenerateResult | null>
   historyId: Ref<number>
 }
 
-const sessionTabs = ['starter', 'audit', 'directions', 'ramps', 'variants'] as const
+const sessionTabs = ['starter', 'directions', 'ramps', 'variants'] as const
 
 type ThemeAiSessionTab = typeof sessionTabs[number]
 type ThemeAiSessionRestoredKey = `${ThemeAiSessionTab}${'History' | 'Result'}`
@@ -55,8 +52,6 @@ function buildPersistedSessionPayload(state: ThemeAiModalSessionState) {
   return {
     starterHistory: state.starterHistory.value,
     starterResult: state.starterResult.value,
-    auditHistory: state.auditHistory.value,
-    auditResult: state.auditResult.value,
     directionsHistory: state.directionsHistory.value,
     directionsResult: state.directionsResult.value,
     rampsHistory: state.rampsHistory.value,

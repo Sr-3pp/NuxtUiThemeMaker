@@ -12,6 +12,13 @@ const TRANSIENT_AI_STATUS_CODES = new Set([429, 500, 502, 503, 504])
 const TRANSIENT_AI_STATUS_TEXTS = new Set(['RESOURCE_EXHAUSTED', 'UNAVAILABLE'])
 const AI_RETRY_DELAYS_MS = [250, 750]
 
+class IncompleteAiJsonError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'IncompleteAiJsonError'
+  }
+}
+
 function extractJsonPayload(text: string) {
   const fencedMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)
   const raw = (fencedMatch?.[1] ?? text).trim()
@@ -80,7 +87,7 @@ function parseStructuredResponse(text: string) {
   const payload = extractJsonPayload(text)
 
   if (!hasBalancedJsonDelimiters(payload)) {
-    throw new Error('Gemini returned incomplete JSON output')
+    throw new IncompleteAiJsonError('Gemini returned incomplete JSON output')
   }
 
   try {
@@ -167,6 +174,10 @@ function extractAiErrorDetails(error: unknown) {
 }
 
 function isRetryableAiError(error: unknown) {
+  if (error instanceof IncompleteAiJsonError) {
+    return true
+  }
+
   const { statusCode, statusText, message } = extractAiErrorDetails(error)
 
   if (statusCode !== null && TRANSIENT_AI_STATUS_CODES.has(statusCode)) {
@@ -255,13 +266,29 @@ export async function generateStructuredPaletteAiResult<T>({
 }) {
   try {
     const ai = new GoogleGenAI({ apiKey: getGeminiApiKey() })
-    const response = await requestStructuredPaletteAiContent(ai, contents ?? [prompt], responseSchema)
+    let lastError: unknown
 
-    if (!response.text) {
-      throw new Error('Gemini returned an empty response')
+    for (let attempt = 0; attempt <= AI_RETRY_DELAYS_MS.length; attempt += 1) {
+      try {
+        const response = await requestStructuredPaletteAiContent(ai, contents ?? [prompt], responseSchema)
+
+        if (!response.text) {
+          throw new IncompleteAiJsonError('Gemini returned an empty response')
+        }
+
+        return schema.parse(parseStructuredResponse(response.text))
+      } catch (error) {
+        lastError = error
+
+        if (!isRetryableAiError(error) || attempt === AI_RETRY_DELAYS_MS.length) {
+          throw error
+        }
+
+        await waitForAiRetry(AI_RETRY_DELAYS_MS[attempt]!)
+      }
     }
 
-    return schema.parse(parseStructuredResponse(response.text))
+    throw lastError
   } catch (error) {
     if (error instanceof ZodError) {
       throw createError({

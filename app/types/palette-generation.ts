@@ -99,7 +99,6 @@ export interface PaletteAiPersistedHistoryState<T> {
 
 export interface PaletteAiPersistedSession {
   starter: PaletteAiPersistedHistoryState<PaletteDefinition>
-  audit: PaletteAiPersistedHistoryState<PaletteAuditGenerateResult>
   directions: PaletteAiPersistedHistoryState<PaletteDirectionsGenerateResult>
   ramps: PaletteAiPersistedHistoryState<PaletteRampGenerateResult>
   variants: PaletteAiPersistedHistoryState<PaletteVariantGenerateResult>
