@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { PaletteDefinition } from '~/types/palette'
-import type { PreviewFrameMode } from '~/types/theme-preview'
 
 const props = withDefaults(defineProps<{
   disableInteractive?: boolean
@@ -10,13 +9,7 @@ const props = withDefaults(defineProps<{
 })
 
 const colorMode = useColorMode()
-const previewMode = ref<PreviewFrameMode>('current')
-const previewModeItems = [
-  { label: 'Current mode', value: 'current' },
-  { label: 'Light only', value: 'light' },
-  { label: 'Dark only', value: 'dark' },
-  { label: 'Split compare', value: 'split' },
-]
+const { isSplitView } = usePreviewSplitView()
 
 const currentMode = computed(() => {
   return colorMode.value === 'dark' ? 'dark' : 'light'
@@ -27,9 +20,9 @@ const previewFrames = computed(() => {
     return []
   }
 
-  const modes = previewMode.value === 'split'
+  const modes = isSplitView.value
     ? ['light', 'dark'] as const
-    : [previewMode.value === 'current' ? currentMode.value : previewMode.value]
+    : [currentMode.value]
 
   return modes.map(mode => ({
     mode,
@@ -41,33 +34,6 @@ const previewFrames = computed(() => {
 
 <template>
   <div class="space-y-4">
-    <UCard variant="outline" class="rounded-2xl shadow-none dark:border-white/10 dark:bg-black/40">
-      <template #header>
-        <div class="space-y-1">
-          <p class="text-sm font-medium dark:text-white">
-            Preview controls
-          </p>
-          <p class="text-xs text-muted">
-            Compare light and dark themes and review palette health in the QA report.
-          </p>
-        </div>
-      </template>
-
-      <div class="flex flex-wrap items-center gap-4">
-        <div class="rounded-xl border border-default/60 bg-muted/20 px-3 py-2 text-xs text-muted">
-          Browser mode helps scan coverage quickly. Split compare renders light and dark previews side by side.
-        </div>
-
-        <USelect
-          v-model="previewMode"
-          :items="previewModeItems"
-          value-key="value"
-          color="neutral"
-          variant="outline"
-        />
-      </div>
-    </UCard>
-
     <div
       class="grid gap-6"
       :class="previewFrames.length === 2 ? 'xl:grid-cols-2' : ''"

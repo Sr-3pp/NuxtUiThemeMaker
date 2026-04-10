@@ -18,6 +18,7 @@ const {
 const { savePalette, saveNewPalette } = usePaletteApi()
 const { editorSidebarSw } = useSidebar()
 const { showErrorToast } = useErrorToast()
+const { isSplitView, toggleSplitView } = usePreviewSplitView()
 
 const saveItems = computed<DropdownMenuItem[][]>(() => [[
   {
@@ -83,13 +84,24 @@ const handlePaletteNameInput = (event: Event) => {
 <template>
     <UDashboardSidebar id="theme-editor-sidebar" v-model:open="editorSidebarSw" side="right" mode="drawer" :default-size="30" :max-size="30">
       <template #header>
-        <div class="w-full flex items-center">
+        <div class="w-full flex items-center gap-2">
           <UIcon class="mr-2" name="i-lucide:palette" />
           <p class="font-medium">
             Theme Editor
           </p>
-  
-          <UColorModeSwitch class="ml-auto" />
+
+          <div class="ml-auto flex items-center gap-2">
+            <UButton
+              color="neutral"
+              variant="outline"
+              size="sm"
+              :icon="isSplitView ? 'i-lucide-columns-2' : 'i-lucide-square'"
+              :label="isSplitView ? 'Split on' : 'Split off'"
+              @click="toggleSplitView"
+            />
+
+            <UColorModeSwitch />
+          </div>
         </div>
       </template>
       <div v-if="currentPalette" class="space-y-4">

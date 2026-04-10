@@ -51,5 +51,3 @@ export interface AlertStateSample {
   variant: AlertVariant
   description: string
 }
-
-export type PreviewFrameMode = 'current' | 'light' | 'dark' | 'split'
