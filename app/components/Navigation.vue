@@ -4,25 +4,17 @@ defineOptions({
 })
 
 const { togglePalettesSidebar, toggleEditorSidebar } = useSidebar()
-const { currentPalette, setCurrentPalette } = usePaletteState()
+const { currentPalette } = usePaletteState()
 const { cta, helperText, isDisabled, refresh } = usePaletteGenerationAccess()
-const { showErrorToast } = useErrorToast()
 
 const isAiAssistOpen = ref(false)
-const requestedAiTab = ref<'starter' | 'directions' | 'ramps' | 'variants'>('starter')
 
-const openAiTool = async (tab: 'starter' | 'directions' | 'ramps' | 'variants') => {
+const openAiTools = async () => {
     if (isDisabled.value) {
         await refresh()
         return
     }
 
-    if (!currentPalette.value) {
-        showErrorToast(new Error('No palette loaded'), 'Load or create a palette before using AI tools.')
-        return
-    }
-
-    requestedAiTab.value = tab
     isAiAssistOpen.value = true
 }
 </script>
@@ -32,7 +24,6 @@ const openAiTool = async (tab: 'starter' | 'directions' | 'ramps' | 'variants') 
     <ThemeAiModal
         v-model:open="isAiAssistOpen"
         :palette="currentPalette"
-        :initial-tab="requestedAiTab"
     />
     
     <div class="flex min-w-0 gap-2 w-full sm:w-auto">
@@ -73,36 +64,9 @@ const openAiTool = async (tab: 'starter' | 'directions' | 'ramps' | 'variants') 
                 color="primary"
                 variant="soft"
                 icon="i-lucide-sparkles"
-                @click="openAiTool('starter')"
+                @click="openAiTools()"
             >
-                Generate Theme
-            </UButton>
-
-            <UButton
-                color="neutral"
-                variant="outline"
-                icon="i-lucide-swatch-book"
-                @click="openAiTool('ramps')"
-            >
-                Ramps
-            </UButton>
-
-            <UButton
-                color="neutral"
-                variant="outline"
-                icon="i-lucide-box"
-                @click="openAiTool('variants')"
-            >
-                Variants
-            </UButton>
-
-            <UButton
-                color="neutral"
-                variant="outline"
-                icon="i-lucide-compass"
-                @click="openAiTool('directions')"
-            >
-                Directions
+                AI tools
             </UButton>
         </template>
 
