@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PreviewPanelContentProps } from '~/types/theme-preview'
-import type { PreviewAreaKey } from '~/utils/preview-browser'
+import type { PreviewAreaKey } from '~/utils/preview-areas'
 
 defineProps<PreviewPanelContentProps & {
   sections: ReadonlyArray<{

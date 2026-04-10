@@ -15,5 +15,9 @@ export interface DropdownMenuItem {
 export interface NavigationMenuItem {
   label: string
   icon?: string
+  description?: string
+  badge?: string
+  defaultOpen?: boolean
+  children?: NavigationMenuItem[]
   onSelect?: () => void | Promise<void>
 }

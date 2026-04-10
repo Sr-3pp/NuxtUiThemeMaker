@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DropdownMenuItem, NavigationMenuItem } from '~/types/ui-local'
+import { getPreviewAreaDefinition } from '~/utils/preview-areas'
 
 const {
   open: openOwnPalettesModal,
@@ -27,6 +28,7 @@ function handleExportOpen() {
 }
 
 const { signOut, user } = useAuth()
+const { selectedArea, areaOptions, activeArea } = usePreviewAreaState()
 
 const { palettesSidebarSw, closePalettesSidebar } = useSidebar()
 
@@ -146,6 +148,32 @@ const palettesItems = computed<NavigationMenuItem[][]>(() => [[
     onSelect: () => handleExportOpen()
   }
 ]])
+
+const activeAreaDefinition = computed(() => {
+  return activeArea.value ? getPreviewAreaDefinition(activeArea.value.value) : null
+})
+
+const previewBrowserItems = computed<NavigationMenuItem[]>(() => {
+  const componentItems = areaOptions.value.map((option) => {
+    const definition = getPreviewAreaDefinition(option.value)
+
+    return {
+      label: definition?.components.join(', ') ?? option.label,
+      icon: selectedArea.value === option.value ? 'i-lucide-check' : 'i-lucide-component',
+      description: definition?.description,
+      onSelect: () => {
+        selectedArea.value = option.value
+      },
+    } satisfies NavigationMenuItem
+  })
+
+  return [{
+    label: 'Preview components',
+    icon: 'i-lucide-panels-top-left',
+    defaultOpen: true,
+    children: componentItems,
+  }]
+})
 </script>
 
 
@@ -203,6 +231,25 @@ const palettesItems = computed<NavigationMenuItem[][]>(() => [[
         orientation="vertical"
         :ui="{ link: 'overflow-hidden' }"
       />
+
+      <UNavigationMenu
+        :key="`preview-${state}`"
+        :items="[
+          {
+            ...previewBrowserItems[0],
+            children: state === 'expanded' ? (previewBrowserItems[0]?.children ?? []) : []
+          }
+        ]"
+        orientation="vertical"
+        :ui="{ link: 'overflow-hidden' }"
+      />
+
+      <div
+        v-if="state === 'expanded' && activeAreaDefinition"
+        class="rounded-xl border border-default/60 bg-muted/20 px-3 py-3 text-xs text-muted"
+      >
+        {{ activeAreaDefinition.description }}
+      </div>
 
       <UNavigationMenu
         :key="`actions-${state}`"
