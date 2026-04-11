@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { emptyPalette } from '~/utils/paletteRegistry'
+
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const siteConfig = useRuntimeConfig()
+const colorMode = useColorMode()
 
 usePageSeo({
   title: 'Build and Share Nuxt UI Themes',
@@ -30,8 +33,45 @@ usePageSeo({
 
 const { currentPalette, setCurrentPalette } = usePaletteState()
 const { restorePaletteForEditor } = useLandingPaletteDemo()
+useGeneratedUiOverrides()
 
 const disableInteractivePreviews = ref(false)
+
+const activeEditorPalette = computed(() => currentPalette.value ?? emptyPalette)
+const activeEditorMode = computed(() => {
+  return colorMode.value === 'dark' ? 'dark' : 'light'
+})
+
+const editorTheme = computed(() => {
+  return themeBuilder(activeEditorPalette.value.modes[activeEditorMode.value])
+})
+
+const documentThemeSnapshot = import.meta.client
+  ? new Map<string, string>()
+  : null
+
+if (import.meta.client && documentThemeSnapshot) {
+  watch(editorTheme, (nextTheme) => {
+    for (const key of Object.keys(nextTheme)) {
+      if (!documentThemeSnapshot.has(key)) {
+        documentThemeSnapshot.set(key, document.documentElement.style.getPropertyValue(key))
+      }
+
+      document.documentElement.style.setProperty(key, nextTheme[key] ?? null)
+    }
+  }, { immediate: true })
+
+  onBeforeUnmount(() => {
+    for (const [key, value] of documentThemeSnapshot.entries()) {
+      if (value) {
+        document.documentElement.style.setProperty(key, value)
+        continue
+      }
+
+      document.documentElement.style.removeProperty(key)
+    }
+  })
+}
 
 function handlePaletteImport(palette: Parameters<typeof setCurrentPalette>[0]) {
   setCurrentPalette(palette)
@@ -59,33 +99,35 @@ watch(() => route.query.source, (value) => {
 </script>
 
 <template>
-  <UDashboardGroup>
-    <SidebarLeft />
+  <div :style="editorTheme" class="min-h-screen text-default transition-colors duration-300">
+    <UDashboardGroup>
+      <SidebarLeft />
 
-    <UDashboardPanel>
-      <template #header>
-        <Navigation />
-      </template>
+      <UDashboardPanel>
+        <template #header>
+          <Navigation />
+        </template>
 
-      <template #body>
-        <PreviewPanel :palette="currentPalette" :disable-interactive="disableInteractivePreviews" />
-      </template>
-    </UDashboardPanel>
+        <template #body>
+          <PreviewPanel :palette="currentPalette" :disable-interactive="disableInteractivePreviews" />
+        </template>
+      </UDashboardPanel>
 
-    <SidebarRight />
-    <PaletteOwnDrawer />
-    <PaletteDefaultPresetsDrawer />
-    <PaletteCommunityDrawer />
-    <PaletteHistoryModal />
-    <PaletteShareModal />
-    <ModalImport @import="handlePaletteImport" />
-    <ModalExport :palette="currentPalette" />
-    <ModalQa
-      :palette="currentPalette"
-      :show-repair-action="true"
-    />
-    <ModalAi
-      :palette="currentPalette"
-    />
-  </UDashboardGroup>
+      <SidebarRight />
+      <PaletteOwnDrawer />
+      <PaletteDefaultPresetsDrawer />
+      <PaletteCommunityDrawer />
+      <PaletteHistoryModal />
+      <PaletteShareModal />
+      <ModalImport @import="handlePaletteImport" />
+      <ModalExport :palette="currentPalette" />
+      <ModalQa
+        :palette="currentPalette"
+        :show-repair-action="true"
+      />
+      <ModalAi
+        :palette="currentPalette"
+      />
+    </UDashboardGroup>
+  </div>
 </template>

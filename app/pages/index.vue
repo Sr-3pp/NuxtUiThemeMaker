@@ -172,7 +172,7 @@ function registerPricingSection(node: Element | ComponentPublicInstance | null) 
           </div>
 
           <div class="grid gap-4 xl:grid-cols-4">
-            <UCard class="rounded-[1.5rem] border-default/70 bg-default/85">
+            <UCard>
               <p class="text-xs uppercase tracking-[0.18em] text-muted">
                 01
               </p>
@@ -183,7 +183,7 @@ function registerPricingSection(node: Element | ComponentPublicInstance | null) 
                 Start with a prompt and get a palette that immediately drives real Nuxt UI tokens.
               </p>
             </UCard>
-            <UCard class="rounded-[1.5rem] border-default/70 bg-default/85">
+            <UCard>
               <p class="text-xs uppercase tracking-[0.18em] text-muted">
                 02
               </p>
@@ -194,7 +194,7 @@ function registerPricingSection(node: Element | ComponentPublicInstance | null) 
                 Continue in the full editor for manual token control, preview review, and AI assist tools.
               </p>
             </UCard>
-            <UCard class="rounded-[1.5rem] border-default/70 bg-default/85">
+            <UCard>
               <p class="text-xs uppercase tracking-[0.18em] text-muted">
                 03
               </p>
@@ -205,7 +205,7 @@ function registerPricingSection(node: Element | ComponentPublicInstance | null) 
                 Keep winning palettes in your library, track history, and move them through shared workflows.
               </p>
             </UCard>
-            <UCard class="rounded-[1.5rem] border-default/70 bg-default/85">
+            <UCard>
               <p class="text-xs uppercase tracking-[0.18em] text-muted">
                 04
               </p>
