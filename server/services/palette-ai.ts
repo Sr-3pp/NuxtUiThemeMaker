@@ -226,13 +226,6 @@ async function requestStructuredPaletteAiContent(
 export async function assertPaletteAiAccess(session: AuthSession | null) {
   const access = assertPaletteGenerationAllowed(session)
 
-  if (!session) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Authentication required',
-    })
-  }
-
   return {
     session,
     access,
@@ -319,6 +312,6 @@ export async function generateStructuredPaletteAiResult<T>({
   }
 }
 
-export async function finalizePaletteAiUsage(session: AuthSession, access: ReturnType<typeof assertPaletteGenerationAllowed>) {
+export async function finalizePaletteAiUsage(session: AuthSession | null, access: ReturnType<typeof assertPaletteGenerationAllowed>) {
   await incrementPaletteGenerationUsageIfNeeded(session, access)
 }

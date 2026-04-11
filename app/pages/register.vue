@@ -99,7 +99,7 @@ async function submit() {
           </UButton>
 
           <UButton to="/" color="neutral" variant="outline" block>
-            Back to builder
+            Back to home
           </UButton>
         </div>
       </UForm>

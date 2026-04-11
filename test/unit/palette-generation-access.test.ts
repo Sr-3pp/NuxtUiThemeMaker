@@ -34,15 +34,15 @@ function createSession(overrides: Partial<{
 }
 
 describe('palette generation access', () => {
-  it('returns an unauthenticated response for guests', () => {
+  it('allows guest demo access for visitors', () => {
     expect(getPaletteGenerationAccess(null)).toEqual({
-      canGenerate: false,
+      canGenerate: true,
       isPaidUnlimited: false,
       isAdminUnlimited: false,
       freeLimit: FREE_PLAN_PALETTE_GENERATION_LIMIT,
       freeUsed: 0,
       freeRemaining: FREE_PLAN_PALETTE_GENERATION_LIMIT,
-      reason: 'unauthenticated',
+      reason: 'allowed',
     })
   })
 

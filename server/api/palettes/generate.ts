@@ -39,7 +39,7 @@ export default defineEventHandler(async (event) => {
 
   const session = await getOptionalAuthSession(event)
   const { session: authenticatedSession, access } = await assertPaletteAiAccess(session)
-  enforceAiRateLimit(event, authenticatedSession.user.id)
+  enforceAiRateLimit(event, authenticatedSession?.user.id ?? null)
   const body = paletteGenerateRequestSchema.parse(await readBody(event))
 
   const promptParts = [

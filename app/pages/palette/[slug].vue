@@ -97,7 +97,7 @@ async function handleFork() {
       color: 'success',
     })
 
-    await navigateTo('/')
+    await navigateTo('/editor')
   } catch (error) {
     showErrorToast(error, 'Failed to fork palette.')
   } finally {
@@ -111,7 +111,7 @@ function handleOpenBuilder() {
   }
 
   setCurrentPalette(paletteValue.value)
-  navigateTo('/')
+  navigateTo('/editor')
 }
 
 async function handleReviewSubmit() {
@@ -208,7 +208,7 @@ usePageSeo({
             Fork to my library
           </UButton>
           <UButton color="neutral" variant="outline" @click="handleOpenBuilder">
-            Open Builder
+            Open editor
           </UButton>
         </div>
       </div>

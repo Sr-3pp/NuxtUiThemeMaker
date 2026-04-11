@@ -95,6 +95,13 @@ const authItems = computed<DropdownMenuItem[][]>(() => {
         }
       },
       {
+        label: 'Landing demo',
+        icon: 'i-lucide-house',
+        onSelect: () => {
+          void navigateTo('/')
+        }
+      },
+      {
         label: 'Panel',
         icon: 'i-lucide-inbox',
         onSelect: () => {
@@ -125,6 +132,12 @@ const palettesItems = computed<NavigationMenuItem[][]>(() => [[
     icon: 'i-lucide-briefcase',
     onSelect: () => {
       void navigateTo('/workspace')
+    }
+  }, {
+    label: 'Landing demo',
+    icon: 'i-lucide-house',
+    onSelect: () => {
+      void navigateTo('/')
     }
   }] : []),
   {

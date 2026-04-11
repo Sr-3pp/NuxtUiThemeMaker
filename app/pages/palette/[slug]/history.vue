@@ -158,12 +158,12 @@ function selectForCompare(version: number, side: 'from' | 'to') {
             Shared preview
           </UButton>
           <UButton
-            to="/"
+            to="/editor"
             color="neutral"
             variant="soft"
             icon="i-lucide-wand-sparkles"
           >
-            Open builder
+            Open editor
           </UButton>
         </div>
       </div>

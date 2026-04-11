@@ -27,13 +27,13 @@ function getGenerationLimit(user: AuthSessionUser) {
 export function getPaletteGenerationAccess(session: AuthSession | null): PaletteGenerationAccess {
   if (!session) {
     return {
-      canGenerate: false,
+      canGenerate: true,
       isPaidUnlimited: false,
       isAdminUnlimited: false,
       freeLimit: FREE_PLAN_PALETTE_GENERATION_LIMIT,
       freeUsed: 0,
       freeRemaining: FREE_PLAN_PALETTE_GENERATION_LIMIT,
-      reason: 'unauthenticated',
+      reason: 'allowed',
     }
   }
 
@@ -69,13 +69,6 @@ export function getPaletteGenerationAccess(session: AuthSession | null): Palette
 export function assertPaletteGenerationAllowed(session: AuthSession | null) {
   const access = getPaletteGenerationAccess(session)
 
-  if (access.reason === 'unauthenticated') {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Authentication required',
-    })
-  }
-
   if (!access.canGenerate) {
     throw createError({
       statusCode: 403,
@@ -86,7 +79,11 @@ export function assertPaletteGenerationAllowed(session: AuthSession | null) {
   return access
 }
 
-export async function incrementPaletteGenerationUsageIfNeeded(session: AuthSession, access: PaletteGenerationAccess) {
+export async function incrementPaletteGenerationUsageIfNeeded(session: AuthSession | null, access: PaletteGenerationAccess) {
+  if (!session) {
+    return
+  }
+
   if (access.isPaidUnlimited || access.isAdminUnlimited) {
     return
   }

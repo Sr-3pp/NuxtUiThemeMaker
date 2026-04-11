@@ -106,8 +106,8 @@ function formatDate(value: string | null | undefined) {
         </div>
 
         <div class="flex flex-wrap gap-2">
-          <UButton to="/" color="neutral" variant="outline" icon="i-lucide-wand-sparkles">
-            Open builder
+          <UButton to="/editor" color="neutral" variant="outline" icon="i-lucide-wand-sparkles">
+            Open editor
           </UButton>
           <UButton color="neutral" variant="soft" icon="i-lucide-refresh-cw" @click="refresh()">
             Refresh workspace
