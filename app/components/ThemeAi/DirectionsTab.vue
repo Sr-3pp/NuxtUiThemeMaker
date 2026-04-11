@@ -28,7 +28,7 @@ const selectedHistoryId = computed(() => props.history.find(entry => entry.resul
 
 <template>
   <div class="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-    <UCard variant="outline" class="rounded-2xl shadow-none">
+    <UCard variant="outline">
       <template #header>
         <ThemeAiSectionHeader
           title="Direction brief"

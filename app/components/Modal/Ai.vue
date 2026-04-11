@@ -117,6 +117,7 @@ watch(open, (value) => {
 
         <UTabs
           v-model="activeTab"
+          class="space-y-4"
           :items="[
             { label: 'Starter', value: 'starter', slot: 'starter' },
             { label: 'Ramps', value: 'ramps', slot: 'ramps' },
@@ -125,7 +126,6 @@ watch(open, (value) => {
           ]"
           color="neutral"
           variant="link"
-          :ui="{ root: 'space-y-4', list: 'w-full border-b border-default/60' }"
         >
           <template #starter>
             <ThemeAiStarterTab

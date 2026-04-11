@@ -17,7 +17,7 @@ const topChanges = computed(() => comparison.value.changes.slice(0, 6))
 </script>
 
 <template>
-  <UCard variant="outline" class="rounded-2xl shadow-none">
+  <UCard variant="outline">
     <template #header>
       <div class="space-y-1">
         <p class="text-sm font-medium text-highlighted">

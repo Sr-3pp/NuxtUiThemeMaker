@@ -44,7 +44,7 @@ async function copyActiveExport() {
 </script>
 
 <template>
-  <UCard variant="outline" class="rounded-2xl shadow-none dark:border-white/10 dark:bg-black/40">
+  <UCard variant="outline">
     <template #header>
       <div class="flex items-center justify-between gap-3">
         <p class="text-sm font-medium dark:text-white">

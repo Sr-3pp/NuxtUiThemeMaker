@@ -10,6 +10,8 @@ const props = withDefaults(defineProps<{
   isLoading: false,
 })
 
+useLandingGeneratedUi()
+
 const shellTheme = computed(() => {
   const lightMode = props.palette.modes.light
 

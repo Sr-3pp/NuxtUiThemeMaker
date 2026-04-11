@@ -31,7 +31,7 @@ const swatches = computed(() => {
 <template>
   <UCard
     v-if="props.palette"
-    class="rounded-[1.75rem] border-default/70 bg-default/85 shadow-xl"
+    class="shadow-xl"
   >
     <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
       <div class="space-y-4">

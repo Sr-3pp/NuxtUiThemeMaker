@@ -27,7 +27,7 @@ const inputStyle = computed(() => getPreviewInputStyle(props.palette))
     </div>
 
     <div class="grid gap-4 xl:grid-cols-[1.1fr_0.9fr_0.8fr]">
-      <UCard class="rounded-[1.5rem] border-default/70 bg-default/85">
+      <UCard>
         <div class="space-y-4">
           <div class="flex items-start justify-between gap-4">
             <div>
@@ -56,7 +56,7 @@ const inputStyle = computed(() => getPreviewInputStyle(props.palette))
         </div>
       </UCard>
 
-      <UCard class="rounded-[1.5rem] border-default/70 bg-default/85">
+      <UCard>
         <div class="space-y-4">
           <div>
             <p class="text-sm font-medium text-highlighted">
@@ -67,11 +67,7 @@ const inputStyle = computed(() => getPreviewInputStyle(props.palette))
             </p>
           </div>
 
-          <UInput
-            placeholder="Palette name"
-            icon="i-lucide-palette"
-            :style="inputStyle"
-          />
+          <UInput placeholder="Palette name" icon="i-lucide-palette" :style="inputStyle" />
 
           <div class="rounded-2xl border border-default/70 bg-muted/35 p-4">
             <p class="text-sm font-medium text-highlighted">
@@ -84,7 +80,7 @@ const inputStyle = computed(() => getPreviewInputStyle(props.palette))
         </div>
       </UCard>
 
-      <UCard class="rounded-[1.5rem] border-default/70 bg-default/85">
+      <UCard>
         <div class="space-y-4">
           <div>
             <p class="text-sm font-medium text-highlighted">

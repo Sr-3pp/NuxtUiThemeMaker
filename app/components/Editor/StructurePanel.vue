@@ -28,7 +28,7 @@ const componentEntries = computed(() => Object.entries(props.palette.components 
 
 <template>
   <div class="space-y-4">
-    <UCard variant="outline" class="rounded-2xl shadow-none dark:border-white/10 dark:bg-black/40">
+    <UCard variant="outline">
       <template #header>
         <div class="space-y-1">
           <p class="text-sm font-medium dark:text-white">
@@ -84,7 +84,7 @@ const componentEntries = computed(() => Object.entries(props.palette.components 
       </p>
     </UCard>
 
-    <UCard variant="outline" class="rounded-2xl shadow-none dark:border-white/10 dark:bg-black/40">
+    <UCard variant="outline">
       <template #header>
         <div class="space-y-1">
           <p class="text-sm font-medium dark:text-white">

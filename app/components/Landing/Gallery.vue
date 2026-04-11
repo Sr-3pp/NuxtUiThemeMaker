@@ -36,7 +36,6 @@ function swatchesFor(palette: StoredPalette) {
       <UCard
         v-for="palette in props.palettes"
         :key="palette._id"
-        class="rounded-[1.5rem] border-default/70 bg-default/85"
       >
         <div class="space-y-4">
           <div class="space-y-2">

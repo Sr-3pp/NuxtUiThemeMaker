@@ -44,7 +44,7 @@ function asTokenGroup(scale: PaletteColorScale) {
 </script>
 
 <template>
-  <UCard variant="outline" class="rounded-2xl shadow-none dark:border-white/10 dark:bg-black/40">
+  <UCard variant="outline">
     <template #header>
       <div class="space-y-1">
         <p class="text-sm font-medium dark:text-white">

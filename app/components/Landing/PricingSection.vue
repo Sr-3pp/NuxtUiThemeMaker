@@ -20,7 +20,6 @@ import { pricingPlans } from '~/data/pricing'
       <UCard
         v-for="plan in pricingPlans"
         :key="plan.id"
-        class="rounded-[1.5rem] border-default/70 bg-default/85"
       >
         <div class="space-y-4">
           <div class="space-y-2">

@@ -49,7 +49,7 @@ const emit = defineEmits<{
         </div>
       </div>
 
-      <UCard class="rounded-[1.75rem] border-default/70 bg-default/85 shadow-xl">
+      <UCard class="shadow-xl">
         <div class="space-y-4">
           <UFormField label="Prompt" description="Describe the brand mood, product type, or tone you want the palette to express.">
             <UTextarea

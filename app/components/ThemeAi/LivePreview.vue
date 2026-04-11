@@ -16,7 +16,7 @@ const previewFrames = computed(() => {
 </script>
 
 <template>
-  <UCard variant="outline" class="rounded-2xl shadow-none">
+  <UCard variant="outline">
     <template #header>
       <div class="space-y-1">
         <p class="text-sm font-medium text-highlighted">

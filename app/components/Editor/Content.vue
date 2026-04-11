@@ -35,10 +35,10 @@ const activeMode = computed<PaletteModeKey>(() => {
     <EditorModeBanner :active-mode="activeMode" />
     <UTabs
       v-model="editorSection"
+      class="mb-4"
       :items="editorSections"
       color="neutral"
       variant="link"
-      :ui="{ root: 'mb-4', list: 'w-full border-b border-default/60' }"
     >
       <template #colors>
         <EditorColorScalesPanel
