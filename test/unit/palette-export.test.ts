@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   exportPaletteAppConfig,
   exportPaletteBundleTs,
+  exportPaletteCss,
   exportPaletteComponentsTs,
   exportPaletteInstallSnippet,
   exportPaletteTs,
@@ -37,6 +38,7 @@ describe('palette export', () => {
     expect(output).toContain('export const components =')
     expect(output).toContain('"button"')
     expect(output).toContain('"bg": "var(--ui-primary)"')
+    expect(output).toContain('"--ui-color-primary-500": "#11aa55"')
   })
 
   it('references component overrides in app config export', () => {
@@ -137,5 +139,30 @@ describe('palette export', () => {
     expect(output).toContain('export const components =')
     expect(output).toContain('export default defineAppConfig({')
     expect(output).toContain('...components')
+    expect(output).toContain('"--ui-color-primary-500": "#11aa55"')
+  })
+
+  it('includes normalized ramps in the CSS export', () => {
+    const output = exportPaletteCss({
+      name: 'Forest Glow',
+      modes: {
+        light: {
+          color: { primary: '#11aa55' },
+          ui: { primary: '#11aa55' },
+        },
+        dark: {
+          color: { primary: '#44dd88' },
+          ui: { primary: '#44dd88' },
+        },
+      },
+    })
+
+    expect(output).toContain(':root {')
+    expect(output).toContain('--ui-primary: #11aa55;')
+    expect(output).toContain('--ui-color-primary-50:')
+    expect(output).toContain('--ui-color-primary-500: #11aa55;')
+    expect(output).toContain('--ui-color-primary-950:')
+    expect(output).toContain('.dark {')
+    expect(output).toContain('--ui-primary: #44dd88;')
   })
 })
