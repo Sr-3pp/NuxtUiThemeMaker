@@ -1,39 +1,27 @@
 <script setup lang="ts">
+defineOptions({
+  name: 'AppNavigation',
+})
+
 const { togglePalettesSidebar, toggleEditorSidebar } = useSidebar()
-const { currentPalette, setCurrentPalette } = usePaletteState()
-const { generatePalette } = usePaletteApi()
+const { currentPalette } = usePaletteState()
 const { cta, helperText, isDisabled, refresh } = usePaletteGenerationAccess()
-const { showErrorToast } = useErrorToast()
 
-const prompt = ref('')
-const isGenerating = ref(false)
+const { open: openQaReport } = useModal('qa-modal')
+const { open: openAiAssist } = useModal('theme-ai-modal')
 
-const handleGenertion = async () => {
-    if (!prompt.value.trim() || isDisabled.value || isGenerating.value) {
-        return
-    }
+const openAiTools = async () => {
+  if (isDisabled.value) {
+    await refresh()
+    return
+  }
 
-    isGenerating.value = true
-
-    try {
-        const generatedPalette = await generatePalette(prompt.value)
-        if (generatedPalette) {
-            setCurrentPalette(generatedPalette)
-            prompt.value = ''
-        }
-    } catch (error) {
-        console.error('Error generating palette:', error)
-        showErrorToast(error, 'Failed to generate palette.')
-        await refresh()
-    } finally {
-        isGenerating.value = false
-    }
+  openAiAssist()
 }
 </script>
 
 <template>
 <div class="flex flex-col sm:flex-row gap-4 items-center justify-between p-2 sm:p-4">
-    
     <div class="flex min-w-0 gap-2 w-full sm:w-auto">
         <UButton
             class="sm:hidden mb-auto mr-auto" 
@@ -66,31 +54,30 @@ const handleGenertion = async () => {
         </UButton>
     </div>
 
-    <div class="ml-auto flex w-full max-w-sm gap-2 items-center">
-        <UInput
-            v-if="!isDisabled"
-            v-model="prompt"
-            class="w-full"
-            label="Generate Palette"
-            placeholder="Describe your palette..."
-            @keydown.enter="handleGenertion()"
+    <div class="ml-auto flex w-full max-w-2xl gap-2 items-center justify-end flex-wrap">
+        <UButton
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-shield-check"
+            @click="openQaReport"
         >
-            <template #trailing>
-                <UButton
-                    class="px-0"
-                    color="primary"
-                    variant="link"
-                    :disabled="isDisabled"
-                    :loading="isGenerating"
-                    @click="handleGenertion()"
-                    icon="mingcute:ai-line"
-                />
-            </template>
-        </UInput>
+            QA report
+        </UButton>
+
+        <template v-if="!isDisabled">
+            <UButton
+                color="primary"
+                variant="soft"
+                icon="i-lucide-sparkles"
+                @click="openAiTools"
+            >
+                AI tools
+            </UButton>
+        </template>
 
         <UButton
-            class="ml-auto"
             v-else
+            class="ml-auto"
             :to="cta?.to"
             color="primary"
             variant="link"
@@ -101,10 +88,10 @@ const handleGenertion = async () => {
         </UButton>
 
         <UButton
+            v-if="isDisabled"
             class="ml-auto"
             color="secondary"
             variant="ghost"
-            v-if="isDisabled"
             to="/pricing"
             icon="mynaui:label"
         >

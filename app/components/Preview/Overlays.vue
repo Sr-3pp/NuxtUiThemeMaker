@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PreviewInteractiveProps } from '~/types/theme-preview'
+import { getPreviewButtonStyle, getPreviewInputStyle } from '~/utils/preview-overrides'
 
 const props = defineProps<PreviewInteractiveProps>()
 
@@ -16,6 +17,12 @@ const dropdownItems = [
     { label: 'Reset overrides', icon: 'i-lucide-rotate-ccw', color: 'error' }
   ]
 ]
+
+const inputStyle = computed(() => getPreviewInputStyle(props.palette))
+
+function buttonStyle(variant: string, color: string) {
+  return getPreviewButtonStyle(props.palette, variant, color)
+}
 </script>
 
 <template>
@@ -36,13 +43,13 @@ const dropdownItems = [
 
       <div class="flex flex-wrap items-center gap-3">
         <UDropdownMenu :items="dropdownItems" :disabled="props.disableInteractive">
-          <UButton color="neutral" variant="outline" trailing-icon="i-lucide-chevron-down">
+          <UButton color="neutral" variant="outline" trailing-icon="i-lucide-chevron-down" :style="buttonStyle('outline', 'neutral')">
             Dropdown menu
           </UButton>
         </UDropdownMenu>
 
         <UPopover>
-          <UButton color="info" variant="soft" icon="i-lucide-panel-top-open" :disabled="props.disableInteractive">
+          <UButton color="info" variant="soft" icon="i-lucide-panel-top-open" :disabled="props.disableInteractive" :style="buttonStyle('soft', 'info')">
             Popover
           </UButton>
 
@@ -61,6 +68,7 @@ const dropdownItems = [
           variant="solid"
           icon="i-lucide-square-stack"
           :disabled="props.disableInteractive"
+          :style="buttonStyle('solid', 'primary')"
           @click="isModalOpen = true"
         >
           Open modal
@@ -71,6 +79,7 @@ const dropdownItems = [
           variant="soft"
           icon="i-lucide-panel-right-open"
           :disabled="props.disableInteractive"
+          :style="buttonStyle('soft', 'secondary')"
           @click="isDrawerOpen = true"
         >
           Open drawer
@@ -106,10 +115,10 @@ const dropdownItems = [
 
       <template #footer="{ close }">
         <div class="flex w-full justify-end gap-3">
-          <UButton color="neutral" variant="outline" @click="close">
+          <UButton color="neutral" variant="outline" :style="buttonStyle('outline', 'neutral')" @click="close">
             Cancel
           </UButton>
-          <UButton color="primary" @click="close">
+          <UButton color="primary" :style="buttonStyle('solid', 'primary')" @click="close">
             Apply
           </UButton>
         </div>
@@ -134,16 +143,17 @@ const dropdownItems = [
             color="primary"
             variant="outline"
             highlight
+            :style="inputStyle"
           />
         </div>
       </template>
 
       <template #footer>
         <div class="flex justify-end gap-3 px-1 pb-1">
-          <UButton color="neutral" variant="ghost" @click="isDrawerOpen = false">
+          <UButton color="neutral" variant="ghost" :style="buttonStyle('ghost', 'neutral')" @click="isDrawerOpen = false">
             Dismiss
           </UButton>
-          <UButton color="secondary" @click="isDrawerOpen = false">
+          <UButton color="secondary" :style="buttonStyle('solid', 'secondary')" @click="isDrawerOpen = false">
             Save changes
           </UButton>
         </div>

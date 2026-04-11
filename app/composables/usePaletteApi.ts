@@ -1,10 +1,49 @@
 import type { EditablePalette } from '~/types/palette-editor'
-import type { StoredPalette, UpdatePalettePayload, UpdatePaletteVisibilityPayload } from '~/types/palette-store'
-import type { PaletteGenerationAccess } from '~/types/palette-generation'
-import { FREE_PLAN_PALETTE_GENERATION_LIMIT } from '~/data/pricing'
-import { clonePaletteDefinition } from '~/utils/palette-domain'
+import type { CreatePaletteReviewPayload, PaletteReview, PaletteReviewThread } from '~/types/palette-review'
+import type { SharePalettePayload, StoredPalette, UpdatePalettePayload, UpdatePaletteVisibilityPayload } from '~/types/palette-store'
+import type {
+  PaletteAuditGeneratePayload,
+  PaletteAuditGenerateResult,
+  PaletteDirectionsGeneratePayload,
+  PaletteDirectionsGenerateResult,
+  PaletteGeneratePayload,
+  PaletteGenerationAccess,
+  PaletteRampGeneratePayload,
+  PaletteRampGenerateResult,
+  PaletteVariantGeneratePayload,
+  PaletteVariantGenerateResult,
+} from '~/types/palette-generation'
+import type { PaletteVersionSnapshot } from '~/types/palette-version'
+import { FREE_PLAN_PALETTE_GENERATION_LIMIT } from '../data/pricing'
+import { clonePaletteDefinition } from '../utils/palette-domain'
 
 export function usePaletteApi() {
+  async function fetchWithRefresh<T>(
+    input: string,
+    init: Parameters<typeof $fetch<T>>[1],
+    refreshKey: string,
+  ) {
+    const result = await $fetch<T>(input, init)
+
+    await refreshNuxtData(refreshKey)
+
+    return result
+  }
+
+  function fetchWithUserPaletteRefresh<T>(
+    input: string,
+    init: Parameters<typeof $fetch<T>>[1],
+  ) {
+    return fetchWithRefresh<T>(input, init, 'user-palettes')
+  }
+
+  function fetchWithGenerationAccessRefresh<T>(
+    input: string,
+    init: Parameters<typeof $fetch<T>>[1],
+  ) {
+    return fetchWithRefresh<T>(input, init, 'palette-generation-access')
+  }
+
   const savePalette = async (palette: EditablePalette) => {
     if (!palette._id) {
       return null
@@ -18,21 +57,17 @@ export function usePaletteApi() {
       isPublic: palette.isPublic ?? false,
     }
 
-    const updatedPalette = await $fetch<StoredPalette>(`/api/palettes/${palette._id}`, {
+    return fetchWithUserPaletteRefresh<StoredPalette>(`/api/palettes/${palette._id}`, {
       method: 'PUT',
       credentials: 'include',
       body: payload,
     })
-
-    await refreshNuxtData('user-palettes')
-
-    return updatedPalette
   }
 
   const saveNewPalette = async (palette: EditablePalette) => {
     const editablePalette = clonePaletteDefinition(palette)
 
-    const createdPalette = await $fetch<StoredPalette>('/api/palettes', {
+    return fetchWithUserPaletteRefresh<StoredPalette>('/api/palettes', {
       method: 'POST',
       credentials: 'include',
       body: {
@@ -41,33 +76,65 @@ export function usePaletteApi() {
         isPublic: false,
       },
     })
-
-    await refreshNuxtData('user-palettes')
-
-    return createdPalette
   }
 
   const deletePalette = async (id: string) => {
-    await $fetch(`/api/palettes/${id}`, {
+    await fetchWithUserPaletteRefresh(`/api/palettes/${id}`, {
       method: 'DELETE',
       credentials: 'include',
     })
+  }
 
-    await refreshNuxtData('user-palettes')
+  const forkPalette = async (id: string) => {
+    return fetchWithUserPaletteRefresh<StoredPalette>(`/api/palettes/${id}/fork`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+  }
+
+  const sharePalette = async (id: string, payload: SharePalettePayload) => {
+    return fetchWithUserPaletteRefresh<StoredPalette>(`/api/palettes/${id}/share`, {
+      method: 'POST',
+      credentials: 'include',
+      body: payload,
+    })
+  }
+
+  const unsharePalette = async (id: string, collaboratorUserId: string) => {
+    return fetchWithUserPaletteRefresh<StoredPalette>(`/api/palettes/${id}/share/${collaboratorUserId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
   }
 
   const updatePaletteVisibility = async (id: string, isPublic: boolean) => {
     const payload: UpdatePaletteVisibilityPayload = { isPublic }
 
-    const updatedPalette = await $fetch<StoredPalette>(`/api/palettes/${id}/visibility`, {
+    return fetchWithUserPaletteRefresh<StoredPalette>(`/api/palettes/${id}/visibility`, {
       method: 'PATCH',
       credentials: 'include',
       body: payload,
     })
+  }
 
-    await refreshNuxtData('user-palettes')
+  const getPaletteHistory = async (id: string) => {
+    return $fetch<PaletteVersionSnapshot[]>(`/api/palettes/${id}/history`, {
+      credentials: 'include',
+    })
+  }
 
-    return updatedPalette
+  const getPaletteReviews = async (id: string) => {
+    return $fetch<PaletteReviewThread>(`/api/palettes/${id}/reviews`, {
+      credentials: 'include',
+    })
+  }
+
+  const createPaletteReview = async (id: string, payload: CreatePaletteReviewPayload) => {
+    return $fetch<PaletteReview>(`/api/palettes/${id}/reviews`, {
+      method: 'POST',
+      credentials: 'include',
+      body: payload,
+    })
   }
 
   const getUserPalettes = () => useFetch<StoredPalette[]>('/api/palettes/user', {
@@ -94,26 +161,64 @@ export function usePaletteApi() {
     } satisfies PaletteGenerationAccess),
   })
 
-  const generatePalette = async (prompt: string) => {
-    const generatedPalette = await $fetch<EditablePalette>('/api/palettes/generate', {
+  const generatePalette = async (payload: string | PaletteGeneratePayload) => {
+    return fetchWithGenerationAccessRefresh<EditablePalette>('/api/palettes/generate', {
       method: 'POST',
       credentials: 'include',
-      body: { prompt },
+      body: typeof payload === 'string' ? { prompt: payload } : payload,
     })
+  }
 
-    await refreshNuxtData('palette-generation-access')
+  const generatePaletteRamps = async (payload: PaletteRampGeneratePayload) => {
+    return fetchWithGenerationAccessRefresh<PaletteRampGenerateResult>('/api/palettes/generate/ramp', {
+      method: 'POST',
+      credentials: 'include',
+      body: payload,
+    })
+  }
 
-    return generatedPalette
+  const generatePaletteVariants = async (payload: PaletteVariantGeneratePayload) => {
+    return fetchWithGenerationAccessRefresh<PaletteVariantGenerateResult>('/api/palettes/generate/variants', {
+      method: 'POST',
+      credentials: 'include',
+      body: payload,
+    })
+  }
+
+  const generatePaletteAudit = async (payload: PaletteAuditGeneratePayload) => {
+    return fetchWithGenerationAccessRefresh<PaletteAuditGenerateResult>('/api/palettes/generate/audit', {
+      method: 'POST',
+      credentials: 'include',
+      body: payload,
+    })
+  }
+
+  const generatePaletteDirections = async (payload: PaletteDirectionsGeneratePayload) => {
+    return fetchWithGenerationAccessRefresh<PaletteDirectionsGenerateResult>('/api/palettes/generate/directions', {
+      method: 'POST',
+      credentials: 'include',
+      body: payload,
+    })
   }
 
   return {
     deletePalette,
+    forkPalette,
     getPaletteGenerationAccess,
+    getPaletteHistory,
+    getPaletteReviews,
     getPublicPalettes,
     getUserPalettes,
+    createPaletteReview,
+    sharePalette,
     saveNewPalette,
     savePalette,
+    unsharePalette,
     updatePaletteVisibility,
     generatePalette,
+    generatePaletteRamps,
+    generatePaletteVariants,
+    generatePaletteAudit,
+    generatePaletteDirections,
   }
 }

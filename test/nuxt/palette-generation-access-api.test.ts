@@ -35,7 +35,7 @@ describe('palette generation access api handler', () => {
       canGenerate: false,
       isAdminUnlimited: false,
       reason: 'unauthenticated',
-      freeRemaining: 3,
+      freeRemaining: 5,
     })
   })
 
@@ -57,21 +57,21 @@ describe('palette generation access api handler', () => {
       canGenerate: true,
       isPaidUnlimited: false,
       isAdminUnlimited: false,
-      freeLimit: 30,
-      freeRemaining: 26,
+      freeLimit: 60,
+      freeRemaining: 56,
       freeUsed: 4,
       reason: 'allowed',
     })
   })
 
-  it('returns capped paid access for active studio users', async () => {
+  it('returns capped paid access for active teams users', async () => {
     getOptionalAuthSessionMock.mockResolvedValueOnce({
       user: {
         id: 'user-1',
         isAdmin: false,
-        plan: 'studio',
+        plan: 'teams',
         planStatus: 'active',
-        aiPaletteGenerationsUsed: 99,
+        aiPaletteGenerationsUsed: 299,
       },
     })
 
@@ -82,9 +82,9 @@ describe('palette generation access api handler', () => {
       canGenerate: true,
       isPaidUnlimited: false,
       isAdminUnlimited: false,
-      freeLimit: 100,
+      freeLimit: 300,
       freeRemaining: 1,
-      freeUsed: 99,
+      freeUsed: 299,
       reason: 'allowed',
     })
   })

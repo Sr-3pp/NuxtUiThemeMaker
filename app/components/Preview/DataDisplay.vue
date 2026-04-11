@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import type { PreviewInteractiveProps } from '~/types/theme-preview'
+import { getPreviewButtonStyle } from '~/utils/preview-overrides'
+
+const props = defineProps<PreviewInteractiveProps>()
+
 const tableRows = [
   { component: 'Buttons', emphasis: 'Primary and semantic actions', status: 'Ready' },
   { component: 'Forms', emphasis: 'Focus, invalid and disabled states', status: 'Review' },
@@ -17,37 +22,29 @@ const avatars = [
   { text: 'SK', chip: { color: 'warning', inset: true } },
   { text: 'JT', chip: { color: 'primary', inset: true } }
 ] as const
+
+function buttonStyle(variant: string, color: string) {
+  return getPreviewButtonStyle(props.palette, variant, color)
+}
 </script>
 
 <template>
   <section class="space-y-4">
-    <div class="space-y-1">
-      <h3 class="text-lg font-semibold text-highlighted">
-        Data display
-      </h3>
-      <p class="text-sm text-muted">
-        Small-data table, avatar grouping and compact display helpers for support UI.
-      </p>
-    </div>
+    <PreviewSectionIntro
+      title="Data display"
+      description="Small-data table, avatar grouping and compact display helpers for support UI."
+    />
 
     <div class="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-      <UCard variant="outline">
-        <template #header>
-          <p class="text-sm font-medium text-highlighted">Table preview</p>
-        </template>
-
+      <PreviewCard title="Table preview">
         <UTable
           :data="tableRows"
           :columns="tableColumns"
         />
-      </UCard>
+      </PreviewCard>
 
       <div class="grid gap-6">
-        <UCard variant="soft">
-          <template #header>
-            <p class="text-sm font-medium text-highlighted">Avatars and assistive labels</p>
-          </template>
-
+        <PreviewCard title="Avatars and assistive labels" variant="soft">
           <div class="space-y-4">
             <div class="flex items-center gap-4">
               <UAvatarGroup>
@@ -67,20 +64,14 @@ const avatars = [
               <UBadge color="success" variant="subtle" label="Success tag" />
             </div>
           </div>
-        </UCard>
+        </PreviewCard>
 
-        <UCard variant="outline">
-          <template #header>
-            <p class="text-sm font-medium text-highlighted">Tooltip trigger</p>
-          </template>
-
+        <PreviewCard title="Hover target">
           <div class="flex items-center gap-3">
-            <UTooltip text="Check hover contrast and overlay surface" :content="{ side: 'top' }">
-              <UButton color="neutral" variant="outline" icon="i-lucide-info" label="Hover target" />
-            </UTooltip>
-            <p class="text-sm text-muted">Tooltip surface and border contrast should remain readable over cards.</p>
+            <UButton color="neutral" variant="outline" icon="i-lucide-info" label="Hover target" :style="buttonStyle('outline', 'neutral')" />
+            <p class="text-sm text-muted">Overlay contrast check temporarily rendered as static content while the tooltip integration is removed from this preview.</p>
           </div>
-        </UCard>
+        </PreviewCard>
       </div>
     </div>
   </section>

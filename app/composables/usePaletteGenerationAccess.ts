@@ -26,28 +26,28 @@ export function usePaletteGenerationAccess() {
     const currentPlan = user.value?.plan ?? 'free'
 
     if (access.value.isAdminUnlimited) {
-      return 'Unlimited AI palette generations enabled for admin accounts.'
+      return 'Unlimited AI runs enabled for admin accounts.'
     }
 
     if (access.value.isPaidUnlimited) {
-      return 'Unlimited AI palette generations included with your access.'
+      return 'Unlimited AI runs included with your access.'
     }
 
     if (access.value.reason === 'unauthenticated') {
-      return 'Register or log in to generate palettes'
+      return 'Register or log in to use AI tools'
     }
 
     if (access.value.reason === 'free_limit_reached') {
       return currentPlan === 'pro'
-        ? `You used all ${access.value.freeLimit} AI generations in your Pro plan. Upgrade for more access.`
-        : `You used all ${access.value.freeLimit} free generations. Upgrade for more access.`
+        ? `You used all ${access.value.freeLimit} AI runs in your Pro plan. Upgrade for more access.`
+        : `You used all ${access.value.freeLimit} free AI runs. Upgrade for more access.`
     }
 
     return currentPlan === 'pro'
-      ? `${access.value.freeRemaining} AI generations left on your Pro plan`
-      : currentPlan === 'studio'
-        ? `${access.value.freeRemaining} AI generations left on your Studio plan`
-        : `${access.value.freeRemaining} free generations left`
+      ? `${access.value.freeRemaining} AI runs left on your Pro plan`
+      : currentPlan === 'teams'
+        ? `${access.value.freeRemaining} AI runs left on your Teams plan`
+        : `${access.value.freeRemaining} free AI runs left`
   })
 
   const cta = computed(() => {

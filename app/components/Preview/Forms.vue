@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PreviewInteractiveProps } from '~/types/theme-preview'
+import { getPreviewInputStyle } from '~/utils/preview-overrides'
 
 const props = defineProps<PreviewInteractiveProps>()
 
@@ -22,25 +23,19 @@ const selectItems = [
   { label: 'Editorial', value: 'editorial', description: 'Sharper hierarchy for reading-heavy UI' },
   { label: 'Playful', value: 'playful', description: 'Brighter accents and softer surfaces' }
 ]
+
+const inputStyle = computed(() => getPreviewInputStyle(props.palette))
 </script>
 
 <template>
   <section class="space-y-4">
-    <div class="space-y-1">
-      <h3 class="text-lg font-semibold text-highlighted">
-        Forms
-      </h3>
-      <p class="text-sm text-muted">
-        Focus, placeholder, error, disabled and selection states across the main input controls.
-      </p>
-    </div>
+    <PreviewSectionIntro
+      title="Forms"
+      description="Focus, placeholder, error, disabled and selection states across the main input controls."
+    />
 
     <div class="grid gap-6 xl:grid-cols-2">
-      <UCard variant="outline">
-        <template #header>
-          <p class="text-sm font-medium text-highlighted">Inputs and selection fields</p>
-        </template>
-
+      <PreviewCard title="Inputs and selection fields">
         <div class="grid gap-4 md:grid-cols-2">
           <div class="space-y-2">
             <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
@@ -54,6 +49,7 @@ const selectItems = [
               placeholder="Theme name"
               leading-icon="i-lucide-palette"
               :disabled="props.disableInteractive"
+              :style="inputStyle"
             />
             <p class="text-xs text-muted">Highlighted ring makes focus treatment easier to compare.</p>
           </div>
@@ -68,6 +64,7 @@ const selectItems = [
               placeholder="Search tokens, aliases or ramps"
               trailing-icon="i-lucide-search"
               :disabled="props.disableInteractive"
+              :style="inputStyle"
             />
             <p class="text-xs text-muted">Empty state checks placeholder and trailing icon legibility.</p>
           </div>
@@ -82,6 +79,7 @@ const selectItems = [
               variant="outline"
               highlight
               :disabled="props.disableInteractive"
+              :style="inputStyle"
             />
             <p class="text-xs text-error">Contrast ratio is below the target for body copy.</p>
           </div>
@@ -96,6 +94,7 @@ const selectItems = [
               color="neutral"
               variant="outline"
               disabled
+              :style="inputStyle"
             />
             <p class="text-xs text-muted">Disabled controls should still read clearly against muted surfaces.</p>
           </div>
@@ -110,6 +109,7 @@ const selectItems = [
               variant="subtle"
               :rows="4"
               :disabled="props.disableInteractive"
+              :style="inputStyle"
             />
             <p class="text-xs text-muted">Long-form text helps expose line-height, border and background balance.</p>
           </div>
@@ -125,6 +125,7 @@ const selectItems = [
               variant="outline"
               highlight
               :disabled="props.disableInteractive"
+              :style="inputStyle"
             />
             <p class="text-xs text-muted">Menu trigger surface and caret contrast.</p>
           </div>
@@ -146,13 +147,9 @@ const selectItems = [
             </div>
           </div>
         </div>
-      </UCard>
+      </PreviewCard>
 
-      <UCard variant="outline">
-        <template #header>
-          <p class="text-sm font-medium text-highlighted">Choices and toggles</p>
-        </template>
-
+      <PreviewCard title="Choices and toggles">
         <div class="space-y-5">
           <div class="space-y-2">
             <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
@@ -209,7 +206,7 @@ const selectItems = [
             </div>
           </div>
         </div>
-      </UCard>
+      </PreviewCard>
     </div>
   </section>
 </template>

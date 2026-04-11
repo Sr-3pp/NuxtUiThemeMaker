@@ -1,11 +1,24 @@
 <script setup lang="ts">
-import type { DropdownMenuItem } from '@nuxt/ui'
-import type { UpdateEditablePaletteTokenPayload } from '~/types/palette-editor'
+import type { DropdownMenuItem } from '~/types/ui-local'
+import type {
+  UpdateEditablePaletteColorScalePayload,
+  UpdateEditablePaletteComponentTokenPayload,
+  UpdateEditablePaletteTokenPayload,
+} from '~/types/palette-editor'
 
-const { currentPalette, sourcePalette, setCurrentPalette, updatePalette, updatePaletteName } = usePaletteState()
+const {
+  currentPalette,
+  sourcePalette,
+  setCurrentPalette,
+  updatePalette,
+  updatePaletteColorScale,
+  updatePaletteComponentToken,
+  updatePaletteName,
+} = usePaletteState()
 const { savePalette, saveNewPalette } = usePaletteApi()
 const { editorSidebarSw } = useSidebar()
 const { showErrorToast } = useErrorToast()
+const { isSplitView, toggleSplitView } = usePreviewSplitView()
 
 const saveItems = computed<DropdownMenuItem[][]>(() => [[
   {
@@ -54,21 +67,41 @@ const handleUpdateToken = (event: UpdateEditablePaletteTokenPayload) => {
   updatePalette({mode, section, token, value})
 }
 
+const handleUpdateColorScale = (payload: UpdateEditablePaletteColorScalePayload) => {
+  updatePaletteColorScale(payload)
+}
+
+const handleUpdateComponentToken = (payload: UpdateEditablePaletteComponentTokenPayload) => {
+  updatePaletteComponentToken(payload)
+}
+
 const handlePaletteNameInput = (event: Event) => {
   updatePaletteName((event.target as HTMLInputElement).value)
 }
+
 </script>
 
 <template>
-    <UDashboardSidebar id="theme-editor-sidebar" v-model:open="editorSidebarSw" side="right" mode="drawer" resizable :min-size="400">
+    <UDashboardSidebar id="theme-editor-sidebar" v-model:open="editorSidebarSw" side="right" mode="drawer" :default-size="30" :max-size="30">
       <template #header>
-        <div class="w-full flex items-center">
+        <div class="w-full flex items-center gap-2">
           <UIcon class="mr-2" name="i-lucide:palette" />
           <p class="font-medium">
             Theme Editor
           </p>
-  
-          <UColorModeSwitch class="ml-auto" />
+
+          <div class="ml-auto flex items-center gap-2">
+            <UButton
+              color="neutral"
+              variant="outline"
+              size="sm"
+              :icon="isSplitView ? 'i-lucide-columns-2' : 'i-lucide-square'"
+              :label="isSplitView ? 'Split on' : 'Split off'"
+              @click="toggleSplitView"
+            />
+
+            <UColorModeSwitch />
+          </div>
         </div>
       </template>
       <div v-if="currentPalette" class="space-y-4">
@@ -80,7 +113,15 @@ const handlePaletteNameInput = (event: Event) => {
           />
         </UFormField>
 
-        <WorkbenchEditorContent :palette="currentPalette" :sourcePalette="sourcePalette ?? currentPalette" defaultMode="dark" tab="tokens" @update-token="handleUpdateToken"/>
+        <EditorContent
+          :palette="currentPalette"
+          :source-palette="sourcePalette ?? currentPalette"
+          default-mode="dark"
+          tab="tokens"
+          @update-token="handleUpdateToken"
+          @update-color-scale="handleUpdateColorScale"
+          @update-component-token="handleUpdateComponentToken"
+        />
       </div>
 
       <template #footer>

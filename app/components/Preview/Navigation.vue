@@ -83,21 +83,13 @@ const currentStep = ref(2)
 
 <template>
   <section class="space-y-4">
-    <div class="space-y-1">
-      <h3 class="text-lg font-semibold text-highlighted">
-        Navigation and choice
-      </h3>
-      <p class="text-sm text-muted">
-        Active states, disclosure, pagination and low-level navigation helpers.
-      </p>
-    </div>
+    <PreviewSectionIntro
+      title="Navigation and choice"
+      description="Active states, disclosure, pagination and low-level navigation helpers."
+    />
 
     <div class="grid gap-6 xl:grid-cols-2">
-      <UCard variant="outline">
-        <template #header>
-          <p class="text-sm font-medium text-highlighted">Tabs and accordion</p>
-        </template>
-
+      <PreviewCard title="Tabs and accordion">
         <div class="space-y-5">
           <UTabs
             :items="tabItems"
@@ -112,13 +104,9 @@ const currentStep = ref(2)
             :default-value="['primary']"
           />
         </div>
-      </UCard>
+      </PreviewCard>
 
-      <UCard variant="outline">
-        <template #header>
-          <p class="text-sm font-medium text-highlighted">Menus, traversal and progress</p>
-        </template>
-
+      <PreviewCard title="Menus, traversal and progress">
         <div class="space-y-5">
           <div class="space-y-2">
             <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">Breadcrumb</p>
@@ -165,7 +153,7 @@ const currentStep = ref(2)
             />
           </div>
         </div>
-      </UCard>
+      </PreviewCard>
     </div>
   </section>
 </template>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { h, resolveComponent } from 'vue'
-import type { TableColumn } from '@nuxt/ui'
+import type { TableColumn } from '@nuxt/ui/components/Table.vue'
+import type { TableCellContext } from '~/types/ui-local'
 import { z } from 'zod'
 import type { AdminPaletteListItem } from '~/types/admin-palette'
 
@@ -160,7 +161,7 @@ const tableColumns: TableColumn<AdminPaletteListItem>[] = [
   {
     accessorKey: 'isPublic',
     header: 'Visibility',
-    cell: ({ row }) => {
+    cell: ({ row }: TableCellContext<AdminPaletteListItem>) => {
       const UBadge = resolveComponent('UBadge')
 
       return h(UBadge, {
@@ -173,12 +174,12 @@ const tableColumns: TableColumn<AdminPaletteListItem>[] = [
   {
     accessorKey: 'updatedAt',
     header: 'Updated',
-    cell: ({ row }) => formatDate(row.original.updatedAt),
+    cell: ({ row }: TableCellContext<AdminPaletteListItem>) => formatDate(row.original.updatedAt),
   },
   {
     id: 'actions',
     header: 'Actions',
-    cell: ({ row }) => {
+    cell: ({ row }: TableCellContext<AdminPaletteListItem>) => {
       const UButton = resolveComponent('UButton')
 
       return h('div', { class: 'flex items-center justify-end gap-2' }, [

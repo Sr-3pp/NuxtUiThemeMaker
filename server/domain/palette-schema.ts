@@ -1,11 +1,41 @@
 import { z } from 'zod'
 
+const paletteTokenValueSchema = z.union([z.string().trim().min(1), z.null()])
+const paletteTokenGroupSchema = z.record(z.string(), paletteTokenValueSchema)
+const paletteModeSchema = z.record(z.string(), paletteTokenGroupSchema)
+const paletteColorScaleSchema = z.object({
+  '50': paletteTokenValueSchema,
+  '100': paletteTokenValueSchema,
+  '200': paletteTokenValueSchema,
+  '300': paletteTokenValueSchema,
+  '400': paletteTokenValueSchema,
+  '500': paletteTokenValueSchema,
+  '600': paletteTokenValueSchema,
+  '700': paletteTokenValueSchema,
+  '800': paletteTokenValueSchema,
+  '900': paletteTokenValueSchema,
+  '950': paletteTokenValueSchema,
+})
+const paletteComponentThemeSectionSchema = z.object({
+  base: paletteTokenGroupSchema.optional(),
+  slots: z.record(z.string(), paletteTokenGroupSchema).optional(),
+  variants: z.record(z.string(), z.record(z.string(), paletteTokenGroupSchema)).optional(),
+  states: z.record(z.string(), paletteTokenGroupSchema).optional(),
+})
+
 export const paletteDefinitionSchema = z.object({
   name: z.string().trim().min(1, 'Palette name is required'),
   modes: z.object({
-    light: z.record(z.string(), z.record(z.string(), z.union([z.string().trim().min(1), z.null()]))),
-    dark: z.record(z.string(), z.record(z.string(), z.union([z.string().trim().min(1), z.null()])))
-  })
+    light: paletteModeSchema,
+    dark: paletteModeSchema
+  }),
+  colors: z.record(z.string(), paletteColorScaleSchema).optional(),
+  aliases: z.record(z.string(), z.union([z.string().trim().min(1), z.null()])).optional(),
+  components: z.record(z.string(), paletteComponentThemeSectionSchema).optional(),
+  metadata: z.object({
+    version: z.number().int().min(1),
+    normalizedAt: z.string().datetime().nullish(),
+  }).optional(),
 })
 
 const stringResponseSchema = {

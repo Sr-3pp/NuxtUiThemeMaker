@@ -1,6 +1,8 @@
 import { createEvent, getResponseHeader } from 'h3'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
+  AI_RATE_LIMIT_RULE,
+  enforceAiRateLimit,
   clearRateLimitBuckets,
   enforceRateLimit,
   resolveRateLimitRule,
@@ -57,6 +59,12 @@ describe('rate limit utilities', () => {
     })
   })
 
+  it('uses the AI route rule for palette AI endpoints', () => {
+    const event = createApiEvent('/api/palettes/generate/variants', 'POST')
+
+    expect(resolveRateLimitRule(event)).toMatchObject(AI_RATE_LIMIT_RULE)
+  })
+
   it('throws a 429 when the bucket is exhausted', () => {
     const event = createApiEvent('/api/auth/sign-in/email', 'POST')
     const now = Date.now()
@@ -78,5 +86,28 @@ describe('rate limit utilities', () => {
     expect(getResponseHeader(event, 'X-RateLimit-Limit')).toBe('12')
     expect(getResponseHeader(event, 'X-RateLimit-Remaining')).toBe('0')
     expect(String(getResponseHeader(event, 'Retry-After'))).toBe('60')
+  })
+
+  it('enforces a stricter per-user burst limit for AI endpoints', () => {
+    const event = createApiEvent('/api/palettes/generate', 'POST')
+    const now = Date.now()
+
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      enforceAiRateLimit(event, 'user-1', now)
+    }
+
+    try {
+      enforceAiRateLimit(event, 'user-1', now)
+      throw new Error('Expected the AI rate limiter to throw')
+    }
+    catch (error) {
+      expect(error).toMatchObject({
+        statusCode: 429,
+        statusMessage: 'Too many requests',
+      })
+    }
+
+    expect(getResponseHeader(event, 'X-RateLimit-Limit')).toBe('8')
+    expect(getResponseHeader(event, 'X-RateLimit-Remaining')).toBe('0')
   })
 })

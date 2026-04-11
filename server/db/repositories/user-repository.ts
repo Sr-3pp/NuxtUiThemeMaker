@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb'
-import { PricingPlanId } from '~/types/pricing'
+import type { PricingPlanId } from '~/types/pricing'
 import { getMongoDb } from '~~/server/utils/mongodb'
 
 export const USER_COLLECTIONS = ['user', 'users'] as const

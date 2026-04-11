@@ -5,6 +5,7 @@ import {
   findPaletteById,
   updatePaletteById,
 } from '~~/server/db/repositories/palette-repository'
+import { getPaletteLifecycleStatus } from '~~/server/domain/palette'
 import { generateUniquePaletteSlug, parsePaletteObjectId } from '~~/server/services/palette-helpers'
 
 export async function updateAdminManagedPalette(
@@ -25,11 +26,17 @@ export async function updateAdminManagedPalette(
   const nextSlug = nextName === existingPalette.name
     ? existingPalette.slug
     : await generateUniquePaletteSlug(nextName, objectId)
+  const lifecycleStatus = getPaletteLifecycleStatus(input.isPublic)
+  const publishedAt = lifecycleStatus === 'published'
+    ? existingPalette.publishedAt ?? new Date()
+    : null
 
   const updatedPalette = await updatePaletteById(objectId, {
     name: nextName,
     slug: nextSlug,
     isPublic: input.isPublic,
+    lifecycleStatus,
+    publishedAt,
     updatedAt: new Date(),
   })
 

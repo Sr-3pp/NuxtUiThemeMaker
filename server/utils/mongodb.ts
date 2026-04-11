@@ -1,9 +1,7 @@
 import { MongoClient } from 'mongodb'
 
 declare global {
-  // eslint-disable-next-line no-var
   var __nuxtUiThemeMakerMongoClient__: MongoClient | undefined
-  // eslint-disable-next-line no-var
   var __nuxtUiThemeMakerMongoClientPromise__: Promise<MongoClient> | undefined
 }
 

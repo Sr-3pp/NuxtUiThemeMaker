@@ -1,33 +1,30 @@
 <script setup lang="ts">
 import type { ButtonColor, ButtonVariant, PreviewInteractiveProps } from '~/types/theme-preview'
+import { getPreviewButtonStyle } from '~/utils/preview-overrides'
 
 const props = defineProps<PreviewInteractiveProps>()
 
 const buttonColors: ButtonColor[] = ['primary', 'secondary', 'success', 'info', 'warning', 'error', 'neutral']
 const buttonVariants: ButtonVariant[] = ['solid', 'outline', 'soft', 'subtle', 'ghost', 'link']
 const badgeVariants = ['solid', 'outline', 'soft', 'subtle'] as const
+
+function buttonStyle(variant: ButtonVariant, color: ButtonColor) {
+  return getPreviewButtonStyle(props.palette, variant, color)
+}
 </script>
 
 <template>
   <section class="space-y-4">
-    <div class="space-y-1">
-      <h3 class="text-lg font-semibold text-highlighted">
-        Actions
-      </h3>
-      <p class="text-sm text-muted">
-        Primary and semantic call-to-action states, emphasis levels and compact badge checks.
-      </p>
-    </div>
+    <PreviewSectionIntro
+      title="Actions"
+      description="Primary and semantic call-to-action states, emphasis levels and compact badge checks."
+    />
 
     <div class="grid gap-6 xl:grid-cols-[1.45fr_0.55fr]">
-      <UCard variant="outline">
-        <template #header>
-          <div class="space-y-1">
-            <p class="text-sm font-medium text-highlighted">Button variants by semantic color</p>
-            <p class="text-sm text-muted">Each row keeps the same semantic color while the variant shifts emphasis.</p>
-          </div>
-        </template>
-
+      <PreviewCard
+        title="Button variants by semantic color"
+        description="Each row keeps the same semantic color while the variant shifts emphasis."
+      >
         <div class="space-y-4">
           <div
             v-for="color in buttonColors"
@@ -47,42 +44,40 @@ const badgeVariants = ['solid', 'outline', 'soft', 'subtle'] as const
               :variant="variant"
               :disabled="props.disableInteractive"
               class="justify-center"
+              :style="buttonStyle(variant, color)"
             >
               {{ variant }}
             </UButton>
           </div>
         </div>
-      </UCard>
+      </PreviewCard>
 
-      <UCard variant="soft">
-        <template #header>
-          <div class="space-y-1">
-            <p class="text-sm font-medium text-highlighted">State samples</p>
-            <p class="text-sm text-muted">Loading, disabled, icon-only and directional icon treatments.</p>
-          </div>
-        </template>
-
+      <PreviewCard
+        title="State samples"
+        description="Loading, disabled, icon-only and directional icon treatments."
+        variant="soft"
+      >
         <div class="space-y-3">
           <div class="flex flex-wrap gap-3">
-            <UButton color="primary" icon="i-lucide-sparkles">
+            <UButton color="primary" icon="i-lucide-sparkles" :style="buttonStyle('solid', 'primary')">
               Default
             </UButton>
-            <UButton color="primary" variant="outline" leading-icon="i-lucide-arrow-left">
+            <UButton color="primary" variant="outline" leading-icon="i-lucide-arrow-left" :style="buttonStyle('outline', 'primary')">
               Leading icon
             </UButton>
-            <UButton color="secondary" variant="soft" trailing-icon="i-lucide-arrow-right">
+            <UButton color="secondary" variant="soft" trailing-icon="i-lucide-arrow-right" :style="buttonStyle('soft', 'secondary')">
               Trailing icon
             </UButton>
           </div>
 
           <div class="flex flex-wrap gap-3">
-            <UButton color="info" variant="subtle" loading>
+            <UButton color="info" variant="subtle" loading :style="buttonStyle('subtle', 'info')">
               Loading
             </UButton>
-            <UButton color="neutral" variant="outline" disabled>
+            <UButton color="neutral" variant="outline" disabled :style="buttonStyle('outline', 'neutral')">
               Disabled
             </UButton>
-            <UButton color="success" variant="solid" icon="i-lucide-check" square aria-label="Approve" />
+            <UButton color="success" variant="solid" icon="i-lucide-check" square aria-label="Approve" :style="buttonStyle('solid', 'success')" />
           </div>
 
           <div class="rounded-2xl border border-default bg-muted/60 p-3">
@@ -98,7 +93,7 @@ const badgeVariants = ['solid', 'outline', 'soft', 'subtle'] as const
             </div>
           </div>
         </div>
-      </UCard>
+      </PreviewCard>
     </div>
   </section>
 </template>

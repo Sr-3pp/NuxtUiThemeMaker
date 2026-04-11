@@ -9,59 +9,57 @@ const props = withDefaults(defineProps<{
 })
 
 const colorMode = useColorMode()
-const previewTab = ref<'components' | 'forms' | 'surfaces' | 'typography'>('components')
-const previewTabs = [
-  { label: 'Components', value: 'components', slot: 'components' },
-  { label: 'Forms', value: 'forms', slot: 'forms' },
-  { label: 'Surfaces', value: 'surfaces', slot: 'surfaces' },
-  { label: 'Typography', value: 'typography', slot: 'typography' }
-]
+const { isSplitView } = usePreviewSplitView()
 
 const currentMode = computed(() => {
   return colorMode.value === 'dark' ? 'dark' : 'light'
 })
 
-const previewTheme = computed(() => {
+const previewFrames = computed(() => {
   if (!props.palette) {
-    return undefined
+    return []
   }
 
-  return themeBuilder(props.palette.modes[currentMode.value])
+  const modes = isSplitView.value
+    ? ['light', 'dark'] as const
+    : [currentMode.value]
+
+  return modes.map(mode => ({
+    mode,
+    label: mode === 'light' ? 'Light preview' : 'Dark preview',
+    theme: themeBuilder(props.palette!.modes[mode]),
+  }))
 })
 </script>
 
 <template>
-  <div :style="previewTheme">
-    <UTabs
-      v-model="previewTab"
-      :items="previewTabs"
-      color="neutral"
-      variant="pill"
-      :ui="{
-        root: 'mb-4',
-        list: 'inline-flex rounded-2xl border border-white/10 bg-white/5 p-1',
-        trigger: 'rounded-xl px-4 py-2 text-sm text-white/60 data-[state=active]:bg-black data-[state=active]:text-white hover:text-white',
-        indicator: 'hidden'
-      }"
+  <div class="space-y-4">
+    <div
+      class="grid gap-6"
+      :class="previewFrames.length === 2 ? 'xl:grid-cols-2' : ''"
     >
-      <template #components>
-        <PreviewActions :disable-interactive="props.disableInteractive" />
-        <PreviewNavigation :disable-interactive="props.disableInteractive" class="mt-6" />
-      </template>
+      <div
+        v-for="frame in previewFrames"
+        :key="frame.mode"
+        class="space-y-3"
+      >
+        <div
+          v-if="previewFrames.length > 1"
+          class="flex items-center justify-between rounded-xl border border-default/60 bg-muted/20 px-3 py-2 text-xs text-muted"
+        >
+          <span>{{ frame.label }}</span>
+          <UBadge color="neutral" variant="soft">
+            {{ frame.mode }}
+          </UBadge>
+        </div>
 
-      <template #forms>
-        <PreviewForms :disable-interactive="props.disableInteractive" />
-        <PreviewOverlays :disable-interactive="props.disableInteractive" />
-      </template>
-
-      <template #surfaces>
-        <PreviewDataDisplay class="mb-10" :disable-interactive="props.disableInteractive" />
-        <PreviewFeedback :disable-interactive="props.disableInteractive" />
-      </template>
-
-      <template #typography>
-        <PreviewSurfaces />
-      </template>
-    </UTabs>
+        <div :style="frame.theme" class="mx-auto w-full max-w-6xl">
+          <PreviewBrowserTab
+            :disable-interactive="props.disableInteractive"
+            :palette="props.palette"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 </template>

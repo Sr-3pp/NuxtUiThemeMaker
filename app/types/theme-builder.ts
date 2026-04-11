@@ -1,4 +1,8 @@
 import type { PaletteDefinition, PaletteModeKey } from '~/types/palette'
+import type {
+  UpdateEditablePaletteColorScalePayload,
+  UpdateEditablePaletteComponentTokenPayload,
+} from '~/types/palette-editor'
 
 export type EditorTab = 'tokens' | 'export'
 export type ExportItemValue = 'css' | 'appConfig' | 'ts'
@@ -10,7 +14,10 @@ export interface UpdatePaletteTokenPayload {
   value: string | null
 }
 
-export interface WorkbenchEditorProps {
+export type UpdatePaletteColorScalePayload = UpdateEditablePaletteColorScalePayload
+export type UpdatePaletteComponentTokenPayload = UpdateEditablePaletteComponentTokenPayload
+
+export interface EditorProps {
   palette: PaletteDefinition
   sourcePalette: PaletteDefinition
   isWorking?: boolean
@@ -18,10 +25,12 @@ export interface WorkbenchEditorProps {
   tab: EditorTab
 }
 
-export interface WorkbenchEditorEmits {
+export interface EditorEmits {
   save: []
   saveAsNew: []
   'update-token': [payload: UpdatePaletteTokenPayload]
+  'update-color-scale': [payload: UpdatePaletteColorScalePayload]
+  'update-component-token': [payload: UpdatePaletteComponentTokenPayload]
   'update:tab': [value: EditorTab]
 }
 

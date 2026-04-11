@@ -29,21 +29,13 @@ const alerts = [
 
 <template>
   <section class="space-y-4">
-    <div class="space-y-1">
-      <h3 class="text-lg font-semibold text-highlighted">
-        Feedback and status
-      </h3>
-      <p class="text-sm text-muted">
-        Semantic status colors, progress fills and loading placeholders in realistic surface contexts.
-      </p>
-    </div>
+    <PreviewSectionIntro
+      title="Feedback and status"
+      description="Semantic status colors, progress fills and loading placeholders in realistic surface contexts."
+    />
 
     <div class="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-      <UCard variant="outline">
-        <template #header>
-          <p class="text-sm font-medium text-highlighted">Alerts</p>
-        </template>
-
+      <PreviewCard title="Alerts">
         <div class="space-y-3">
           <UAlert
             v-for="alert in alerts"
@@ -56,14 +48,10 @@ const alerts = [
             :actions="props.disableInteractive ? [] : [{ label: 'Inspect', color: 'neutral', variant: 'link' }]"
           />
         </div>
-      </UCard>
+      </PreviewCard>
 
       <div class="grid gap-6">
-        <UCard variant="outline">
-          <template #header>
-            <p class="text-sm font-medium text-highlighted">Progress</p>
-          </template>
-
+        <PreviewCard title="Progress">
           <div class="space-y-4">
             <div class="space-y-2">
               <div class="flex items-center justify-between text-xs text-muted">
@@ -89,13 +77,9 @@ const alerts = [
               <UProgress :model-value="61" color="warning" status />
             </div>
           </div>
-        </UCard>
+        </PreviewCard>
 
-        <UCard variant="soft">
-          <template #header>
-            <p class="text-sm font-medium text-highlighted">Skeletons</p>
-          </template>
-
+        <PreviewCard title="Skeletons" variant="soft">
           <div class="space-y-4">
             <div class="space-y-3 rounded-2xl border border-default bg-default p-4">
               <USkeleton class="h-4 w-24" />
@@ -104,7 +88,7 @@ const alerts = [
             </div>
             <p class="text-xs text-muted">Loading placeholders help evaluate subtle borders and low-contrast fills.</p>
           </div>
-        </UCard>
+        </PreviewCard>
       </div>
     </div>
   </section>
