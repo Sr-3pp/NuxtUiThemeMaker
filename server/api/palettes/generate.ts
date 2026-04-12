@@ -1,7 +1,7 @@
 import { createPartFromBase64, createPartFromText } from '@google/genai'
 import { defineEventHandler, readBody } from 'h3'
 import { paletteGenerateRequestSchema } from '~~/server/domain/palette-ai-schema'
-import { paletteDefinitionSchema, paletteResponseSchema } from '~~/server/domain/palette-schema'
+import { paletteGenerateResultResponseSchema, paletteGenerateResultSchema } from '~~/server/domain/palette-schema'
 import {
   assertPaletteAiAccess,
   finalizePaletteAiUsage,
@@ -12,18 +12,24 @@ import { enforceAiRateLimit } from '~~/server/utils/rate-limit'
 import { assertTrustedBrowserOrigin } from '~~/server/utils/request-origin'
 
 const paletteGenerationInstructions = [
-  'Return only structured JSON for a palette.',
-  'Match the app palette format exactly.',
-  'This palette will be used by Nuxt UI semantic theme tokens.',
+  'Return only structured JSON with two top-level keys: "palette" and "ui".',
+  'Match the app palette format exactly inside the "palette" key.',
+  'This palette will be used by Nuxt UI semantic theme tokens and live app config.',
+  'The "ui" key must contain direct Nuxt UI app config overrides, as if it were defineAppConfig({ ui: ... }).',
+  'Use component keys like card, button, input, modal, table, badge, alert, tabs, navigationMenu, dropdownMenu, select, textarea, dashboardPanel, dashboardSidebar, and others when relevant.',
+  'Inside each component config, prefer realistic Nuxt UI keys such as slots, variants, compoundVariants, and defaultVariants when useful.',
+  'Generate real utility-class strings directly in "ui"; do not return a higher-level recipe or abstraction layer.',
   'The generated values map to CSS variables such as --ui-primary, --ui-secondary, --ui-success, --ui-info, --ui-warning, --ui-error, --ui-text, --ui-text-muted, --ui-bg, --ui-bg-muted, --ui-border, --ui-border-accented, and --ui-ring.',
   'Choose colors with common Nuxt UI combinations in mind: primary actions on default and elevated surfaces, body text on default and muted backgrounds, highlighted text on accented surfaces, borders between layered surfaces, and focus rings around interactive controls.',
-  'Include a creative palette name in the "name" field.',
+  'Include a creative palette name in palette.name.',
   'The name should be short, distinctive, and fit the palette mood.',
-  'Include name, modes.light, and modes.dark.',
-  'Each mode must include color, text, bg, ui, and radius groups.',
+  'Include palette.name, palette.modes.light, and palette.modes.dark.',
+  'Each palette mode must include color, text, bg, ui, and radius groups.',
   'Use all expected token keys in every group.',
-  'The ui group must use the keys "border", "border-muted", "border-accented", and "ring".',
-  'All values must be strings.',
+  'The palette ui group must use the keys "border", "border-muted", "border-accented", and "ring".',
+  'All palette values must be strings.',
+  'Use semantic Nuxt UI classes like bg-default, bg-elevated, text-default, text-highlighted, ring-default, divide-default, border-default, and color-mix-friendly utility classes when appropriate.',
+  'Make the returned ui config practical and maintainable, but complete enough to visibly restyle the app live.',
   'Choose colors that are accessible and WCAG-conscious.',
   'Ensure text tokens are readable against their intended background tokens in both light and dark modes.',
   'Target at least WCAG AA contrast for normal text where applicable, and avoid low-contrast foreground/background pairs.',
@@ -58,8 +64,8 @@ export default defineEventHandler(async (event) => {
           createPartFromBase64(body.referenceImage.data, body.referenceImage.mimeType),
         ]
       : undefined,
-    schema: paletteDefinitionSchema,
-    responseSchema: paletteResponseSchema,
+    schema: paletteGenerateResultSchema,
+    responseSchema: paletteGenerateResultResponseSchema,
   })
 
   await finalizePaletteAiUsage(authenticatedSession, access)

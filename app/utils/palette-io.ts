@@ -14,6 +14,7 @@ interface ExportedThemeModule {
     light?: Record<string, string>
     dark?: Record<string, string>
   }
+  ui?: Record<string, unknown>
   components?: PaletteDefinition['components']
 }
 
@@ -227,9 +228,10 @@ function parseThemeVariablesToMode(themeTokens: Record<string, string> | undefin
 
 function parseExportedThemeModule(content: string): ExportedThemeModule | null {
   const themeExportIndex = content.indexOf('export const theme')
+  const uiExportIndex = content.indexOf('export const ui')
   const componentsExportIndex = content.indexOf('export const components')
 
-  if (themeExportIndex === -1 && componentsExportIndex === -1) {
+  if (themeExportIndex === -1 && componentsExportIndex === -1 && uiExportIndex === -1) {
     return null
   }
 
@@ -251,7 +253,15 @@ function parseExportedThemeModule(content: string): ExportedThemeModule | null {
     }
   }
 
-  return exportedModule.theme || exportedModule.components ? exportedModule : null
+  if (uiExportIndex !== -1) {
+    const uiLiteral = extractBalancedObjectLiteral(content, uiExportIndex)
+
+    if (uiLiteral) {
+      exportedModule.ui = JSON.parse(uiLiteral) as Record<string, unknown>
+    }
+  }
+
+  return exportedModule.theme || exportedModule.components || exportedModule.ui ? exportedModule : null
 }
 
 function paletteFromExportedThemeModule(content: string): PaletteDefinition | null {
@@ -267,6 +277,7 @@ function paletteFromExportedThemeModule(content: string): PaletteDefinition | nu
       light: parseThemeVariablesToMode(exportedThemeModule.theme.light),
       dark: parseThemeVariablesToMode(exportedThemeModule.theme.dark),
     },
+    ui: exportedThemeModule.ui,
     components: exportedThemeModule.components ?? {},
   }
 }
@@ -303,7 +314,7 @@ function paletteFromAppConfigModule(content: string): PaletteDefinition | null {
       light: parseThemeVariablesToMode(theme.light),
       dark: parseThemeVariablesToMode(theme.dark),
     },
-    components: componentConfig as PaletteDefinition['components'],
+    ui: componentConfig,
   }
 }
 

@@ -17,6 +17,7 @@ export interface PaletteComponentThemeSection {
 }
 
 export type PaletteComponentThemes = Record<string, PaletteComponentThemeSection>
+export type PaletteUiConfig = Record<string, unknown>
 
 export interface PaletteMetadata {
   version: number
@@ -34,6 +35,7 @@ export interface PaletteDefinition {
   colors?: PaletteColorScales
   aliases?: PaletteAliases
   components?: PaletteComponentThemes
+  ui?: PaletteUiConfig
   metadata?: PaletteMetadata
 }
 

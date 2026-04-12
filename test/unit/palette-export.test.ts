@@ -36,6 +36,8 @@ describe('palette export', () => {
     })
 
     expect(output).toContain('export const components =')
+    expect(output).toContain('export const generatedUi =')
+    expect(output).toContain('export const ui =')
     expect(output).toContain('"button"')
     expect(output).toContain('"bg": "var(--ui-primary)"')
     expect(output).toContain('"--ui-color-primary-500": "#11aa55"')
@@ -57,8 +59,8 @@ describe('palette export', () => {
       components: {},
     })
 
-    expect(output).toContain("import { components, theme } from './theme'")
-    expect(output).toContain('...components')
+    expect(output).toContain("import { ui } from './theme'")
+    expect(output).toContain('  ui,')
   })
 
   it('exports component overrides as a standalone components file', () => {
@@ -84,6 +86,8 @@ describe('palette export', () => {
     })
 
     expect(output).toContain('export const components =')
+    expect(output).toContain('export const generatedUi =')
+    expect(output).toContain('export const ui =')
     expect(output).toContain('"input"')
     expect(output).toContain('"border": "var(--ui-border)"')
   })
@@ -105,8 +109,8 @@ describe('palette export', () => {
     })
 
     expect(output).toContain('defineAppConfig')
-    expect(output).toContain('theme,')
-    expect(output).toContain('...components')
+    expect(output).toContain("import { ui } from './theme'")
+    expect(output).toContain('  ui,')
   })
 
   it('exports a self-contained Nuxt bundle', () => {
@@ -136,9 +140,11 @@ describe('palette export', () => {
     })
 
     expect(output).toContain('export const theme = {')
+    expect(output).toContain('export const generatedUi =')
+    expect(output).toContain('export const ui =')
     expect(output).toContain('export const components =')
     expect(output).toContain('export default defineAppConfig({')
-    expect(output).toContain('...components')
+    expect(output).toContain('  ui,')
     expect(output).toContain('"--ui-color-primary-500": "#11aa55"')
   })
 

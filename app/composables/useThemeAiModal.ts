@@ -14,6 +14,7 @@ import {
   createPaletteWithGeneratedComponents,
   createPaletteWithGeneratedRamps,
 } from '~/utils/palette-domain'
+import { attachPaletteRuntimeUi } from '../utils/palette-runtime-ui'
 import { getComponentThemeEditorDefinitions } from '~/utils/component-theme-editor'
 import {
   getSelectedThemeAiHistoryId,
@@ -217,8 +218,9 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
               }
             : undefined,
         })
-        starterResult.value = result
-        pushThemeAiResultHistory(starterHistory, historyId, result, result.name, summarizeThemeAiPrompt(starterPrompt.value, 'Starter theme'))
+        const starterPalette = attachPaletteRuntimeUi(result.palette, result.ui)
+        starterResult.value = starterPalette
+        pushThemeAiResultHistory(starterHistory, historyId, starterPalette, starterPalette.name, summarizeThemeAiPrompt(starterPrompt.value, 'Starter theme'))
       },
       handleError: async (error) => {
         showErrorToast(error, themeAiMessages.starter.generateError)

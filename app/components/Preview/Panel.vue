@@ -22,7 +22,7 @@ const previewFrames = computed(() => {
 
   const modes = isSplitView.value
     ? ['light', 'dark'] as const
-    : [currentMode.value]
+    : [currentMode.value as 'light' | 'dark']
 
   return modes.map(mode => ({
     mode,

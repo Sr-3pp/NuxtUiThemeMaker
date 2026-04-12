@@ -7,6 +7,7 @@ import type {
   PaletteDirectionsGeneratePayload,
   PaletteDirectionsGenerateResult,
   PaletteGeneratePayload,
+  PaletteGenerateResult,
   PaletteGenerationAccess,
   PaletteRampGeneratePayload,
   PaletteRampGenerateResult,
@@ -162,7 +163,7 @@ export function usePaletteApi() {
   })
 
   const generatePalette = async (payload: string | PaletteGeneratePayload) => {
-    return fetchWithGenerationAccessRefresh<EditablePalette>('/api/palettes/generate', {
+    return fetchWithGenerationAccessRefresh<PaletteGenerateResult>('/api/palettes/generate', {
       method: 'POST',
       credentials: 'include',
       body: typeof payload === 'string' ? { prompt: payload } : payload,

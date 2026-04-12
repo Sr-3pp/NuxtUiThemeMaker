@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PaletteDefinition } from '~/types/palette'
+import { buildPaletteRuntimeTheme } from '~/utils/palette-runtime-styles'
 
 const props = withDefaults(defineProps<{
   isGenerated?: boolean
@@ -10,13 +11,15 @@ const props = withDefaults(defineProps<{
   isLoading: false,
 })
 
-useLandingGeneratedUi()
+usePaletteRuntimeUi({
+  palette: toRef(props, 'palette'),
+})
 
 const shellTheme = computed(() => {
   const lightMode = props.palette.modes.light
 
   return {
-    ...themeBuilder(lightMode),
+    ...buildPaletteRuntimeTheme(props.palette, 'light'),
     '--landing-gradient-primary': lightMode.color?.primary ?? '#4cd964',
     '--landing-gradient-secondary': lightMode.color?.secondary ?? '#7ab8ff',
     '--landing-backdrop': lightMode.bg?.default ?? '#090d12',

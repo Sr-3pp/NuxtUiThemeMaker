@@ -11,7 +11,6 @@ const {
   isSaving,
   promptInput,
   remainingGuestRunsLabel,
-  selectedPresetId,
   applySharedPalette,
   exportCurrentPalette,
   generateFromPrompt,
@@ -19,8 +18,7 @@ const {
   markPricingViewed,
   openEditor,
   saveCurrentPalette,
-  setPromptPreset,
-} = useLandingPaletteDemo()
+} = useLandingPaletteWorkflow()
 
 const { data: publicPalettes } = await useAsyncData('landing-public-palettes', () => {
   return $fetch<StoredPalette[]>('/api/palettes')
@@ -55,14 +53,6 @@ usePageSeo({
     },
   ],
 })
-
-function handleSelectPreset(presetId: string) {
-  const preset = landingPromptPresets.find(item => item.id === presetId)
-
-  if (preset) {
-    setPromptPreset(preset)
-  }
-}
 
 function handleApplySharedPalette(palette: StoredPalette) {
   applySharedPalette(palette)
@@ -123,13 +113,9 @@ function registerPricingSection(node: Element | ComponentPublicInstance | null) 
 
         <LandingHeroPrompt
           v-model="promptInput"
-          :presets="landingPromptPresets"
-          :selected-preset-id="selectedPresetId"
           :is-loading="isGenerating"
           :helper-text="helperText || `Guests can try ${remainingGuestRunsLabel} in demo mode, then sign up to save palettes.`"
-          :error-message="generated.errorMessage"
           :cta="cta"
-          @select-preset="handleSelectPreset"
           @submit="generateFromPrompt"
           @open-editor="openEditor"
         />

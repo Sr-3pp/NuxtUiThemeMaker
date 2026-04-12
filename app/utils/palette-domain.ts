@@ -9,6 +9,7 @@ import type {
   PaletteColorScales,
   PaletteComponentThemes,
   PaletteDefinition,
+  PaletteUiConfig,
   PaletteTokenValue,
 } from '../types/palette'
 import { paletteScaleSteps } from '../types/palette'
@@ -105,6 +106,14 @@ function cloneComponentThemes(components?: PaletteComponentThemes) {
   return JSON.parse(JSON.stringify(components)) as PaletteComponentThemes
 }
 
+function cloneUiConfig(ui?: PaletteUiConfig) {
+  if (!ui) {
+    return {}
+  }
+
+  return JSON.parse(JSON.stringify(ui)) as PaletteUiConfig
+}
+
 function ensureComponentThemeSection(palette: EditablePalette, componentKey: string) {
   if (!palette.components) {
     palette.components = {}
@@ -168,6 +177,7 @@ export function normalizePaletteDefinition(palette: PaletteDefinition): PaletteD
     colors: deriveColorScales(hydratedPalette),
     aliases: deriveAliases(hydratedPalette),
     components: cloneComponentThemes(hydratedPalette.components),
+    ui: cloneUiConfig(hydratedPalette.ui),
     metadata: normalizePaletteMetadata(hydratedPalette),
   }
 }
@@ -209,6 +219,7 @@ export function toEditablePalette(palette: PaletteDefinition | StoredPalette): E
     colors: clonedPalette.colors,
     aliases: clonedPalette.aliases,
     components: clonedPalette.components,
+    ui: clonedPalette.ui,
     metadata: clonedPalette.metadata,
   }
 }
@@ -233,6 +244,7 @@ export function hydratePaletteDefinition(palette: PaletteDefinition) {
   palette.colors = deriveColorScales(palette)
   palette.aliases = deriveAliases(palette)
   palette.components = cloneComponentThemes(palette.components)
+  palette.ui = cloneUiConfig(palette.ui)
   palette.metadata = normalizePaletteMetadata(palette)
 
   return palette

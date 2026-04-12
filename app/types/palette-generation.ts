@@ -1,4 +1,4 @@
-import type { PaletteColorScales, PaletteComponentThemes, PaletteDefinition, PaletteModeKey } from '~/types/palette'
+import type { PaletteColorScales, PaletteComponentThemes, PaletteDefinition, PaletteModeKey, PaletteUiConfig } from '~/types/palette'
 
 export type PaletteGenerationAccessReason = 'unauthenticated' | 'free_limit_reached' | 'allowed'
 
@@ -20,6 +20,11 @@ export interface PaletteGeneratePayload {
     data: string
     mimeType: string
   }
+}
+
+export interface PaletteGenerateResult {
+  palette: PaletteDefinition
+  ui: PaletteUiConfig
 }
 
 export interface PaletteReferenceImageAsset {

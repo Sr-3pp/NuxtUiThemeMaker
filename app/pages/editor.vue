@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { emptyPalette } from '~/utils/paletteRegistry'
+import { buildPaletteRuntimeTheme } from '~/utils/palette-runtime-styles'
 
 const route = useRoute()
 const router = useRouter()
@@ -31,9 +32,11 @@ usePageSeo({
   ],
 })
 
-const { currentPalette, setCurrentPalette } = usePaletteState()
-const { restorePaletteForEditor } = useLandingPaletteDemo()
-useGeneratedUiOverrides()
+const { currentPalette } = usePaletteState()
+const { restorePaletteForEditor } = useLandingPaletteWorkflow()
+usePaletteRuntimeUi({
+  palette: currentPalette,
+})
 
 const disableInteractivePreviews = ref(false)
 
@@ -42,8 +45,8 @@ const activeEditorMode = computed(() => {
   return colorMode.value === 'dark' ? 'dark' : 'light'
 })
 
-const editorTheme = computed(() => {
-  return themeBuilder(activeEditorPalette.value.modes[activeEditorMode.value])
+const editorTheme = computed<Record<string, string>>(() => {
+  return buildPaletteRuntimeTheme(activeEditorPalette.value, activeEditorMode.value)
 })
 
 const documentThemeSnapshot = import.meta.client
@@ -73,10 +76,6 @@ if (import.meta.client && documentThemeSnapshot) {
   })
 }
 
-function handlePaletteImport(palette: Parameters<typeof setCurrentPalette>[0]) {
-  setCurrentPalette(palette)
-}
-
 watch(() => route.query.checkout, async (value) => {
   if (value !== 'success') {
     return
@@ -91,43 +90,35 @@ watch(() => route.query.checkout, async (value) => {
   await router.replace({ query: { ...route.query, checkout: undefined } })
 }, { immediate: true })
 
-watch(() => route.query.source, (value) => {
-  if (value === 'landing') {
-    restorePaletteForEditor()
-  }
-}, { immediate: true })
+if (import.meta.client) {
+  onMounted(() => {
+    if (route.query.source === 'landing') {
+      restorePaletteForEditor()
+    }
+
+    watch(() => route.query.source, (value, previousValue) => {
+      if (value === 'landing' && previousValue !== 'landing') {
+        restorePaletteForEditor()
+      }
+    })
+  })
+}
 </script>
 
 <template>
-  <div :style="editorTheme" class="min-h-screen text-default transition-colors duration-300">
-    <UDashboardGroup>
-      <SidebarLeft />
+  <UDashboardGroup>
+    <SidebarLeft />
 
-      <UDashboardPanel>
-        <template #header>
-          <Navigation />
-        </template>
+    <UDashboardPanel>
+      <template #header>
+        <Navigation />
+      </template>
 
-        <template #body>
-          <PreviewPanel :palette="currentPalette" :disable-interactive="disableInteractivePreviews" />
-        </template>
-      </UDashboardPanel>
+      <template #body>
+        <PreviewPanel :palette="currentPalette" :disable-interactive="disableInteractivePreviews" />
+      </template>
+    </UDashboardPanel>
 
-      <SidebarRight />
-      <PaletteOwnDrawer />
-      <PaletteDefaultPresetsDrawer />
-      <PaletteCommunityDrawer />
-      <PaletteHistoryModal />
-      <PaletteShareModal />
-      <ModalImport @import="handlePaletteImport" />
-      <ModalExport :palette="currentPalette" />
-      <ModalQa
-        :palette="currentPalette"
-        :show-repair-action="true"
-      />
-      <ModalAi
-        :palette="currentPalette"
-      />
-    </UDashboardGroup>
-  </div>
+    <SidebarRight />
+  </UDashboardGroup>
 </template>

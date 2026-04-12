@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { EditablePalette } from '../../app/types/palette-editor'
+import type { PaletteGenerateResult } from '../../app/types/palette-generation'
 
 vi.mock('~/utils/palette-domain', async () => {
   const actual = await vi.importActual<typeof import('../../app/utils/palette-domain')>('../../app/utils/palette-domain')
@@ -55,6 +56,19 @@ function createEditablePalette(): EditablePalette {
           info: '#55bbff',
           warning: '#ffcc55',
           error: '#ff6677',
+        },
+      },
+    },
+  }
+}
+
+function createGeneratedPaletteResult(): PaletteGenerateResult {
+  return {
+    palette: createEditablePalette(),
+    ui: {
+      card: {
+        slots: {
+          root: 'rounded-lg ring ring-default',
         },
       },
     },
@@ -216,7 +230,7 @@ describe('usePaletteApi', () => {
     const { usePaletteApi } = await import('../../app/composables/usePaletteApi')
     const api = usePaletteApi()
 
-    fetchMock.mockResolvedValueOnce({ name: 'Coastal Ledger' })
+    fetchMock.mockResolvedValueOnce(createGeneratedPaletteResult())
 
     const result = await api.generatePalette('Ocean dashboard')
 
@@ -226,6 +240,6 @@ describe('usePaletteApi', () => {
       body: { prompt: 'Ocean dashboard' },
     }))
     expect(refreshNuxtDataMock).toHaveBeenCalledWith('palette-generation-access')
-    expect(result).toEqual({ name: 'Coastal Ledger' })
+    expect(result).toEqual(createGeneratedPaletteResult())
   })
 })

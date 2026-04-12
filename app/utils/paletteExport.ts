@@ -10,7 +10,9 @@ interface PaletteExportData {
     light: Record<string, string>
     dark: Record<string, string>
   }
+  generatedUi: Record<string, unknown>
   components: NonNullable<PaletteDefinition['components']>
+  mergedUi: Record<string, unknown>
 }
 
 function formatThemeBlock(selector: string, tokens: Record<string, string>) {
@@ -36,23 +38,23 @@ function buildRampTokens(colors?: PaletteColorScales) {
     return {}
   }
 
-  return Object.fromEntries(
-    Object.entries(colors)
-      .flatMap(([colorKey, scale]) => paletteScaleSteps.map((step) => {
-        const value = scale[step]
+  return Object.entries(colors).reduce<Record<string, string>>((tokens, [colorKey, scale]) => {
+    for (const step of paletteScaleSteps) {
+      const value = scale[step]
 
-        if (value == null) {
-          return null
-        }
+      if (value != null) {
+        tokens[`--ui-color-${colorKey}-${step}`] = value
+      }
+    }
 
-        return [`--ui-color-${colorKey}-${step}`, value] as const
-      }))
-      .filter((entry): entry is readonly [string, string] => entry !== null)
-  )
+    return tokens
+  }, {})
 }
 
 function buildPaletteExportData(palette: PaletteDefinition): PaletteExportData {
   const normalizedPalette = normalizePaletteDefinition(palette)
+  const generatedUi = normalizedPalette.ui ?? {}
+  const components = normalizedPalette.components ?? {}
 
   return {
     palette: normalizedPalette,
@@ -63,7 +65,18 @@ function buildPaletteExportData(palette: PaletteDefinition): PaletteExportData {
       },
       dark: themeBuilder(normalizedPalette.modes.dark),
     },
-    components: normalizedPalette.components ?? {},
+    generatedUi,
+    components,
+    mergedUi: {
+      theme: {
+        light: {
+          ...themeBuilder(normalizedPalette.modes.light),
+          ...buildRampTokens(normalizedPalette.colors),
+        },
+        dark: themeBuilder(normalizedPalette.modes.dark),
+      },
+      ...generatedUi,
+    },
   }
 }
 
@@ -77,7 +90,7 @@ export function exportPaletteCss(palette: PaletteDefinition) {
 }
 
 export function exportPaletteTs(palette: PaletteDefinition) {
-  const { theme, components } = buildPaletteExportData(palette)
+  const { theme, generatedUi, components, mergedUi } = buildPaletteExportData(palette)
 
   return [
     'export const theme = {',
@@ -85,29 +98,38 @@ export function exportPaletteTs(palette: PaletteDefinition) {
     `  dark: ${JSON.stringify(theme.dark, null, 2).replace(/\n/g, '\n  ')}`,
     '}',
     '',
+    'export const generatedUi = ',
+    `${JSON.stringify(generatedUi, null, 2)}`,
+    '',
     'export const components = ',
     `${JSON.stringify(components, null, 2)}`,
+    '',
+    'export const ui = ',
+    `${JSON.stringify(mergedUi, null, 2)}`,
   ].join('\n')
 }
 
 export function exportPaletteComponentsTs(palette: PaletteDefinition) {
-  const { components } = buildPaletteExportData(palette)
+  const { generatedUi, components, mergedUi } = buildPaletteExportData(palette)
 
   return [
+    'export const generatedUi = ',
+    `${JSON.stringify(generatedUi, null, 2)}`,
+    '',
     'export const components = ',
     `${JSON.stringify(components, null, 2)}`,
+    '',
+    'export const ui = ',
+    `${JSON.stringify(mergedUi, null, 2)}`,
   ].join('\n')
 }
 
 export function exportPaletteAppConfig(_palette: PaletteDefinition) {
   return [
-    "import { components, theme } from './theme'",
+    "import { ui } from './theme'",
     '',
     'export default defineAppConfig({',
-    '  ui: {',
-    '    theme,',
-    '    ...components',
-    '  }',
+    '  ui,',
     '})'
   ].join('\n')
 }
@@ -117,19 +139,16 @@ export function exportPaletteInstallSnippet(_palette: PaletteDefinition) {
     '// 1. Save the generated files as theme.ts and app.config.ts',
     '// 2. Keep both exports in your Nuxt app root or adjust the import path',
     '',
-    "import { components, theme } from './theme'",
+    "import { ui } from './theme'",
     '',
     'export default defineAppConfig({',
-    '  ui: {',
-    '    theme,',
-    '    ...components',
-    '  }',
+    '  ui,',
     '})',
   ].join('\n')
 }
 
 export function exportPaletteBundleTs(palette: PaletteDefinition) {
-  const { theme, components } = buildPaletteExportData(palette)
+  const { theme, generatedUi, components, mergedUi } = buildPaletteExportData(palette)
 
   return [
     'export const theme = {',
@@ -137,14 +156,17 @@ export function exportPaletteBundleTs(palette: PaletteDefinition) {
     `  dark: ${JSON.stringify(theme.dark, null, 2).replace(/\n/g, '\n  ')}`,
     '}',
     '',
+    'export const generatedUi = ',
+    `${JSON.stringify(generatedUi, null, 2)}`,
+    '',
     'export const components = ',
     `${JSON.stringify(components, null, 2)}`,
     '',
+    'export const ui = ',
+    `${JSON.stringify(mergedUi, null, 2)}`,
+    '',
     'export default defineAppConfig({',
-    '  ui: {',
-    '    theme,',
-    '    ...components',
-    '  }',
+    '  ui,',
     '})',
   ].join('\n')
 }
