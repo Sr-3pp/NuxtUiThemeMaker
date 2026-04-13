@@ -189,13 +189,18 @@ export function clonePaletteDefinition(palette: PaletteDefinition): PaletteDefin
 export function toEditablePalette(palette: PaletteDefinition | StoredPalette): EditablePalette {
   if ('_id' in palette) {
     const clonedPalette = clonePaletteDefinition({
+      ...palette.palette,
       name: palette.name,
-      modes: palette.palette.modes,
     })
 
     return {
       name: clonedPalette.name,
       modes: clonedPalette.modes,
+      colors: clonedPalette.colors,
+      aliases: clonedPalette.aliases,
+      components: clonedPalette.components,
+      ui: clonedPalette.ui,
+      metadata: clonedPalette.metadata,
       _id: palette._id,
       userId: palette.userId,
       slug: palette.slug,

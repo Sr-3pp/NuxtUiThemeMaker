@@ -142,7 +142,7 @@ const selectedHistoryId = computed(() => props.history.find(entry => entry.resul
 
       <div
         v-else
-        class="rounded-2xl border border-dashed border-default/70 px-4 py-10 text-center text-sm text-muted"
+        class="rounded -lg border border-dashed border-default/70 px-4 py-10 text-center text-sm text-muted"
       >
         Generate a component layer to preview and merge into the current draft.
       </div>

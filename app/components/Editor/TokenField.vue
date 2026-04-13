@@ -47,7 +47,7 @@ const emit = defineEmits<{
       </UButton>
 
       <template #content>
-        <div class="rounded-2xl border border-white/10 bg-black/95 p-3 shadow-2xl backdrop-blur">
+        <div class="rounded -lg border border-white/10 bg-black/95 p-3 shadow-2xl backdrop-blur">
           <UColorPicker
             :model-value="getPalettePickerValue(tokens, tokenKey)"
             format="hex"

@@ -34,6 +34,7 @@ describe('palette export', () => {
         },
       },
     })
+    const uiSection = output.split('export const ui =')[1] ?? ''
 
     expect(output).toContain('export const components =')
     expect(output).toContain('export const generatedUi =')
@@ -41,6 +42,8 @@ describe('palette export', () => {
     expect(output).toContain('"button"')
     expect(output).toContain('"bg": "var(--ui-primary)"')
     expect(output).toContain('"--ui-color-primary-500": "#11aa55"')
+    expect(uiSection).toContain('"theme"')
+    expect(uiSection).toContain('"button"')
   })
 
   it('references component overrides in app config export', () => {
@@ -84,12 +87,14 @@ describe('palette export', () => {
         },
       },
     })
+    const uiSection = output.split('export const ui =')[1] ?? ''
 
     expect(output).toContain('export const components =')
     expect(output).toContain('export const generatedUi =')
     expect(output).toContain('export const ui =')
     expect(output).toContain('"input"')
     expect(output).toContain('"border": "var(--ui-border)"')
+    expect(uiSection).toContain('"input"')
   })
 
   it('exports an install-ready snippet', () => {
@@ -138,6 +143,7 @@ describe('palette export', () => {
         },
       },
     })
+    const uiSection = output.split('export const ui =')[1] ?? ''
 
     expect(output).toContain('export const theme = {')
     expect(output).toContain('export const generatedUi =')
@@ -146,6 +152,7 @@ describe('palette export', () => {
     expect(output).toContain('export default defineAppConfig({')
     expect(output).toContain('  ui,')
     expect(output).toContain('"--ui-color-primary-500": "#11aa55"')
+    expect(uiSection).toContain('"button"')
   })
 
   it('includes normalized ramps in the CSS export', () => {

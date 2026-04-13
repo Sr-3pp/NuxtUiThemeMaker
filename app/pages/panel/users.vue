@@ -260,7 +260,7 @@ const tableColumns: TableColumn<AdminUserListItem>[] = [
             <UInput v-model="editState.email" type="email" placeholder="you@example.com" />
           </UFormField>
 
-          <div class="flex items-center justify-between rounded-2xl border border-default px-4 py-3">
+          <div class="flex items-center justify-between rounded -lg border border-default px-4 py-3">
             <div class="space-y-1">
               <p class="text-sm font-medium text-highlighted">
                 Admin access

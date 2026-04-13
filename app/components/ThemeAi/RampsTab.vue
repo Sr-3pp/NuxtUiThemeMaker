@@ -172,7 +172,7 @@ const selectedHistoryId = computed(() => props.history.find(entry => entry.resul
 
       <div
         v-else
-        class="rounded-2xl border border-dashed border-default/70 px-4 py-10 text-center text-sm text-muted"
+        class="rounded -lg border border-dashed border-default/70 px-4 py-10 text-center text-sm text-muted"
       >
         Add one or more brand colors to generate full ramps.
       </div>

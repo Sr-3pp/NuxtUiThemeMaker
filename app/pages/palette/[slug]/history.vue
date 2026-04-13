@@ -214,7 +214,7 @@ function selectForCompare(version: number, side: 'from' | 'to') {
             <div
               v-for="entry in historyEntries"
               :key="entry.id"
-              class="rounded-2xl border border-default px-4 py-4"
+              class="rounded -lg border border-default px-4 py-4"
             >
               <div class="flex flex-wrap items-center gap-2">
                 <UBadge color="neutral" variant="outline">
@@ -292,7 +292,7 @@ function selectForCompare(version: number, side: 'from' | 'to') {
               </div>
 
               <div v-if="comparison" class="grid gap-4 md:grid-cols-4">
-                <div class="rounded-2xl border border-default px-4 py-3">
+                <div class="rounded -lg border border-default px-4 py-3">
                   <p class="text-xs uppercase tracking-[0.16em] text-muted">
                     Total changes
                   </p>
@@ -301,7 +301,7 @@ function selectForCompare(version: number, side: 'from' | 'to') {
                   </p>
                 </div>
 
-                <div class="rounded-2xl border border-default px-4 py-3">
+                <div class="rounded -lg border border-default px-4 py-3">
                   <p class="text-xs uppercase tracking-[0.16em] text-muted">
                     Changed
                   </p>
@@ -310,7 +310,7 @@ function selectForCompare(version: number, side: 'from' | 'to') {
                   </p>
                 </div>
 
-                <div class="rounded-2xl border border-default px-4 py-3">
+                <div class="rounded -lg border border-default px-4 py-3">
                   <p class="text-xs uppercase tracking-[0.16em] text-muted">
                     Added
                   </p>
@@ -319,7 +319,7 @@ function selectForCompare(version: number, side: 'from' | 'to') {
                   </p>
                 </div>
 
-                <div class="rounded-2xl border border-default px-4 py-3">
+                <div class="rounded -lg border border-default px-4 py-3">
                   <p class="text-xs uppercase tracking-[0.16em] text-muted">
                     Removed
                   </p>
@@ -359,14 +359,14 @@ function selectForCompare(version: number, side: 'from' | 'to') {
 
             <div
               v-if="!comparison"
-              class="rounded-2xl border border-default px-4 py-4 text-sm text-muted"
+              class="rounded -lg border border-default px-4 py-4 text-sm text-muted"
             >
               Select two versions to compare.
             </div>
 
             <div
               v-else-if="!comparison.changes.length"
-              class="rounded-2xl border border-default px-4 py-4 text-sm text-muted"
+              class="rounded -lg border border-default px-4 py-4 text-sm text-muted"
             >
               No token changes between these versions.
             </div>
@@ -375,7 +375,7 @@ function selectForCompare(version: number, side: 'from' | 'to') {
               <div
                 v-for="change in comparison.changes"
                 :key="`${change.path}-${change.type}`"
-                class="rounded-2xl border border-default px-4 py-4"
+                class="rounded -lg border border-default px-4 py-4"
               >
                 <div class="flex flex-wrap items-center gap-2">
                   <UBadge color="neutral" variant="soft">
@@ -394,7 +394,7 @@ function selectForCompare(version: number, side: 'from' | 'to') {
                 </p>
 
                 <div class="mt-3 grid gap-3 lg:grid-cols-2">
-                  <div class="rounded-2xl bg-muted/40 px-3 py-3">
+                  <div class="rounded -lg bg-muted/40 px-3 py-3">
                     <p class="text-[11px] uppercase tracking-[0.14em] text-muted">
                       From
                     </p>
@@ -403,7 +403,7 @@ function selectForCompare(version: number, side: 'from' | 'to') {
                     </p>
                   </div>
 
-                  <div class="rounded-2xl bg-muted/40 px-3 py-3">
+                  <div class="rounded -lg bg-muted/40 px-3 py-3">
                     <p class="text-[11px] uppercase tracking-[0.14em] text-muted">
                       To
                     </p>

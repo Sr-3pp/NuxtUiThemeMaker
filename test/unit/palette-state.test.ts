@@ -107,6 +107,46 @@ function createStoredPalette(): StoredPalette {
           },
         },
       },
+      colors: {
+        primary: {
+          '50': '#f0fdf4',
+          '100': '#dcfce7',
+          '200': '#bbf7d0',
+          '300': '#86efac',
+          '400': '#4ade80',
+          '500': '#11aa55',
+          '600': '#16a34a',
+          '700': '#15803d',
+          '800': '#166534',
+          '900': '#14532d',
+          '950': '#052e16',
+        },
+      },
+      aliases: {
+        primary: 'primary',
+      },
+      ui: {
+        button: {
+          slots: {
+            base: 'rounded-full',
+          },
+        },
+      },
+      components: {
+        button: {
+          variants: {
+            solid: {
+              primary: {
+                bg: 'var(--ui-primary)',
+              },
+            },
+          },
+        },
+      },
+      metadata: {
+        version: 2,
+        normalizedAt: '2026-03-20T00:00:00.000Z',
+      },
     },
     isPublic: true,
     createdAt: '2026-03-20T00:00:00.000Z',
@@ -139,6 +179,12 @@ describe('usePaletteState', () => {
 
     expect(sourcePalette.value?._id).toBe('palette-1')
     expect(sourcePalette.value?.modes.light.ui.primary).toBe('#11aa55')
+    expect(sourcePalette.value?.components?.button?.variants?.solid?.primary?.bg).toBe('var(--ui-primary)')
+    expect(sourcePalette.value?.ui?.button).toEqual({
+      slots: {
+        base: 'rounded-full',
+      },
+    })
     expect(currentPalette.value?.modes.light.ui.primary).toBe('#ffffff')
   })
 

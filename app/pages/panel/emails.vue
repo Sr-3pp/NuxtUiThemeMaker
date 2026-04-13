@@ -221,7 +221,7 @@ async function sendTestEmail() {
         </template>
 
         <div class="space-y-4">
-          <div class="rounded-2xl border border-default bg-default/40 p-4">
+          <div class="rounded -lg border border-default bg-default/40 p-4">
             <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
               Template
             </p>
@@ -230,7 +230,7 @@ async function sendTestEmail() {
             </p>
           </div>
 
-          <div class="rounded-2xl border border-default bg-default/40 p-4 space-y-2">
+          <div class="rounded -lg border border-default bg-default/40 p-4 space-y-2">
             <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
               Details
             </p>
@@ -243,7 +243,7 @@ async function sendTestEmail() {
             </p>
           </div>
 
-          <div class="rounded-2xl border border-default bg-default/40 p-4 space-y-2">
+          <div class="rounded -lg border border-default bg-default/40 p-4 space-y-2">
             <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
               Templates available
             </p>

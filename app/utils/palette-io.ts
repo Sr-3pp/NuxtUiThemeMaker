@@ -28,6 +28,39 @@ interface ParsedAppConfigModule {
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+function isComponentThemeSectionLike(value: unknown) {
+  if (!isRecord(value)) {
+    return false
+  }
+
+  const componentThemeKeys = ['base', 'slots', 'variants', 'states']
+
+  return componentThemeKeys.some(key => key in value)
+}
+
+function splitUiConfigEntries(uiConfig: Record<string, unknown> | undefined) {
+  const paletteUi: Record<string, unknown> = {}
+  const components: NonNullable<PaletteDefinition['components']> = {}
+
+  Object.entries(uiConfig ?? {}).forEach(([key, value]) => {
+    if (isComponentThemeSectionLike(value)) {
+      components[key] = value as NonNullable<PaletteDefinition['components']>[string]
+      return
+    }
+
+    paletteUi[key] = value
+  })
+
+  return {
+    ui: paletteUi,
+    components,
+  }
+}
+
 function parseThemeTokenName(tokenName: string): ParsedThemeTokenTarget | null {
   const normalized = tokenName.trim()
 
@@ -271,14 +304,19 @@ function paletteFromExportedThemeModule(content: string): PaletteDefinition | nu
     return null
   }
 
+  const splitUiConfig = splitUiConfigEntries(exportedThemeModule.ui)
+
   return {
     name: 'Imported Theme Module',
     modes: {
       light: parseThemeVariablesToMode(exportedThemeModule.theme.light),
       dark: parseThemeVariablesToMode(exportedThemeModule.theme.dark),
     },
-    ui: exportedThemeModule.ui,
-    components: exportedThemeModule.components ?? {},
+    ui: splitUiConfig.ui,
+    components: {
+      ...splitUiConfig.components,
+      ...(exportedThemeModule.components ?? {}),
+    },
   }
 }
 
@@ -307,6 +345,7 @@ function paletteFromAppConfigModule(content: string): PaletteDefinition | null {
   }
 
   const { theme, ...componentConfig } = uiConfig
+  const splitUiConfig = splitUiConfigEntries(componentConfig)
 
   return {
     name: 'Imported App Config Theme',
@@ -314,7 +353,8 @@ function paletteFromAppConfigModule(content: string): PaletteDefinition | null {
       light: parseThemeVariablesToMode(theme.light),
       dark: parseThemeVariablesToMode(theme.dark),
     },
-    ui: componentConfig,
+    ui: splitUiConfig.ui,
+    components: splitUiConfig.components,
   }
 }
 

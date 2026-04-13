@@ -165,7 +165,7 @@ const inputStyle = computed(() => getPreviewInputStyle(props.palette))
           </div>
 
           <div class="grid gap-4 md:grid-cols-2">
-            <div class="space-y-3 rounded-2xl border border-default bg-muted/50 p-4">
+            <div class="space-y-3 rounded -lg border border-default bg-muted/50 p-4">
               <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
                 Checkbox
               </p>
@@ -185,7 +185,7 @@ const inputStyle = computed(() => getPreviewInputStyle(props.palette))
               />
             </div>
 
-            <div class="space-y-3 rounded-2xl border border-default bg-muted/50 p-4">
+            <div class="space-y-3 rounded -lg border border-default bg-muted/50 p-4">
               <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
                 Switches
               </p>

@@ -43,7 +43,7 @@ const {
 
           <div
             v-if="!sharePaletteTarget?.collaborators.length"
-            class="rounded-2xl border border-default px-4 py-4 text-sm text-muted"
+            class="rounded -lg border border-default px-4 py-4 text-sm text-muted"
           >
             No collaborators yet.
           </div>
@@ -51,7 +51,7 @@ const {
           <div
             v-for="collaborator in sharePaletteTarget?.collaborators ?? []"
             :key="collaborator.userId"
-            class="flex items-center justify-between gap-3 rounded-2xl border border-default px-4 py-4"
+            class="flex items-center justify-between gap-3 rounded -lg border border-default px-4 py-4"
           >
             <div class="min-w-0">
               <p class="truncate text-sm font-medium text-highlighted">

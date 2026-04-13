@@ -102,7 +102,7 @@ function getTokenEntries(tokens: PaletteTokenGroup) {
       type="multiple"
       :default-value="defaultOpenSectionGroups"
       :ui="{
-        item: 'mb-4 overflow-hidden rounded-2xl border shadow-none dark:border-white/10 dark:bg-black/40',
+        item: 'mb-4 overflow-hidden rounded -lg border shadow-none dark:border-white/10 dark:bg-black/40',
         header: 'flex',
         trigger: 'w-full px-4 py-4 text-sm font-medium hover:bg-white/5 dark:hover:bg-white/5',
         content: 'px-4 pb-4',

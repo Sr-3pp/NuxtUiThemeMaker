@@ -53,7 +53,7 @@ const featureCards = [
         :key="feature.title"
       >
         <div class="space-y-3">
-          <span class="flex size-11 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+          <span class="flex size-11 items-center justify-center rounded -lg bg-primary/12 text-primary">
             <UIcon :name="feature.icon" class="size-5" />
           </span>
           <div class="space-y-2">

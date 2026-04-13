@@ -11,11 +11,14 @@ import { assertTrustedBrowserOrigin } from '~~/server/utils/request-origin'
 
 const instructions = [
   'Return only JSON.',
-  'Generate Nuxt UI component theme variants from a mood or brand prompt.',
+  'Generate Nuxt UI component overrides from a mood, product, or brand prompt.',
   'Output a short summary and a components object only.',
+  'The components object must follow the current Nuxt UI app config component schema.',
+  'Use only actual Nuxt UI-style component keys and nested keys such as base, slots, variants, states, compoundVariants, and defaultVariants when relevant.',
   'Prefer practical overrides for button, input, card, badge, alert, modal, table, and navigation patterns.',
   'Every token value must be a string.',
   'If a palette is provided, align overrides to it rather than inventing unrelated colors.',
+  'Use the current palette description, semantic tokens, surfaces, borders, and radius language to keep the component layer visually aligned.',
   'Keep overrides sparse and intentional so the result is maintainable.',
   'Do not include markdown fences or commentary.',
 ].join(' ')
@@ -25,7 +28,7 @@ export default defineEventHandler(async (event) => {
 
   const session = await getOptionalAuthSession(event)
   const { session: authenticatedSession, access } = await assertPaletteAiAccess(session)
-  enforceAiRateLimit(event, authenticatedSession.user.id)
+  enforceAiRateLimit(event, authenticatedSession?.user.id ?? null)
   const body = paletteVariantGenerateRequestSchema.parse(await readBody(event))
 
   const prompt = [

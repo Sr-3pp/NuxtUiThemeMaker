@@ -10,12 +10,12 @@ const props = defineProps<EditorProps>()
 const emit = defineEmits<EditorEmits>()
 
 const colorMode = useColorMode()
-const editorSection = ref<'colors' | 'semantic' | 'components' | 'states'>('colors')
+const editorSection = ref<'colors' | 'semantic' | 'components' | 'states' | 'ai-ui'>('colors')
 const editorSections = [
   { label: 'Colors', value: 'colors', slot: 'colors' },
   { label: 'Semantic', value: 'semantic', slot: 'semantic' },
   { label: 'Components', value: 'components', slot: 'components' },
-  { label: 'States', value: 'states', slot: 'states' },
+  { label: 'States', value: 'states', slot: 'states' }
 ]
 const activeMode = computed<PaletteModeKey>(() => {
   if (colorMode.value === 'dark') {

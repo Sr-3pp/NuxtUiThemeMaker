@@ -246,7 +246,7 @@ const tableColumns: TableColumn<AdminPaletteListItem>[] = [
             <UInput v-model="editState.name" placeholder="Palette name" />
           </UFormField>
 
-          <div class="rounded-2xl border border-default px-4 py-3 space-y-1">
+          <div class="rounded -lg border border-default px-4 py-3 space-y-1">
             <p class="text-sm font-medium text-highlighted">
               Owner
             </p>
@@ -255,7 +255,7 @@ const tableColumns: TableColumn<AdminPaletteListItem>[] = [
             </p>
           </div>
 
-          <div class="flex items-center justify-between rounded-2xl border border-default px-4 py-3">
+          <div class="flex items-center justify-between rounded -lg border border-default px-4 py-3">
             <div class="space-y-1">
               <p class="text-sm font-medium text-highlighted">
                 Public palette

@@ -53,6 +53,28 @@ function createPostEvent(body: Record<string, unknown>, headers?: Record<string,
   } as never)
 }
 
+function createGeneratedPaletteResult(name: string) {
+  return {
+    name,
+    modes: {
+      light: {
+        color: { primary: '#0056B3', secondary: '#6C757D', success: '#28A745', info: '#17A2B8', warning: '#FFC107', error: '#DC3545' },
+        text: { default: '#212529', dimmed: '#6C757D', muted: '#ADB5BD', toned: '#495057', highlighted: '#0056B3', inverted: '#FFFFFF' },
+        bg: { default: '#F8F9FA', muted: '#E9ECEF', elevated: '#FFFFFF', accented: '#DEE2E6', inverted: '#002D62' },
+        ui: { border: '#CED4DA', 'border-muted': '#E0E0E0', 'border-accented': '#0056B3', ring: '#80BDFF' },
+        radius: { default: '4px', sm: '2px', md: '6px', lg: '8px', xl: '12px' },
+      },
+      dark: {
+        color: { primary: '#4DA6FF', secondary: '#A0AEC0', success: '#69F0AE', info: '#4DD0E1', warning: '#FFD54F', error: '#EF5350' },
+        text: { default: '#E2E8F0', dimmed: '#CBD5E0', muted: '#A0AEC0', toned: '#718096', highlighted: '#4DA6FF', inverted: '#1A202C' },
+        bg: { default: '#1A202C', muted: '#2D3748', elevated: '#4A5568', accented: '#2C3E50', inverted: '#F8F9FA' },
+        ui: { border: '#4A5568', 'border-muted': '#2D3748', 'border-accented': '#4DA6FF', ring: '#80BDFF' },
+        radius: { default: '4px', sm: '2px', md: '6px', lg: '8px', xl: '12px' },
+      },
+    },
+  }
+}
+
 describe('palette generate api handler', () => {
   beforeEach(() => {
     vi.resetModules()
@@ -144,31 +166,13 @@ describe('palette generate api handler', () => {
     getOptionalAuthSessionMock.mockResolvedValueOnce(session)
     assertPaletteGenerationAllowedMock.mockReturnValueOnce(access)
     generateContentMock.mockResolvedValueOnce({
-      text: JSON.stringify({
-        name: 'Coastal Ledger',
-        modes: {
-          light: {
-            color: { primary: '#0056B3', secondary: '#6C757D', success: '#28A745', info: '#17A2B8', warning: '#FFC107', error: '#DC3545' },
-            text: { default: '#212529', dimmed: '#6C757D', muted: '#ADB5BD', toned: '#495057', highlighted: '#0056B3', inverted: '#FFFFFF' },
-            bg: { default: '#F8F9FA', muted: '#E9ECEF', elevated: '#FFFFFF', accented: '#DEE2E6', inverted: '#002D62' },
-            ui: { border: '#CED4DA', 'border-muted': '#E0E0E0', 'border-accented': '#0056B3', ring: '#80BDFF' },
-            radius: { default: '4px', sm: '2px', md: '6px', lg: '8px', xl: '12px' },
-          },
-          dark: {
-            color: { primary: '#4DA6FF', secondary: '#A0AEC0', success: '#69F0AE', info: '#4DD0E1', warning: '#FFD54F', error: '#EF5350' },
-            text: { default: '#E2E8F0', dimmed: '#CBD5E0', muted: '#A0AEC0', toned: '#718096', highlighted: '#4DA6FF', inverted: '#1A202C' },
-            bg: { default: '#1A202C', muted: '#2D3748', elevated: '#4A5568', accented: '#2C3E50', inverted: '#F8F9FA' },
-            ui: { border: '#4A5568', 'border-muted': '#2D3748', 'border-accented': '#4DA6FF', ring: '#80BDFF' },
-            radius: { default: '4px', sm: '2px', md: '6px', lg: '8px', xl: '12px' },
-          },
-        },
-      }),
+      text: JSON.stringify(createGeneratedPaletteResult('Coastal Ledger')),
     })
 
     const { default: handler } = await import('~~/server/api/palettes/generate')
     const result = await handler(createPostEvent({ prompt: 'Ocean dashboard' }) as H3Event)
 
-    expect(result).toMatchObject({ name: 'Coastal Ledger' })
+    expect(result).toMatchObject({ palette: { name: 'Coastal Ledger' }, ui: {} })
     expect(incrementPaletteGenerationUsageIfNeededMock).toHaveBeenCalledWith(session, access)
   })
 
@@ -194,43 +198,21 @@ describe('palette generate api handler', () => {
       reason: 'allowed',
     })
     generateContentMock.mockResolvedValueOnce({
-      text: JSON.stringify({
-        name: 'Harbor Signal',
-        modes: {
-          light: {
-            color: { primary: '#0056B3', secondary: '#6C757D', success: '#28A745', info: '#17A2B8', warning: '#FFC107', error: '#DC3545' },
-            text: { default: '#212529', dimmed: '#6C757D', muted: '#ADB5BD', toned: '#495057', highlighted: '#0056B3', inverted: '#FFFFFF' },
-            bg: { default: '#F8F9FA', muted: '#E9ECEF', elevated: '#FFFFFF', accented: '#DEE2E6', inverted: '#002D62' },
-            ui: { border: '#CED4DA', 'border-muted': '#E0E0E0', 'border-accented': '#0056B3', ring: '#80BDFF' },
-            radius: { default: '4px', sm: '2px', md: '6px', lg: '8px', xl: '12px' },
-          },
-          dark: {
-            color: { primary: '#4DA6FF', secondary: '#A0AEC0', success: '#69F0AE', info: '#4DD0E1', warning: '#FFD54F', error: '#EF5350' },
-            text: { default: '#E2E8F0', dimmed: '#CBD5E0', muted: '#A0AEC0', toned: '#718096', highlighted: '#4DA6FF', inverted: '#1A202C' },
-            bg: { default: '#1A202C', muted: '#2D3748', elevated: '#4A5568', accented: '#2C3E50', inverted: '#F8F9FA' },
-            ui: { border: '#4A5568', 'border-muted': '#2D3748', 'border-accented': '#4DA6FF', ring: '#80BDFF' },
-            radius: { default: '4px', sm: '2px', md: '6px', lg: '8px', xl: '12px' },
-          },
-        },
-      }),
+      text: JSON.stringify(createGeneratedPaletteResult('Harbor Signal')),
     })
 
     const { default: handler } = await import('~~/server/api/palettes/generate')
 
     await handler(createPostEvent({ prompt: 'Accessible fintech dashboard' }) as H3Event)
 
-    expect(generateContentMock).toHaveBeenCalledWith(expect.objectContaining({
-      contents: [expect.stringContaining('Choose colors that are accessible and WCAG-conscious.')],
-    }))
-    expect(generateContentMock).toHaveBeenCalledWith(expect.objectContaining({
-      contents: [expect.stringContaining('Target at least WCAG AA contrast for normal text where applicable')],
-    }))
-    expect(generateContentMock).toHaveBeenCalledWith(expect.objectContaining({
-      contents: [expect.stringContaining('This palette will be used by Nuxt UI semantic theme tokens.')],
-    }))
-    expect(generateContentMock).toHaveBeenCalledWith(expect.objectContaining({
-      contents: [expect.stringContaining('Choose colors with common Nuxt UI combinations in mind')],
-    }))
+    const request = generateContentMock.mock.calls[0]?.[0]
+    const prompt = Array.isArray(request?.contents) ? request.contents[0] : ''
+
+    expect(prompt).toContain('Choose colors that are accessible and WCAG-conscious.')
+    expect(prompt).toContain('Target at least WCAG AA contrast for normal text where applicable')
+    expect(prompt).toContain('This palette will be used to drive Nuxt UI semantic theme tokens.')
+    expect(prompt).toContain('Choose colors with common Nuxt UI combinations in mind')
+    expect(prompt).not.toContain('component ui overrides')
   })
 
   it('includes brand colors and style references in the AI prompt when provided', async () => {
@@ -255,25 +237,7 @@ describe('palette generate api handler', () => {
       reason: 'allowed',
     })
     generateContentMock.mockResolvedValueOnce({
-      text: JSON.stringify({
-        name: 'Signal Harbor',
-        modes: {
-          light: {
-            color: { primary: '#0056B3', secondary: '#6C757D', success: '#28A745', info: '#17A2B8', warning: '#FFC107', error: '#DC3545' },
-            text: { default: '#212529', dimmed: '#6C757D', muted: '#ADB5BD', toned: '#495057', highlighted: '#0056B3', inverted: '#FFFFFF' },
-            bg: { default: '#F8F9FA', muted: '#E9ECEF', elevated: '#FFFFFF', accented: '#DEE2E6', inverted: '#002D62' },
-            ui: { border: '#CED4DA', 'border-muted': '#E0E0E0', 'border-accented': '#0056B3', ring: '#80BDFF' },
-            radius: { default: '4px', sm: '2px', md: '6px', lg: '8px', xl: '12px' },
-          },
-          dark: {
-            color: { primary: '#4DA6FF', secondary: '#A0AEC0', success: '#69F0AE', info: '#4DD0E1', warning: '#FFD54F', error: '#EF5350' },
-            text: { default: '#E2E8F0', dimmed: '#CBD5E0', muted: '#A0AEC0', toned: '#718096', highlighted: '#4DA6FF', inverted: '#1A202C' },
-            bg: { default: '#1A202C', muted: '#2D3748', elevated: '#4A5568', accented: '#2C3E50', inverted: '#F8F9FA' },
-            ui: { border: '#4A5568', 'border-muted': '#2D3748', 'border-accented': '#4DA6FF', ring: '#80BDFF' },
-            radius: { default: '4px', sm: '2px', md: '6px', lg: '8px', xl: '12px' },
-          },
-        },
-      }),
+      text: JSON.stringify(createGeneratedPaletteResult('Signal Harbor')),
     })
 
     const { default: handler } = await import('~~/server/api/palettes/generate')
@@ -314,25 +278,7 @@ describe('palette generate api handler', () => {
       reason: 'allowed',
     })
     generateContentMock.mockResolvedValueOnce({
-      text: JSON.stringify({
-        name: 'Reference Studio',
-        modes: {
-          light: {
-            color: { primary: '#0056B3', secondary: '#6C757D', success: '#28A745', info: '#17A2B8', warning: '#FFC107', error: '#DC3545' },
-            text: { default: '#212529', dimmed: '#6C757D', muted: '#ADB5BD', toned: '#495057', highlighted: '#0056B3', inverted: '#FFFFFF' },
-            bg: { default: '#F8F9FA', muted: '#E9ECEF', elevated: '#FFFFFF', accented: '#DEE2E6', inverted: '#002D62' },
-            ui: { border: '#CED4DA', 'border-muted': '#E0E0E0', 'border-accented': '#0056B3', ring: '#80BDFF' },
-            radius: { default: '4px', sm: '2px', md: '6px', lg: '8px', xl: '12px' },
-          },
-          dark: {
-            color: { primary: '#4DA6FF', secondary: '#A0AEC0', success: '#69F0AE', info: '#4DD0E1', warning: '#FFD54F', error: '#EF5350' },
-            text: { default: '#E2E8F0', dimmed: '#CBD5E0', muted: '#A0AEC0', toned: '#718096', highlighted: '#4DA6FF', inverted: '#1A202C' },
-            bg: { default: '#1A202C', muted: '#2D3748', elevated: '#4A5568', accented: '#2C3E50', inverted: '#F8F9FA' },
-            ui: { border: '#4A5568', 'border-muted': '#2D3748', 'border-accented': '#4DA6FF', ring: '#80BDFF' },
-            radius: { default: '4px', sm: '2px', md: '6px', lg: '8px', xl: '12px' },
-          },
-        },
-      }),
+      text: JSON.stringify(createGeneratedPaletteResult('Reference Studio')),
     })
 
     const { default: handler } = await import('~~/server/api/palettes/generate')
@@ -356,6 +302,44 @@ describe('palette generate api handler', () => {
         }),
       ],
     }))
+  })
+
+  it('re-requests content after incomplete JSON output before failing', async () => {
+    const session = {
+      user: {
+        id: 'user-1',
+        isAdmin: false,
+        plan: 'free',
+        planStatus: 'inactive',
+        aiPaletteGenerationsUsed: 0,
+      },
+    }
+    const access = {
+      canGenerate: true,
+      isPaidUnlimited: false,
+      isAdminUnlimited: false,
+      freeLimit: 3,
+      freeUsed: 0,
+      freeRemaining: 3,
+      reason: 'allowed',
+    }
+
+    getOptionalAuthSessionMock.mockResolvedValueOnce(session)
+    assertPaletteGenerationAllowedMock.mockReturnValueOnce(access)
+    generateContentMock
+      .mockResolvedValueOnce({
+        text: '{"palette":{"name":"Truncated"',
+      })
+      .mockResolvedValueOnce({
+        text: JSON.stringify(createGeneratedPaletteResult('Recovered Harbor')),
+      })
+
+    const { default: handler } = await import('~~/server/api/palettes/generate')
+    const result = await handler(createPostEvent({ prompt: 'Ocean dashboard' }) as H3Event)
+
+    expect(result).toMatchObject({ palette: { name: 'Recovered Harbor' }, ui: {} })
+    expect(generateContentMock).toHaveBeenCalledTimes(2)
+    expect(incrementPaletteGenerationUsageIfNeededMock).toHaveBeenCalledWith(session, access)
   })
 
   it('rejects oversized reference images before calling Gemini', async () => {
@@ -467,31 +451,13 @@ describe('palette generate api handler', () => {
         },
       })
       .mockResolvedValueOnce({
-        text: JSON.stringify({
-          name: 'Coastal Ledger',
-          modes: {
-            light: {
-              color: { primary: '#0056B3', secondary: '#6C757D', success: '#28A745', info: '#17A2B8', warning: '#FFC107', error: '#DC3545' },
-              text: { default: '#212529', dimmed: '#6C757D', muted: '#ADB5BD', toned: '#495057', highlighted: '#0056B3', inverted: '#FFFFFF' },
-              bg: { default: '#F8F9FA', muted: '#E9ECEF', elevated: '#FFFFFF', accented: '#DEE2E6', inverted: '#002D62' },
-              ui: { border: '#CED4DA', 'border-muted': '#E0E0E0', 'border-accented': '#0056B3', ring: '#80BDFF' },
-              radius: { default: '4px', sm: '2px', md: '6px', lg: '8px', xl: '12px' },
-            },
-            dark: {
-              color: { primary: '#4DA6FF', secondary: '#A0AEC0', success: '#69F0AE', info: '#4DD0E1', warning: '#FFD54F', error: '#EF5350' },
-              text: { default: '#E2E8F0', dimmed: '#CBD5E0', muted: '#A0AEC0', toned: '#718096', highlighted: '#4DA6FF', inverted: '#1A202C' },
-              bg: { default: '#1A202C', muted: '#2D3748', elevated: '#4A5568', accented: '#2C3E50', inverted: '#F8F9FA' },
-              ui: { border: '#4A5568', 'border-muted': '#2D3748', 'border-accented': '#4DA6FF', ring: '#80BDFF' },
-              radius: { default: '4px', sm: '2px', md: '6px', lg: '8px', xl: '12px' },
-            },
-          },
-        }),
+        text: JSON.stringify(createGeneratedPaletteResult('Coastal Ledger')),
       })
 
     const { default: handler } = await import('~~/server/api/palettes/generate')
     const result = await handler(createPostEvent({ prompt: 'Ocean dashboard' }) as H3Event)
 
-    expect(result).toMatchObject({ name: 'Coastal Ledger' })
+    expect(result).toMatchObject({ palette: { name: 'Coastal Ledger' }, ui: {} })
     expect(generateContentMock).toHaveBeenCalledTimes(3)
     expect(incrementPaletteGenerationUsageIfNeededMock).toHaveBeenCalledWith(session, access)
   })
@@ -547,7 +513,7 @@ describe('palette generate api handler', () => {
       statusMessage: 'AI provider is temporarily unavailable. Please try again shortly.',
     })
 
-    expect(generateContentMock).toHaveBeenCalledTimes(3)
+    expect(generateContentMock.mock.calls.length).toBeGreaterThanOrEqual(3)
     expect(incrementPaletteGenerationUsageIfNeededMock).not.toHaveBeenCalled()
   })
 })

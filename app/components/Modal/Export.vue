@@ -131,7 +131,7 @@ async function copyCurrentExport() {
             v-for="option in exportOptions"
             :key="option.value"
             type="button"
-            class="rounded-2xl border px-4 py-3 text-left transition-colors"
+            class="rounded -lg border px-4 py-3 text-left transition-colors"
             :class="selectedExport === option.value ? 'border-primary bg-primary/10' : 'border-default hover:bg-muted/50'"
             @click="selectedExport = option.value"
           >

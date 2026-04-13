@@ -7,10 +7,11 @@ import {
 } from '~~/server/services/palette-generation-access'
 import type { AuthSession } from '~~/server/types/auth-session'
 
-const GEMINI_MODEL = 'gemini-flash-latest'
+const GEMINI_MODEL = 'gemini-3.1-pro-preview'
 const TRANSIENT_AI_STATUS_CODES = new Set([429, 500, 502, 503, 504])
 const TRANSIENT_AI_STATUS_TEXTS = new Set(['RESOURCE_EXHAUSTED', 'UNAVAILABLE'])
 const AI_RETRY_DELAYS_MS = [250, 750]
+const AI_MAX_OUTPUT_TOKENS = 8192
 
 class IncompleteAiJsonError extends Error {
   constructor(message: string) {
@@ -206,7 +207,7 @@ async function requestStructuredPaletteAiContent(
         config: {
           responseMimeType: 'application/json',
           responseSchema,
-          maxOutputTokens: 4096,
+          maxOutputTokens: AI_MAX_OUTPUT_TOKENS,
         },
       })
     } catch (error) {
@@ -259,16 +260,16 @@ export async function generateStructuredPaletteAiResult<T>({
 }) {
   try {
     const ai = new GoogleGenAI({ apiKey: getGeminiApiKey() })
-    const response = await requestStructuredPaletteAiContent(ai, contents ?? [prompt], responseSchema)
-
-    if (!response?.text) {
-      throw new IncompleteAiJsonError('Gemini returned an empty response')
-    }
-
     let lastError: unknown
 
     for (let attempt = 0; attempt <= AI_RETRY_DELAYS_MS.length; attempt += 1) {
       try {
+        const response = await requestStructuredPaletteAiContent(ai, contents ?? [prompt], responseSchema)
+
+        if (!response?.text) {
+          throw new IncompleteAiJsonError('Gemini returned an empty response')
+        }
+
         return schema.parse(parseStructuredResponse(response.text))
       } catch (error) {
         lastError = error

@@ -49,7 +49,7 @@ describe('palette runtime app config', () => {
     const snapshot = snapshotPaletteRuntimeUi(uiConfig)
 
     applyPaletteRuntimeUi(uiConfig, {
-      card: { slots: { root: 'rounded-2xl ring ring-primary' } },
+      card: { slots: { root: 'rounded -lg ring ring-primary' } },
       modal: { slots: { content: 'bg-elevated' } },
     }, snapshot, [])
 

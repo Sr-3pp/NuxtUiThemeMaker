@@ -60,7 +60,7 @@ const swatches = computed(() => {
           <div
             v-for="swatch in swatches"
             :key="swatch.token"
-            class="rounded-2xl border border-default/70 bg-default/75 px-3 py-2"
+            class="rounded -lg border border-default/70 bg-default/75 px-3 py-2"
           >
             <div class="flex items-center gap-3">
               <span

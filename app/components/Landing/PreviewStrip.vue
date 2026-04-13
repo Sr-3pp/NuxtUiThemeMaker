@@ -69,7 +69,7 @@ const inputStyle = computed(() => getPreviewInputStyle(props.palette))
 
           <UInput placeholder="Palette name" icon="i-lucide-palette" :style="inputStyle" />
 
-          <div class="rounded-2xl border border-default/70 bg-muted/35 p-4">
+          <div class="rounded -lg border border-default/70 bg-muted/35 p-4">
             <p class="text-sm font-medium text-highlighted">
               Contrast audit
             </p>
@@ -92,7 +92,7 @@ const inputStyle = computed(() => getPreviewInputStyle(props.palette))
           </div>
 
           <div class="grid gap-3">
-            <div class="rounded-2xl border border-default/70 bg-default/75 px-4 py-3">
+            <div class="rounded -lg border border-default/70 bg-default/75 px-4 py-3">
               <p class="text-xs uppercase tracking-[0.16em] text-muted">
                 Output
               </p>
@@ -100,7 +100,7 @@ const inputStyle = computed(() => getPreviewInputStyle(props.palette))
                 JSON, CSS, theme bundle
               </p>
             </div>
-            <div class="rounded-2xl border border-default/70 bg-default/75 px-4 py-3">
+            <div class="rounded -lg border border-default/70 bg-default/75 px-4 py-3">
               <p class="text-xs uppercase tracking-[0.16em] text-muted">
                 Workflow
               </p>

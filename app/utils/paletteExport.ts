@@ -55,27 +55,23 @@ function buildPaletteExportData(palette: PaletteDefinition): PaletteExportData {
   const normalizedPalette = normalizePaletteDefinition(palette)
   const generatedUi = normalizedPalette.ui ?? {}
   const components = normalizedPalette.components ?? {}
+  const theme = {
+    light: {
+      ...themeBuilder(normalizedPalette.modes.light),
+      ...buildRampTokens(normalizedPalette.colors),
+    },
+    dark: themeBuilder(normalizedPalette.modes.dark),
+  }
 
   return {
     palette: normalizedPalette,
-    theme: {
-      light: {
-        ...themeBuilder(normalizedPalette.modes.light),
-        ...buildRampTokens(normalizedPalette.colors),
-      },
-      dark: themeBuilder(normalizedPalette.modes.dark),
-    },
+    theme,
     generatedUi,
     components,
     mergedUi: {
-      theme: {
-        light: {
-          ...themeBuilder(normalizedPalette.modes.light),
-          ...buildRampTokens(normalizedPalette.colors),
-        },
-        dark: themeBuilder(normalizedPalette.modes.dark),
-      },
+      theme,
       ...generatedUi,
+      ...components,
     },
   }
 }

@@ -38,14 +38,14 @@ function formatDate(value: string) {
 
         <div
           v-if="isHistoryLoading"
-          class="rounded-2xl border border-default px-4 py-4 text-sm text-muted"
+          class="rounded -lg border border-default px-4 py-4 text-sm text-muted"
         >
           Loading history...
         </div>
 
         <div
           v-else-if="!paletteHistory.length"
-          class="rounded-2xl border border-default px-4 py-4 text-sm text-muted"
+          class="rounded -lg border border-default px-4 py-4 text-sm text-muted"
         >
           No version history is available yet.
         </div>
@@ -54,7 +54,7 @@ function formatDate(value: string) {
           <div
             v-for="entry in paletteHistory"
             :key="entry.id"
-            class="rounded-2xl border border-default px-4 py-4"
+            class="rounded -lg border border-default px-4 py-4"
           >
             <div class="flex flex-wrap items-center gap-2">
               <UBadge color="neutral" variant="outline">

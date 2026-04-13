@@ -75,7 +75,7 @@ function getSeverityColor(severity: ThemeQaSeverity) {
 </script>
 
 <template>
-  <UCard variant="outline" class="rounded-2xl shadow-none dark:border-white/10 dark:bg-black/40">
+  <UCard variant="outline" class="rounded -lg shadow-none dark:border-white/10 dark:bg-black/40">
     <template #header>
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="space-y-1">

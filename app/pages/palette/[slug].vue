@@ -253,7 +253,7 @@ usePageSeo({
 
               <div
                 v-if="!reviewThread.reviews.length"
-                class="rounded-2xl border border-default px-4 py-4 text-sm text-muted"
+                class="rounded -lg border border-default px-4 py-4 text-sm text-muted"
               >
                 No reviews yet. Use the form to start the review thread.
               </div>
@@ -262,7 +262,7 @@ usePageSeo({
                 <div
                   v-for="review in reviewThread.reviews"
                   :key="review.id"
-                  class="rounded-2xl border border-default px-4 py-4"
+                  class="rounded -lg border border-default px-4 py-4"
                 >
                   <div class="flex flex-wrap items-center gap-2">
                     <p class="text-sm font-medium text-highlighted">

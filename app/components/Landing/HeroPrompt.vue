@@ -42,13 +42,13 @@ const emit = defineEmits<{
             variant="none"
             class="w-full"
             :ui="{
-              base: 'min-h-[220px] resize-none rounded-2xl bg-transparent px-0 py-0 text-base text-default placeholder:text-muted focus:outline-none',
+              base: 'min-h-[220px] resize-none rounded -lg bg-transparent px-0 py-0 text-base text-default placeholder:text-muted focus:outline-none',
             }"
             placeholder="Describe the interface you want to create. Include mood, brand colors, layout tone, contrast, and the kind of product this theme should fit."
             @update:model-value="emit('update:modelValue', $event)"
           />
 
-          <div v-if="props.helperText" class="rounded-2xl border border-default/60 bg-muted/20 px-4 py-3 text-sm text-muted">
+          <div v-if="props.helperText" class="rounded -lg border border-default/60 bg-muted/20 px-4 py-3 text-sm text-muted">
             {{ props.helperText }}
           </div>
 
