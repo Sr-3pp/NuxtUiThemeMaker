@@ -42,7 +42,11 @@ function isComponentThemeSectionLike(value: unknown) {
   return componentThemeKeys.some(key => key in value)
 }
 
-function splitUiConfigEntries(uiConfig: Record<string, unknown> | undefined) {
+/**
+ * Separates component theme sections from other UI config.
+ * Component sections have keys like 'base', 'slots', 'variants', or 'states'.
+ */
+export function splitUiConfigEntries(uiConfig: Record<string, unknown> | undefined) {
   const paletteUi: Record<string, unknown> = {}
   const components: NonNullable<PaletteDefinition['components']> = {}
 

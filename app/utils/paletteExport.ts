@@ -1,7 +1,7 @@
 import type { PaletteColorScales, PaletteDefinition } from '../types/palette'
 import { paletteScaleSteps } from '../types/palette'
 import { normalizePaletteDefinition } from './palette-domain'
-import { serializePaletteExport } from './palette-io'
+import { serializePaletteExport, splitUiConfigEntries } from './palette-io'
 import themeBuilder from './theme-builder'
 
 interface PaletteExportData {
@@ -52,9 +52,16 @@ function buildRampTokens(colors?: PaletteColorScales) {
 
 function buildPaletteExportData(palette: PaletteDefinition): PaletteExportData {
   const normalizedPalette = normalizePaletteDefinition(palette)
-  const generatedUi = normalizedPalette.ui ?? {}
-  const components = normalizedPalette.components ?? {}
-  const theme = {
+  
+  // Separate component overrides from other UI config
+  // Components may be mixed in the ui field or already separated
+  const allUiConfig = {
+    ...(normalizedPalette.ui ?? {}),
+    ...(normalizedPalette.components ?? {}),
+  }
+  const { ui, components } = splitUiConfigEntries(allUiConfig)
+  
+  const cssVars = {
     light: {
       ...themeBuilder(normalizedPalette.modes.light),
       ...buildRampTokens(normalizedPalette.colors),
@@ -64,58 +71,61 @@ function buildPaletteExportData(palette: PaletteDefinition): PaletteExportData {
 
   return {
     palette: normalizedPalette,
-    theme,
-    generatedUi,
+    cssVars,
+    ui,
     components,
-    mergedUi: {
-      theme,
-      ...generatedUi,
-      ...components,
-    },
+  }
+}
+
+/**
+ * Builds the complete Nuxt UI app.config.ui object structure.
+ * Includes theme (CSS custom properties) and all component overrides.
+ */
+function buildNuxtUiConfig(data: PaletteExportData): Record<string, unknown> {
+  return {
+    theme: data.cssVars,
+    ...data.ui,
+    ...data.components,
   }
 }
 
 export function exportPaletteCss(palette: PaletteDefinition) {
-  const { theme } = buildPaletteExportData(palette)
+  const { cssVars } = buildPaletteExportData(palette)
 
   return [
-    formatThemeBlock(':root', theme.light),
-    formatThemeBlock('.dark', theme.dark)
+    formatThemeBlock(':root', cssVars.light),
+    formatThemeBlock('.dark', cssVars.dark)
   ].join('\n\n')
 }
 
 export function exportPaletteTs(palette: PaletteDefinition) {
-  const { theme, generatedUi, components, mergedUi } = buildPaletteExportData(palette)
+  const data = buildPaletteExportData(palette)
+  const uiConfig = buildNuxtUiConfig(data)
 
   return [
+    '// CSS custom properties for light and dark modes',
     'export const theme = {',
-    `  light: ${JSON.stringify(theme.light, null, 2).replace(/\n/g, '\n  ')},`,
-    `  dark: ${JSON.stringify(theme.dark, null, 2).replace(/\n/g, '\n  ')}`,
+    `  light: ${JSON.stringify(data.cssVars.light, null, 2).replace(/\n/g, '\n  ')},`,
+    `  dark: ${JSON.stringify(data.cssVars.dark, null, 2).replace(/\n/g, '\n  ')}`,
     '}',
     '',
-    'export const generatedUi = ',
-    `${JSON.stringify(generatedUi, null, 2)}`,
-    '',
+    '// Component overrides',
     'export const components = ',
-    `${JSON.stringify(components, null, 2)}`,
+    `${JSON.stringify(data.components, null, 2)}`,
     '',
+    '// Complete Nuxt UI config (theme + components)',
     'export const ui = ',
-    `${JSON.stringify(mergedUi, null, 2)}`,
+    `${JSON.stringify(uiConfig, null, 2)}`,
   ].join('\n')
 }
 
 export function exportPaletteComponentsTs(palette: PaletteDefinition) {
-  const { generatedUi, components, mergedUi } = buildPaletteExportData(palette)
+  const data = buildPaletteExportData(palette)
 
   return [
-    'export const generatedUi = ',
-    `${JSON.stringify(generatedUi, null, 2)}`,
-    '',
+    '// Component overrides only (no theme CSS variables)',
     'export const components = ',
-    `${JSON.stringify(components, null, 2)}`,
-    '',
-    'export const ui = ',
-    `${JSON.stringify(mergedUi, null, 2)}`,
+    `${JSON.stringify(data.components, null, 2)}`,
   ].join('\n')
 }
 
@@ -143,22 +153,23 @@ export function exportPaletteInstallSnippet(_palette: PaletteDefinition) {
 }
 
 export function exportPaletteBundleTs(palette: PaletteDefinition) {
-  const { theme, generatedUi, components, mergedUi } = buildPaletteExportData(palette)
+  const data = buildPaletteExportData(palette)
+  const uiConfig = buildNuxtUiConfig(data)
 
   return [
+    '// All-in-one Nuxt UI theme configuration',
+    '// Place this file as app.config.ts in your Nuxt app root',
+    '',
     'export const theme = {',
-    `  light: ${JSON.stringify(theme.light, null, 2).replace(/\n/g, '\n  ')},`,
-    `  dark: ${JSON.stringify(theme.dark, null, 2).replace(/\n/g, '\n  ')}`,
+    `  light: ${JSON.stringify(data.cssVars.light, null, 2).replace(/\n/g, '\n  ')},`,
+    `  dark: ${JSON.stringify(data.cssVars.dark, null, 2).replace(/\n/g, '\n  ')}`,
     '}',
     '',
-    'export const generatedUi = ',
-    `${JSON.stringify(generatedUi, null, 2)}`,
-    '',
     'export const components = ',
-    `${JSON.stringify(components, null, 2)}`,
+    `${JSON.stringify(data.components, null, 2)}`,
     '',
     'export const ui = ',
-    `${JSON.stringify(mergedUi, null, 2)}`,
+    `${JSON.stringify(uiConfig, null, 2)}`,
     '',
     'export default defineAppConfig({',
     '  ui,',

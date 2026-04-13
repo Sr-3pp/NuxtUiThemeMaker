@@ -34,16 +34,25 @@ describe('palette export', () => {
         },
       },
     })
-    const uiSection = output.split('export const ui =')[1] ?? ''
 
+    // Should include all export constants
+    expect(output).toContain('export const theme =')
     expect(output).toContain('export const components =')
-    expect(output).toContain('export const generatedUi =')
     expect(output).toContain('export const ui =')
+    
+    // Should include component data
     expect(output).toContain('"button"')
     expect(output).toContain('"bg": "var(--ui-primary)"')
-    expect(output).toContain('"--ui-color-primary-500": "#11aa55"')
-    expect(uiSection).toContain('"theme"')
-    expect(uiSection).toContain('"button"')
+    expect(output).toContain('"--ui-primary": "#11aa55"')
+    
+    // ui export should have proper Nuxt UI structure with nested theme
+    const uiMatch = output.match(/export const ui = \n([\s\S]+)$/)
+    expect(uiMatch).toBeTruthy()
+    const uiContent = JSON.parse(uiMatch![1])
+    expect(uiContent.theme).toBeDefined()
+    expect(uiContent.theme.light).toBeDefined()
+    expect(uiContent.theme.dark).toBeDefined()
+    expect(uiContent.button).toBeDefined()
   })
 
   it('references component overrides in app config export', () => {
@@ -87,14 +96,15 @@ describe('palette export', () => {
         },
       },
     })
-    const uiSection = output.split('export const ui =')[1] ?? ''
 
+    // Only exports components, not theme or full ui config
     expect(output).toContain('export const components =')
-    expect(output).toContain('export const generatedUi =')
-    expect(output).toContain('export const ui =')
     expect(output).toContain('"input"')
     expect(output).toContain('"border": "var(--ui-border)"')
-    expect(uiSection).toContain('"input"')
+    
+    // Should NOT include generatedUi or ui (components export is standalone)
+    expect(output).not.toContain('export const ui =')
+    expect(output).not.toContain('export const theme =')
   })
 
   it('exports an install-ready snippet', () => {
@@ -143,16 +153,23 @@ describe('palette export', () => {
         },
       },
     })
-    const uiSection = output.split('export const ui =')[1] ?? ''
 
+    // Should include all exports
     expect(output).toContain('export const theme = {')
-    expect(output).toContain('export const generatedUi =')
     expect(output).toContain('export const ui =')
     expect(output).toContain('export const components =')
+    
+    // Should include defineAppConfig wrapper
     expect(output).toContain('export default defineAppConfig({')
     expect(output).toContain('  ui,')
     expect(output).toContain('"--ui-color-primary-500": "#11aa55"')
-    expect(uiSection).toContain('"button"')
+    
+    // Verify ui structure includes theme and components
+    const uiMatch = output.match(/export const ui = \n([\s\S]+?)\n\nexport default/)
+    expect(uiMatch).toBeTruthy()
+    const uiContent = JSON.parse(uiMatch![1])
+    expect(uiContent.theme).toBeDefined()
+    expect(uiContent.button).toBeDefined()
   })
 
   it('includes normalized ramps in the CSS export', () => {
