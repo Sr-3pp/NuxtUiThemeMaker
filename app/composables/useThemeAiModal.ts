@@ -31,6 +31,7 @@ import {
   watchThemeAiModalSessionPersistence,
 } from '~/utils/theme-ai-modal-session'
 import { runThemeAiModalAction } from '~/utils/theme-ai-modal-actions'
+import { getFocusTargetForGeneratedComponents, useComponentEditorFocus } from './useComponentEditorFocus'
 
 const themeAiMessages = {
   starter: {
@@ -63,6 +64,8 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   const { generatePalette, generatePaletteDirections, generatePaletteRamps, generatePaletteVariants } = usePaletteApi()
   const { applyGeneratedPalette, applyGeneratedComponents, applyGeneratedRamps } = usePaletteState()
   const { switchToComponents } = useEditorSection()
+  const { editorSidebarSw } = useSidebar()
+  const { focusComponentEditor } = useComponentEditorFocus()
   const access = usePaletteGenerationAccess()
 
   const activeTab = ref<'starter' | 'directions' | 'ramps' | 'variants'>('starter')
@@ -358,12 +361,17 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     const componentKeys = Object.keys(variantsResult.value.components)
     const componentCount = componentKeys.length
     const componentList = componentKeys.slice(0, 3).join(', ') + (componentCount > 3 ? `, +${componentCount - 3} more` : '')
+    const focusTarget = getFocusTargetForGeneratedComponents(variantsResult.value.components)
 
     applyGeneratedComponents(variantsResult.value.components)
-    
-    // Switch to Components tab so user can see and edit the generated overrides
+
+    editorSidebarSw.value = true
     switchToComponents()
-    
+
+    if (focusTarget) {
+      focusComponentEditor(focusTarget)
+    }
+
     closeWithSuccessToast(
       themeAiMessages.variants.applyTitle, 
       `Applied ${componentCount} component${componentCount !== 1 ? 's' : ''} (${componentList}). Check the Components tab to customize.`

@@ -19,12 +19,26 @@ import { FREE_PLAN_PALETTE_GENERATION_LIMIT } from '../data/pricing'
 import { clonePaletteDefinition } from '../utils/palette-domain'
 
 export function usePaletteApi() {
+  function refreshNuxtDataInBackground(key: string) {
+    Promise.resolve(refreshNuxtData(key)).catch((error) => {
+      console.error(`Failed to refresh Nuxt data for "${key}"`, error)
+    })
+  }
+
   async function fetchWithRefresh<T>(
     input: string,
     init: Parameters<typeof $fetch<T>>[1],
     refreshKey: string,
+    options?: {
+      awaitRefresh?: boolean
+    },
   ) {
     const result = await $fetch<T>(input, init)
+
+    if (options?.awaitRefresh === false) {
+      refreshNuxtDataInBackground(refreshKey)
+      return result
+    }
 
     await refreshNuxtData(refreshKey)
 
@@ -42,7 +56,9 @@ export function usePaletteApi() {
     input: string,
     init: Parameters<typeof $fetch<T>>[1],
   ) {
-    return fetchWithRefresh<T>(input, init, 'palette-generation-access')
+    return fetchWithRefresh<T>(input, init, 'palette-generation-access', {
+      awaitRefresh: false,
+    })
   }
 
   const savePalette = async (palette: EditablePalette) => {

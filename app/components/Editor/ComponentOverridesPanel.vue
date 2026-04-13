@@ -20,6 +20,7 @@ const emit = defineEmits<{
 }>()
 
 const modal = useModal('theme-ai-modal')
+const { focusTarget } = useComponentEditorFocus()
 const searchQuery = ref('')
 const selectedComponent = ref('button')
 const selectedArea = ref<'base' | 'slot' | 'variant' | 'state'>('base')
@@ -185,6 +186,35 @@ watchEffect(() => {
 
   if (availableStates.value.length && !availableStates.value.some(option => option.value === selectedState.value)) {
     selectedState.value = availableStates.value[0]!.value
+  }
+})
+
+watch(() => focusTarget.value.requestId, () => {
+  if (props.mode === 'states' && focusTarget.value.area !== 'state') {
+    return
+  }
+
+  if (props.mode !== 'states' && focusTarget.value.area === 'state') {
+    return
+  }
+
+  selectedComponent.value = focusTarget.value.component
+  selectedArea.value = focusTarget.value.area
+
+  if (focusTarget.value.variant) {
+    selectedVariant.value = focusTarget.value.variant
+  }
+
+  if (focusTarget.value.variantColor) {
+    selectedVariantColor.value = focusTarget.value.variantColor
+  }
+
+  if (focusTarget.value.slot) {
+    selectedSlot.value = focusTarget.value.slot
+  }
+
+  if (focusTarget.value.state) {
+    selectedState.value = focusTarget.value.state
   }
 })
 

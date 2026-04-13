@@ -1,4 +1,4 @@
-import { createError, defineEventHandler } from 'h3'
+
 import { deleteAdminManagedPalette } from '~~/server/services/admin-palettes'
 import { requireAuthSession } from '~~/server/utils/auth-session'
 

@@ -242,4 +242,16 @@ describe('usePaletteApi', () => {
     expect(refreshNuxtDataMock).toHaveBeenCalledWith('palette-generation-access')
     expect(result).toEqual(createGeneratedPaletteResult())
   })
+
+  it('returns AI generation results without waiting for generation-access revalidation', async () => {
+    const { usePaletteApi } = await import('../../app/composables/usePaletteApi')
+    const api = usePaletteApi()
+    const resultPayload = createGeneratedPaletteResult()
+
+    fetchMock.mockResolvedValueOnce(resultPayload)
+    refreshNuxtDataMock.mockReturnValueOnce(new Promise(() => {}))
+
+    await expect(api.generatePalette('Async refresh')).resolves.toEqual(resultPayload)
+    expect(refreshNuxtDataMock).toHaveBeenCalledWith('palette-generation-access')
+  })
 })
