@@ -6,13 +6,12 @@ import themeBuilder from './theme-builder'
 
 interface PaletteExportData {
   palette: PaletteDefinition
-  theme: {
+  cssVars: {
     light: Record<string, string>
     dark: Record<string, string>
   }
-  generatedUi: Record<string, unknown>
+  ui: Record<string, unknown>
   components: NonNullable<PaletteDefinition['components']>
-  mergedUi: Record<string, unknown>
 }
 
 function formatThemeBlock(selector: string, tokens: Record<string, string>) {

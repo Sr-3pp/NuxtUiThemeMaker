@@ -2,14 +2,8 @@ import { createPartFromBase64, createPartFromText } from '@google/genai'
 import { defineEventHandler, readBody } from 'h3'
 import { paletteGenerateRequestSchema } from '~~/server/domain/palette-ai-schema'
 import { paletteDefinitionSchema, paletteResponseSchema } from '~~/server/domain/palette-schema'
-import {
-  assertPaletteAiAccess,
-  finalizePaletteAiUsage,
-  generateStructuredPaletteAiResult,
-} from '~~/server/services/palette-ai'
-import { getOptionalAuthSession } from '~~/server/utils/auth-session'
-import { enforceAiRateLimit } from '~~/server/utils/rate-limit'
-import { assertTrustedBrowserOrigin } from '~~/server/utils/request-origin'
+import { generateStructuredPaletteAiResult } from '~~/server/services/palette-ai'
+import { setupAiEndpoint, finalizeAiEndpoint } from '~~/server/utils/ai-event-handler'
 
 const paletteGenerationInstructions = [
   'Return only structured JSON for a palette object.',
@@ -48,11 +42,7 @@ function buildPaletteGenerationContents(promptText: string, referenceImage?: {
 }
 
 export default defineEventHandler(async (event) => {
-  assertTrustedBrowserOrigin(event)
-
-  const session = await getOptionalAuthSession(event)
-  const { session: authenticatedSession, access } = await assertPaletteAiAccess(session)
-  enforceAiRateLimit(event, authenticatedSession?.user.id ?? null)
+  const { session, access } = await setupAiEndpoint(event)
   const body = paletteGenerateRequestSchema.parse(await readBody(event))
 
   const promptParts = [
@@ -71,7 +61,7 @@ export default defineEventHandler(async (event) => {
     responseSchema: paletteResponseSchema,
   })
 
-  await finalizePaletteAiUsage(authenticatedSession, access)
+  await finalizeAiEndpoint(session, access)
 
   return {
     palette: generatedPalette,

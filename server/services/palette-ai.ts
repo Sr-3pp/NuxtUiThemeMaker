@@ -1,11 +1,6 @@
 import { createError } from 'h3'
 import { GoogleGenAI, type ContentListUnion } from '@google/genai'
 import { ZodError, type ZodSchema } from 'zod'
-import {
-  assertPaletteGenerationAllowed,
-  incrementPaletteGenerationUsageIfNeeded,
-} from '~~/server/services/palette-generation-access'
-import type { AuthSession } from '~~/server/types/auth-session'
 
 const GEMINI_MODEL = 'gemini-3.1-pro-preview'
 const TRANSIENT_AI_STATUS_CODES = new Set([429, 500, 502, 503, 504])
@@ -224,15 +219,6 @@ async function requestStructuredPaletteAiContent(
   throw lastError
 }
 
-export async function assertPaletteAiAccess(session: AuthSession | null) {
-  const access = assertPaletteGenerationAllowed(session)
-
-  return {
-    session,
-    access,
-  }
-}
-
 export function getGeminiApiKey() {
   const { geminiApiKey: configuredGeminiApiKey } = useRuntimeConfig()
   const geminiApiKey = configuredGeminiApiKey || process.env.NUXT_GEMINI_API_KEY || ''
@@ -260,29 +246,13 @@ export async function generateStructuredPaletteAiResult<T>({
 }) {
   try {
     const ai = new GoogleGenAI({ apiKey: getGeminiApiKey() })
-    let lastError: unknown
+    const response = await requestStructuredPaletteAiContent(ai, contents ?? [prompt], responseSchema)
 
-    for (let attempt = 0; attempt <= AI_RETRY_DELAYS_MS.length; attempt += 1) {
-      try {
-        const response = await requestStructuredPaletteAiContent(ai, contents ?? [prompt], responseSchema)
-
-        if (!response?.text) {
-          throw new IncompleteAiJsonError('Gemini returned an empty response')
-        }
-
-        return schema.parse(parseStructuredResponse(response.text))
-      } catch (error) {
-        lastError = error
-
-        if (!isRetryableAiError(error) || attempt === AI_RETRY_DELAYS_MS.length) {
-          throw error
-        }
-
-        await waitForAiRetry(AI_RETRY_DELAYS_MS[attempt]!)
-      }
+    if (!response?.text) {
+      throw new IncompleteAiJsonError('Gemini returned an empty response')
     }
 
-    throw lastError
+    return schema.parse(parseStructuredResponse(response.text))
   } catch (error) {
     if (error instanceof ZodError) {
       throw createError({
@@ -311,8 +281,4 @@ export async function generateStructuredPaletteAiResult<T>({
       message: 'Failed to generate content.',
     })
   }
-}
-
-export async function finalizePaletteAiUsage(session: AuthSession | null, access: ReturnType<typeof assertPaletteGenerationAllowed>) {
-  await incrementPaletteGenerationUsageIfNeeded(session, access)
 }

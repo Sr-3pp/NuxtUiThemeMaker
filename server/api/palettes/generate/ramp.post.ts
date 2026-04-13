@@ -1,13 +1,7 @@
 import { defineEventHandler, readBody } from 'h3'
 import { paletteRampGenerateRequestSchema, paletteRampGenerateResponseSchema } from '~~/server/domain/palette-ai-schema'
-import {
-  assertPaletteAiAccess,
-  finalizePaletteAiUsage,
-  generateStructuredPaletteAiResult,
-} from '~~/server/services/palette-ai'
-import { getOptionalAuthSession } from '~~/server/utils/auth-session'
-import { enforceAiRateLimit } from '~~/server/utils/rate-limit'
-import { assertTrustedBrowserOrigin } from '~~/server/utils/request-origin'
+import { generateStructuredPaletteAiResult } from '~~/server/services/palette-ai'
+import { setupAiEndpoint, finalizeAiEndpoint } from '~~/server/utils/ai-event-handler'
 
 const instructions = [
   'Return only JSON.',
@@ -21,11 +15,7 @@ const instructions = [
 ].join(' ')
 
 export default defineEventHandler(async (event) => {
-  assertTrustedBrowserOrigin(event)
-
-  const session = await getOptionalAuthSession(event)
-  const { session: authenticatedSession, access } = await assertPaletteAiAccess(session)
-  enforceAiRateLimit(event, authenticatedSession.user.id)
+  const { session, access } = await setupAiEndpoint(event)
   const body = paletteRampGenerateRequestSchema.parse(await readBody(event))
 
   const prompt = [
@@ -40,7 +30,7 @@ export default defineEventHandler(async (event) => {
     schema: paletteRampGenerateResponseSchema,
   })
 
-  await finalizePaletteAiUsage(authenticatedSession, access)
+  await finalizeAiEndpoint(session, access)
 
   return result
 })
