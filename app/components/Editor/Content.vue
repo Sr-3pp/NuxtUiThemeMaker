@@ -10,7 +10,7 @@ const props = defineProps<EditorProps>()
 const emit = defineEmits<EditorEmits>()
 
 const colorMode = useColorMode()
-const editorSection = ref<'colors' | 'semantic' | 'components' | 'states' | 'ai-ui'>('colors')
+const { activeSection } = useEditorSection()
 const editorSections = [
   { label: 'Colors', value: 'colors', slot: 'colors' },
   { label: 'Semantic', value: 'semantic', slot: 'semantic' },
@@ -34,7 +34,7 @@ const activeMode = computed<PaletteModeKey>(() => {
   <template v-if="props.tab === 'tokens'">
     <EditorModeBanner :active-mode="activeMode" />
     <UTabs
-      v-model="editorSection"
+      v-model="activeSection"
       class="mb-4"
       :items="editorSections"
       color="neutral"

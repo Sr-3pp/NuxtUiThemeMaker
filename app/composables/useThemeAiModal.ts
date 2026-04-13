@@ -62,6 +62,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   const { showErrorToast } = useErrorToast()
   const { generatePalette, generatePaletteDirections, generatePaletteRamps, generatePaletteVariants } = usePaletteApi()
   const { applyGeneratedPalette, applyGeneratedComponents, applyGeneratedRamps } = usePaletteState()
+  const { switchToComponents } = useEditorSection()
   const access = usePaletteGenerationAccess()
 
   const activeTab = ref<'starter' | 'directions' | 'ramps' | 'variants'>('starter')
@@ -354,8 +355,19 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
       return
     }
 
+    const componentKeys = Object.keys(variantsResult.value.components)
+    const componentCount = componentKeys.length
+    const componentList = componentKeys.slice(0, 3).join(', ') + (componentCount > 3 ? `, +${componentCount - 3} more` : '')
+
     applyGeneratedComponents(variantsResult.value.components)
-    closeWithSuccessToast(themeAiMessages.variants.applyTitle, themeAiMessages.variants.applyDescription)
+    
+    // Switch to Components tab so user can see and edit the generated overrides
+    switchToComponents()
+    
+    closeWithSuccessToast(
+      themeAiMessages.variants.applyTitle, 
+      `Applied ${componentCount} component${componentCount !== 1 ? 's' : ''} (${componentList}). Check the Components tab to customize.`
+    )
   }
 
   return {
