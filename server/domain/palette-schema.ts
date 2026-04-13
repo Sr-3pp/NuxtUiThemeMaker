@@ -24,10 +24,12 @@ const paletteColorScaleSchema = z.object({
   '950': paletteTokenValueSchema,
 })
 const paletteComponentThemeSectionSchema = z.object({
-  base: paletteTokenGroupSchema.optional(),
-  slots: z.record(z.string(), paletteTokenGroupSchema).optional(),
-  variants: z.record(z.string(), z.record(z.string(), paletteTokenGroupSchema)).optional(),
-  states: z.record(z.string(), paletteTokenGroupSchema).optional(),
+  base: z.union([z.string(), paletteTokenGroupSchema]).optional(),
+  slots: z.record(z.string(), z.union([z.string(), paletteTokenGroupSchema])).optional(),
+  variants: z.record(z.string(), z.record(z.string(), z.union([z.string(), paletteTokenGroupSchema]))).optional(),
+  states: z.record(z.string(), z.union([z.string(), paletteTokenGroupSchema])).optional(),
+  defaultVariants: z.record(z.string(), z.string()).optional(),
+  compoundVariants: z.array(z.record(z.string(), z.unknown())).optional(),
 })
 const paletteUiSchema = z.record(z.string(), jsonValueSchema)
 

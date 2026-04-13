@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PaletteComponentThemeSection, PaletteDefinition } from '~/types/palette'
+import type { PaletteComponentThemeSection, PaletteDefinition, PaletteTokenGroup } from '~/types/palette'
 import { formatPaletteLabel, paletteTokenStyle } from '~/utils/paletteEditor'
 
 const props = defineProps<{
@@ -12,13 +12,25 @@ function getScalePreviewValue(scale: Record<string, string | null>) {
   return scale['500'] ?? scale['400'] ?? scale['600'] ?? null
 }
 
+/**
+ * Count tokens in a value that can be either a string or token group object
+ */
+function countTokensInValue(value: string | PaletteTokenGroup | undefined): number {
+  if (!value) return 0
+  if (typeof value === 'string') return 1
+  return Object.keys(value).length
+}
+
 function countComponentTokens(section: PaletteComponentThemeSection) {
-  const baseCount = Object.keys(section.base ?? {}).length
-  const slotCount = Object.values(section.slots ?? {}).reduce((count, slotTokens) => count + Object.keys(slotTokens).length, 0)
+  const baseCount = countTokensInValue(section.base)
+  const slotCount = Object.values(section.slots ?? {}).reduce((count, slotTokens) => 
+    count + countTokensInValue(slotTokens), 0)
   const variantCount = Object.values(section.variants ?? {}).reduce((count, variantGroup) => {
-    return count + Object.values(variantGroup).reduce((variantTokenCount, tokens) => variantTokenCount + Object.keys(tokens).length, 0)
+    return count + Object.values(variantGroup).reduce((variantTokenCount, tokens) => 
+      variantTokenCount + countTokensInValue(tokens), 0)
   }, 0)
-  const stateCount = Object.values(section.states ?? {}).reduce((count, stateTokens) => count + Object.keys(stateTokens).length, 0)
+  const stateCount = Object.values(section.states ?? {}).reduce((count, stateTokens) => 
+    count + countTokensInValue(stateTokens), 0)
 
   return baseCount + slotCount + variantCount + stateCount
 }

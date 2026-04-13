@@ -43,6 +43,51 @@ function isComponentThemeSectionLike(value: unknown) {
 }
 
 /**
+ * Normalize component theme value to Nuxt UI format.
+ * Converts {class: "..."} to flat string, keeps token objects like {bg: "...", text: "..."}
+ */
+function normalizeComponentValue(value: unknown): unknown {
+  if (typeof value === 'string') {
+    return value
+  }
+
+  if (!isRecord(value)) {
+    return value
+  }
+
+  // If it's an object with only "class" key, extract the class value
+  const keys = Object.keys(value)
+  if (keys.length === 1 && keys[0] === 'class' && typeof value.class === 'string') {
+    return value.class
+  }
+
+  // Otherwise recursively normalize nested objects
+  const normalized: Record<string, unknown> = {}
+  for (const [key, val] of Object.entries(value)) {
+    normalized[key] = normalizeComponentValue(val)
+  }
+  return normalized
+}
+
+/**
+ * Normalize all component theme sections to Nuxt UI format.
+ * Converts {class: "..."} values to flat strings throughout the component tree.
+ */
+export function normalizeComponentThemes(
+  components: Record<string, unknown> | undefined
+): NonNullable<PaletteDefinition['components']> {
+  if (!components) {
+    return {}
+  }
+
+  const normalized: Record<string, unknown> = {}
+  for (const [componentKey, section] of Object.entries(components)) {
+    normalized[componentKey] = normalizeComponentValue(section)
+  }
+  return normalized as NonNullable<PaletteDefinition['components']>
+}
+
+/**
  * Separates component theme sections from other UI config.
  * Component sections have keys like 'base', 'slots', 'variants', or 'states'.
  */

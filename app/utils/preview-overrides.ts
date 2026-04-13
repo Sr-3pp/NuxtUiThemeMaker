@@ -1,6 +1,15 @@
 import type { CSSProperties } from 'vue'
 import type { PaletteDefinition, PaletteTokenGroup } from '~/types/palette'
 
+/**
+ * Normalize component theme value to object form
+ */
+function normalizeToTokenGroup(value: string | PaletteTokenGroup | undefined): PaletteTokenGroup | undefined {
+  if (!value) return undefined
+  if (typeof value === 'string') return { class: value }
+  return value
+}
+
 function normalizeTokenValue(value: string | null | undefined) {
   const normalized = value?.trim()
   return normalized ? normalized : undefined
@@ -45,10 +54,12 @@ export function getPreviewButtonStyle(
   color: string
 ) {
   return buildStyleFromTokens(
-    palette?.components?.button?.variants?.[variant]?.[color]
+    normalizeToTokenGroup(palette?.components?.button?.variants?.[variant]?.[color])
   )
 }
 
 export function getPreviewInputStyle(palette: PaletteDefinition | null | undefined) {
-  return buildStyleFromTokens(palette?.components?.input?.base)
+  return buildStyleFromTokens(
+    normalizeToTokenGroup(palette?.components?.input?.base)
+  )
 }

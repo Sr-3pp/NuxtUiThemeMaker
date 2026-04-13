@@ -10,10 +10,12 @@ export type PaletteColorScales = Record<string, PaletteColorScale>
 export type PaletteAliases = Record<string, string | null>
 
 export interface PaletteComponentThemeSection {
-  base?: PaletteTokenGroup
-  slots?: Record<string, PaletteTokenGroup>
-  variants?: Record<string, Record<string, PaletteTokenGroup>>
-  states?: Record<string, PaletteTokenGroup>
+  base?: string | PaletteTokenGroup
+  slots?: Record<string, string | PaletteTokenGroup>
+  variants?: Record<string, Record<string, string | PaletteTokenGroup>>
+  states?: Record<string, string | PaletteTokenGroup>
+  defaultVariants?: Record<string, string>
+  compoundVariants?: Array<Record<string, unknown>>
 }
 
 export type PaletteComponentThemes = Record<string, PaletteComponentThemeSection>

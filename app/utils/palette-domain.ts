@@ -15,6 +15,17 @@ import type {
 import { paletteScaleSteps } from '../types/palette'
 import type { StoredPalette } from '~/types/palette-store'
 import { parseHexColor, toHexColor, type HexRgbColor } from './color-hex'
+import type { PaletteTokenGroup } from '~/types/palette'
+
+/**
+ * Normalize component theme value to object form
+ * Nuxt UI supports both flat strings and token group objects
+ */
+function normalizeToTokenGroup(value: string | PaletteTokenGroup | undefined): PaletteTokenGroup {
+  if (!value) return {}
+  if (typeof value === 'string') return { class: value }
+  return value
+}
 
 const scaleMixMap: Record<string, { target: HexRgbColor, amount: number }> = {
   '50': { target: { r: 255, g: 255, b: 255 }, amount: 0.95 },
@@ -395,7 +406,7 @@ export function updateEditablePaletteComponentToken(
 
   if (payload.area === 'base') {
     componentSection.base = {
-      ...componentSection.base,
+      ...normalizeToTokenGroup(componentSection.base),
       [payload.token]: payload.value,
     }
 
@@ -406,7 +417,7 @@ export function updateEditablePaletteComponentToken(
     componentSection.slots = {
       ...componentSection.slots,
       [payload.slot]: {
-        ...(componentSection.slots?.[payload.slot] ?? {}),
+        ...normalizeToTokenGroup(componentSection.slots?.[payload.slot]),
         [payload.token]: payload.value,
       },
     }
@@ -420,7 +431,7 @@ export function updateEditablePaletteComponentToken(
       [payload.variant]: {
         ...(componentSection.variants?.[payload.variant] ?? {}),
         [payload.variantColor]: {
-          ...(componentSection.variants?.[payload.variant]?.[payload.variantColor] ?? {}),
+          ...normalizeToTokenGroup(componentSection.variants?.[payload.variant]?.[payload.variantColor]),
           [payload.token]: payload.value,
         },
       },
@@ -433,7 +444,7 @@ export function updateEditablePaletteComponentToken(
     componentSection.states = {
       ...componentSection.states,
       [payload.state]: {
-        ...(componentSection.states?.[payload.state] ?? {}),
+        ...normalizeToTokenGroup(componentSection.states?.[payload.state]),
         [payload.token]: payload.value,
       },
     }
