@@ -12,17 +12,17 @@
       },
       "text": {
         "default": "#0f172a",
-        "dimmed": "#64748b",
+        "dimmed": "#475569",
         "muted": "#475569",
         "toned": "#334155",
         "highlighted": "#020617",
         "inverted": "#f8fafc"
       },
       "bg": {
-        "default": "#f8fafc",
-        "muted": "#f1f5f9",
+        "default": "#f1f5f9",
+        "muted": "#e2e8f0",
         "elevated": "#ffffff",
-        "accented": "#e2e8f0",
+        "accented": "#cbd5e1",
         "inverted": "#020617"
       },
       "ui": {
@@ -50,7 +50,7 @@
       },
       "text": {
         "default": "#e5eef7",
-        "dimmed": "#64748b",
+        "dimmed": "#a8b5c7",
         "muted": "#94a3b8",
         "toned": "#cbd5e1",
         "highlighted": "#ffffff",
@@ -59,7 +59,7 @@
       "bg": {
         "default": "#020617",
         "muted": "#0b1220",
-        "elevated": "#111827",
+        "elevated": "#0f1729",
         "accented": "#172033",
         "inverted": "#f8fafc"
       },

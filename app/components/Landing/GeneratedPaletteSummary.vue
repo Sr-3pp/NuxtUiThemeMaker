@@ -31,47 +31,47 @@ const swatches = computed(() => {
 <template>
   <UCard
     v-if="props.palette"
-    class="shadow-xl"
+    class="border-primary/30 shadow-2xl shadow-primary/5"
   >
-    <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-      <div class="space-y-4">
-        <div class="flex flex-wrap items-center gap-2">
-          <UBadge color="primary" variant="soft">
+    <div class="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+      <div class="flex-1 space-y-5">
+        <div class="flex flex-wrap items-center gap-2.5">
+          <UBadge color="primary" variant="soft" size="lg" class="px-3 py-1">
             Generated palette
           </UBadge>
-          <UBadge color="neutral" variant="outline">
+          <UBadge color="neutral" variant="outline" size="md">
             Live on this page
           </UBadge>
-          <UBadge color="success" variant="soft">
+          <UBadge color="success" variant="soft" size="md">
             Light + dark modes
           </UBadge>
         </div>
 
-        <div class="space-y-2">
-          <h2 class="text-2xl font-semibold text-highlighted">
+        <div class="space-y-3">
+          <h2 class="text-3xl font-bold text-highlighted lg:text-4xl">
             {{ props.palette.name }}
           </h2>
-          <p class="max-w-3xl text-sm leading-6 text-muted">
+          <p class="max-w-3xl text-base leading-relaxed text-muted">
             {{ props.prompt }}
           </p>
         </div>
 
-        <div class="flex flex-wrap gap-3">
+        <div class="flex flex-wrap gap-4">
           <div
             v-for="swatch in swatches"
             :key="swatch.token"
-            class="rounded -lg border border-default/70 bg-default/75 px-3 py-2"
+            class="group rounded-xl border border-default bg-elevated px-4 py-3 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/40"
           >
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3.5">
               <span
-                class="block size-6 rounded-full border border-black/10"
+                class="block size-7 rounded-full border-2 border-black/10 shadow-sm transition-transform duration-300 group-hover:scale-110"
                 :style="{ backgroundColor: swatch.value ?? 'transparent' }"
               />
-              <div>
-                <p class="text-xs uppercase tracking-[0.14em] text-muted">
+              <div class="space-y-0.5">
+                <p class="text-xs font-semibold uppercase tracking-widest text-muted">
                   {{ swatch.token }}
                 </p>
-                <p class="text-sm font-medium text-highlighted">
+                <p class="text-sm font-bold text-highlighted">
                   {{ swatch.value }}
                 </p>
               </div>
@@ -80,23 +80,24 @@ const swatches = computed(() => {
         </div>
       </div>
 
-      <div class="grid gap-3 sm:min-w-[260px]">
-        <UButton color="primary" icon="i-lucide-pencil-ruler" @click="emit('edit')">
+      <div class="grid gap-3 sm:min-w-64 lg:min-w-72">
+        <UButton color="primary" size="lg" icon="i-lucide-pencil-ruler" @click="emit('edit')">
           Edit in editor
         </UButton>
         <UButton
           color="neutral"
           variant="outline"
+          size="lg"
           icon="i-lucide-save"
           :loading="props.isSaving"
           @click="emit('save')"
         >
           {{ props.isSaved ? 'Saved to library' : 'Save palette' }}
         </UButton>
-        <UButton color="neutral" variant="soft" icon="i-lucide-download" @click="emit('export')">
+        <UButton color="neutral" variant="soft" size="lg" icon="i-lucide-download" @click="emit('export')">
           Export JSON
         </UButton>
-        <UButton color="neutral" variant="ghost" icon="i-lucide-refresh-cw" @click="emit('regenerate')">
+        <UButton color="neutral" variant="ghost" size="lg" icon="i-lucide-refresh-cw" @click="emit('regenerate')">
           Regenerate
         </UButton>
       </div>

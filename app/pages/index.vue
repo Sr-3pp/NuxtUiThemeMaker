@@ -85,27 +85,27 @@ function registerPricingSection(node: Element | ComponentPublicInstance | null) 
     :is-loading="isGenerating"
   >
     <UMain class="relative overflow-hidden">
-      <div class="absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(circle_at_top_left,var(--landing-gradient-primary),transparent_48%),radial-gradient(circle_at_top_right,var(--landing-gradient-secondary),transparent_42%)] opacity-30" />
+      <div class="absolute inset-x-0 top-0 h-screen bg-[radial-gradient(circle_at_top_left,var(--landing-gradient-primary),transparent_48%),radial-gradient(circle_at_top_right,var(--landing-gradient-secondary),transparent_42%)] opacity-15 blur-sm" />
 
-      <UContainer class="relative space-y-10 px-4 py-6 sm:px-6 sm:py-8 lg:space-y-14">
-        <header class="flex flex-col gap-4 rounded-[1.75rem] border border-default/70 bg-default/70 px-5 py-4 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
-          <div class="space-y-1">
-            <p class="text-sm font-semibold text-highlighted">
+      <UContainer class="relative space-y-12 px-4 py-8 sm:px-6 sm:py-10 lg:space-y-20 lg:py-12">
+        <header class="flex flex-col gap-5 rounded-3xl border border-default bg-elevated px-6 py-5 shadow-lg sm:flex-row sm:items-center sm:justify-between lg:px-8 lg:py-6">
+          <div class="space-y-1.5">
+            <p class="text-base font-bold text-highlighted lg:text-lg">
               Nuxt UI Theme Builder
             </p>
-            <p class="text-sm text-muted">
+            <p class="text-sm leading-relaxed text-muted lg:text-base">
               Generate a palette here, then refine it in the full editor and workspace.
             </p>
           </div>
 
-          <div class="flex flex-wrap gap-2">
-            <UButton color="neutral" variant="ghost" to="/pricing">
+          <div class="flex flex-wrap gap-2.5 sm:gap-3">
+            <UButton color="neutral" variant="ghost" to="/pricing" size="lg">
               Pricing
             </UButton>
-            <UButton color="neutral" variant="ghost" to="/workspace">
+            <UButton color="neutral" variant="ghost" to="/workspace" size="lg">
               Workspace
             </UButton>
-            <UButton color="primary" variant="soft" to="/editor">
+            <UButton color="primary" variant="soft" to="/editor" size="lg">
               Open editor
             </UButton>
           </div>
@@ -147,58 +147,58 @@ function registerPricingSection(node: Element | ComponentPublicInstance | null) 
           @apply="handleApplySharedPalette"
         />
 
-        <section class="space-y-4">
-          <div class="space-y-2">
-            <p class="text-xs uppercase tracking-[0.2em] text-primary">
+        <section class="space-y-6">
+          <div class="space-y-3">
+            <p class="text-sm font-semibold uppercase tracking-widest text-primary">
               Workflow
             </p>
-            <h2 class="text-3xl font-semibold tracking-tight text-highlighted">
+            <h2 class="text-3xl font-bold tracking-tight text-highlighted lg:text-4xl">
               Prompt, refine, save, export, and share from the same palette model.
             </h2>
           </div>
 
-          <div class="grid gap-4 xl:grid-cols-4">
-            <UCard>
-              <p class="text-xs uppercase tracking-[0.18em] text-muted">
+          <div class="grid gap-5 sm:grid-cols-2 lg:gap-6 xl:grid-cols-4">
+            <UCard class="group transition-all duration-300 hover:shadow-lg hover:border-primary/30">
+              <p class="text-xs font-bold uppercase tracking-widest text-primary/60 transition-colors duration-300 group-hover:text-primary">
                 01
               </p>
-              <p class="mt-3 text-lg font-medium text-highlighted">
+              <p class="mt-4 text-xl font-bold text-highlighted">
                 Generate
               </p>
-              <p class="mt-2 text-sm text-muted">
+              <p class="mt-3 text-sm leading-relaxed text-muted">
                 Start with a prompt and get a palette that immediately drives real Nuxt UI tokens.
               </p>
             </UCard>
-            <UCard>
-              <p class="text-xs uppercase tracking-[0.18em] text-muted">
+            <UCard class="group transition-all duration-300 hover:shadow-lg hover:border-primary/30">
+              <p class="text-xs font-bold uppercase tracking-widest text-primary/60 transition-colors duration-300 group-hover:text-primary">
                 02
               </p>
-              <p class="mt-3 text-lg font-medium text-highlighted">
+              <p class="mt-4 text-xl font-bold text-highlighted">
                 Edit
               </p>
-              <p class="mt-2 text-sm text-muted">
+              <p class="mt-3 text-sm leading-relaxed text-muted">
                 Continue in the full editor for manual token control, preview review, and AI assist tools.
               </p>
             </UCard>
-            <UCard>
-              <p class="text-xs uppercase tracking-[0.18em] text-muted">
+            <UCard class="group transition-all duration-300 hover:shadow-lg hover:border-primary/30">
+              <p class="text-xs font-bold uppercase tracking-widest text-primary/60 transition-colors duration-300 group-hover:text-primary">
                 03
               </p>
-              <p class="mt-3 text-lg font-medium text-highlighted">
+              <p class="mt-4 text-xl font-bold text-highlighted">
                 Save
               </p>
-              <p class="mt-2 text-sm text-muted">
+              <p class="mt-3 text-sm leading-relaxed text-muted">
                 Keep winning palettes in your library, track history, and move them through shared workflows.
               </p>
             </UCard>
-            <UCard>
-              <p class="text-xs uppercase tracking-[0.18em] text-muted">
+            <UCard class="group transition-all duration-300 hover:shadow-lg hover:border-primary/30">
+              <p class="text-xs font-bold uppercase tracking-widest text-primary/60 transition-colors duration-300 group-hover:text-primary">
                 04
               </p>
-              <p class="mt-3 text-lg font-medium text-highlighted">
+              <p class="mt-4 text-xl font-bold text-highlighted">
                 Export
               </p>
-              <p class="mt-2 text-sm text-muted">
+              <p class="mt-3 text-sm leading-relaxed text-muted">
                 Download JSON, CSS, or app-ready config once the palette is strong enough to ship.
               </p>
             </UCard>

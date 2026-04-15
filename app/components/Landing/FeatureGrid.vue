@@ -34,33 +34,34 @@ const featureCards = [
 </script>
 
 <template>
-  <section class="space-y-4">
-    <div class="space-y-2">
-      <p class="text-xs uppercase tracking-[0.2em] text-primary">
+  <section class="space-y-6">
+    <div class="space-y-3">
+      <p class="text-sm font-semibold uppercase tracking-widest text-primary">
         Product workflow
       </p>
-      <h2 class="text-3xl font-semibold tracking-tight text-highlighted">
+      <h2 class="text-3xl font-bold tracking-tight text-highlighted lg:text-4xl">
         AI is the entry point, not the whole product.
       </h2>
-      <p class="max-w-3xl text-sm leading-6 text-muted">
+      <p class="max-w-3xl text-base leading-relaxed text-muted lg:text-lg">
         The landing prompt gets users into a theme quickly. The rest of the app helps them validate, refine, export, and share it.
       </p>
     </div>
 
-    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div class="grid gap-5 md:grid-cols-2 lg:gap-6 xl:grid-cols-3">
       <UCard
         v-for="feature in featureCards"
         :key="feature.title"
+        class="group transition-all duration-300 hover:shadow-xl hover:border-primary/40 hover:-translate-y-1"
       >
-        <div class="space-y-3">
-          <span class="flex size-11 items-center justify-center rounded -lg bg-primary/12 text-primary">
-            <UIcon :name="feature.icon" class="size-5" />
+        <div class="space-y-4">
+          <span class="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/15 group-hover:shadow-md">
+            <UIcon :name="feature.icon" class="size-6" />
           </span>
-          <div class="space-y-2">
-            <p class="text-lg font-medium text-highlighted">
+          <div class="space-y-2.5">
+            <p class="text-xl font-bold text-highlighted">
               {{ feature.title }}
             </p>
-            <p class="text-sm leading-6 text-muted">
+            <p class="text-sm leading-relaxed text-muted">
               {{ feature.description }}
             </p>
           </div>
