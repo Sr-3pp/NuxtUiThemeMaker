@@ -15,7 +15,7 @@
         "dimmed": "#475569",
         "muted": "#475569",
         "toned": "#334155",
-        "highlighted": "#020617",
+        "highlighted": "#0f172a",
         "inverted": "#f8fafc"
       },
       "bg": {
@@ -53,7 +53,7 @@
         "dimmed": "#a8b5c7",
         "muted": "#94a3b8",
         "toned": "#cbd5e1",
-        "highlighted": "#ffffff",
+        "highlighted": "#f1f5f9",
         "inverted": "#020617"
       },
       "bg": {

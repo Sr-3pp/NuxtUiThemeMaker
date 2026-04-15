@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { StoredPalette } from '~/types/palette-store'
 import type { ComponentPublicInstance } from 'vue'
+import type { DropdownMenuItem } from '~/types/ui-local'
 
 const siteConfig = useRuntimeConfig()
 const { cta, helperText } = usePaletteGenerationAccess()
+const { signOut, user } = useAuth()
 const {
   activePalette,
   generated,
@@ -76,6 +78,60 @@ function registerPricingSection(node: Element | ComponentPublicInstance | null) 
     markPricingViewed()
   }
 }
+
+const authItems = computed<DropdownMenuItem[][]>(() => {
+  if (!user.value) {
+    return []
+  }
+
+  const menuItems: DropdownMenuItem[][] = [
+    [
+      {
+        label: user.value.name || user.value.email,
+        type: 'label'
+      }
+    ],
+    [
+      {
+        label: 'Workspace',
+        icon: 'i-lucide-briefcase',
+        to: '/workspace'
+      },
+      {
+        label: 'Editor',
+        icon: 'i-lucide-pencil-ruler',
+        to: '/editor'
+      },
+      {
+        label: 'Pricing',
+        icon: 'i-lucide-credit-card',
+        to: '/pricing'
+      }
+    ]
+  ]
+
+  // Add admin-only Panel option
+  if (user.value.isAdmin && menuItems[1]) {
+    menuItems[1].push({
+      label: 'Panel',
+      icon: 'i-lucide-shield',
+      to: '/panel'
+    })
+  }
+
+  menuItems.push([
+    {
+      label: 'Sign out',
+      icon: 'i-lucide-log-out',
+      onSelect: async () => {
+        await signOut()
+        await navigateTo('/')
+      }
+    }
+  ])
+
+  return menuItems
+})
 </script>
 
 <template>
@@ -84,7 +140,7 @@ function registerPricingSection(node: Element | ComponentPublicInstance | null) 
     :is-generated="Boolean(generatedPalette)"
     :is-loading="isGenerating"
   >
-    <UMain class="relative overflow-hidden">
+    <UMain class="relative overflow-hidden bg-default">
       <div class="absolute inset-x-0 top-0 h-screen bg-[radial-gradient(circle_at_top_left,var(--landing-gradient-primary),transparent_48%),radial-gradient(circle_at_top_right,var(--landing-gradient-secondary),transparent_42%)] opacity-15 blur-sm" />
 
       <UContainer class="relative space-y-12 px-4 py-8 sm:px-6 sm:py-10 lg:space-y-20 lg:py-12">
@@ -98,16 +154,44 @@ function registerPricingSection(node: Element | ComponentPublicInstance | null) 
             </p>
           </div>
 
-          <div class="flex flex-wrap gap-2.5 sm:gap-3">
-            <UButton color="neutral" variant="ghost" to="/pricing" size="lg">
-              Pricing
-            </UButton>
-            <UButton color="neutral" variant="ghost" to="/workspace" size="lg">
-              Workspace
-            </UButton>
-            <UButton color="primary" variant="soft" to="/editor" size="lg">
-              Open editor
-            </UButton>
+          <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
+            <template v-if="user">
+              <UButton color="neutral" variant="ghost" to="/pricing" size="lg">
+                Pricing
+              </UButton>
+              <UButton color="neutral" variant="ghost" to="/workspace" size="lg">
+                Workspace
+              </UButton>
+              <UButton color="primary" variant="soft" to="/editor" size="lg">
+                Open editor
+              </UButton>
+              <UDropdownMenu
+                :items="authItems"
+                :content="{ align: 'end' }"
+                :ui="{ content: 'min-w-48' }"
+              >
+                <UButton
+                  :label="user.name || user.email"
+                  icon="i-lucide-circle-user"
+                  trailing-icon="i-lucide-chevron-down"
+                  color="neutral"
+                  variant="ghost"
+                  size="lg"
+                  class="data-[state=open]:bg-elevated"
+                />
+              </UDropdownMenu>
+            </template>
+            <template v-else>
+              <UButton color="neutral" variant="ghost" to="/pricing" size="lg">
+                Pricing
+              </UButton>
+              <UButton color="neutral" variant="outline" to="/login" size="lg" icon="i-lucide-log-in">
+                Sign in
+              </UButton>
+              <UButton color="primary" variant="soft" to="/register" size="lg">
+                Register
+              </UButton>
+            </template>
           </div>
         </header>
 

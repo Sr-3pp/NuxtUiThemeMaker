@@ -6,13 +6,13 @@ export function usePaletteGenerationAccess() {
   const { data, status, refresh } = getPaletteGenerationAccess()
 
   const guestAccess = computed(() => ({
-    canGenerate: true,
+    canGenerate: false,
     isPaidUnlimited: false,
     isAdminUnlimited: false,
     freeLimit: FREE_PLAN_PALETTE_GENERATION_LIMIT,
     freeUsed: 0,
     freeRemaining: FREE_PLAN_PALETTE_GENERATION_LIMIT,
-    reason: 'allowed',
+    reason: 'unauthenticated',
   } as const))
   const isGuest = computed(() => !user.value)
   const access = computed(() => isGuest.value ? guestAccess.value : data.value)
@@ -34,7 +34,7 @@ export function usePaletteGenerationAccess() {
     }
 
     if (isGuest.value) {
-      return 'Guest demo mode is enabled. Sign up to save palettes and keep a library.'
+      return 'AI palette generation requires an account. Register to get started with free AI runs.'
     }
 
     if (access.value.reason === 'free_limit_reached') {

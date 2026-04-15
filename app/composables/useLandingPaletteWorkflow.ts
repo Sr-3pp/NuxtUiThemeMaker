@@ -38,6 +38,7 @@ export function useLandingPaletteWorkflow() {
   const { generatePalette, saveNewPalette } = usePaletteApi()
   const { user } = useAuth()
   const { setCurrentPalette } = usePaletteState()
+  const { access: generationAccess } = usePaletteGenerationAccess()
 
   const promptInput = useState('landing-demo-prompt-input', () => '')
   const generated = useState<LandingGeneratedPaletteState>('landing-demo-generated', createEmptyLandingGeneratedState)
@@ -124,6 +125,28 @@ export function useLandingPaletteWorkflow() {
       }
       showErrorToast(new Error('Enter a prompt to generate a palette.'), 'Enter a prompt to generate a palette.')
       persistSession()
+      return
+    }
+
+    // Check if user has access to AI generation
+    if (!generationAccess.value.canGenerate) {
+      if (generationAccess.value.reason === 'unauthenticated') {
+        await navigateTo('/register?redirect=%2F')
+        return
+      }
+
+      if (generationAccess.value.reason === 'free_limit_reached') {
+        showErrorToast(
+          new Error('AI generation limit reached. Please upgrade your plan.'),
+          'AI generation limit reached. Please upgrade your plan.'
+        )
+        return
+      }
+
+      showErrorToast(
+        new Error('You do not have access to AI generation.'),
+        'You do not have access to AI generation.'
+      )
       return
     }
 

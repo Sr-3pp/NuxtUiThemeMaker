@@ -11,18 +11,21 @@ const props = withDefaults(defineProps<{
   isLoading: false,
 })
 
+const colorMode = useColorMode()
+
 usePaletteRuntimeUi({
   palette: toRef(props, 'palette'),
 })
 
 const shellTheme = computed(() => {
-  const lightMode = props.palette.modes.light
+  const mode = colorMode.value === 'dark' ? 'dark' : 'light'
+  const modeColors = props.palette.modes[mode]
 
   return {
-    ...buildPaletteRuntimeTheme(props.palette, 'light'),
-    '--landing-gradient-primary': lightMode.color?.primary ?? '#4cd964',
-    '--landing-gradient-secondary': lightMode.color?.secondary ?? '#7ab8ff',
-    '--landing-backdrop': lightMode.bg?.default ?? '#090d12',
+    ...buildPaletteRuntimeTheme(props.palette, mode),
+    '--landing-gradient-primary': modeColors.color?.primary ?? '#4cd964',
+    '--landing-gradient-secondary': modeColors.color?.secondary ?? '#7ab8ff',
+    '--landing-backdrop': modeColors.bg?.default ?? '#090d12',
   }
 })
 </script>

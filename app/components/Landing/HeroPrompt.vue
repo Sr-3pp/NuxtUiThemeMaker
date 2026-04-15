@@ -11,6 +11,8 @@ const emit = defineEmits<{
   submit: []
   'update:modelValue': [value: string]
 }>()
+
+const { user } = useAuth()
 </script>
 
 <template>
@@ -33,10 +35,11 @@ const emit = defineEmits<{
       </div>
 
       <UCard class="mx-auto max-w-4xl border-default bg-elevated shadow-2xl">
-        <div class="space-y-6">
+        <div class="relative space-y-6">
           <UTextarea
             :model-value="props.modelValue"
             :rows="7"
+            :disabled="!user"
             autoresize
             size="xl"
             variant="none"
@@ -47,6 +50,41 @@ const emit = defineEmits<{
             placeholder="Describe the interface you want to create. Include mood, brand colors, layout tone, contrast, and the kind of product this theme should fit."
             @update:model-value="emit('update:modelValue', $event)"
           />
+
+          <!-- Auth overlay for non-logged users -->
+          <div v-if="!user" class="absolute inset-0 flex items-center justify-center rounded-lg bg-elevated/95 backdrop-blur-sm">
+            <div class="space-y-6 px-6 py-8 text-center">
+              <div class="mx-auto flex size-16 items-center justify-center rounded-full bg-primary/10">
+                <UIcon name="i-lucide-lock" class="size-8 text-primary" />
+              </div>
+              <div class="space-y-3">
+                <h3 class="text-xl font-semibold text-highlighted">
+                  Sign in to generate themes
+                </h3>
+                <p class="mx-auto max-w-md text-base leading-relaxed text-muted">
+                  Create an account to access AI-powered theme generation and save your palettes.
+                </p>
+              </div>
+              <div class="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row">
+                <UButton
+                  to="/register"
+                  color="primary"
+                  size="lg"
+                  icon="i-lucide-user-plus"
+                >
+                  Create account
+                </UButton>
+                <UButton
+                  to="/login"
+                  color="neutral"
+                  variant="ghost"
+                  size="lg"
+                >
+                  Sign in
+                </UButton>
+              </div>
+            </div>
+          </div>
 
           <div v-if="props.helperText" class="rounded-lg border border-default bg-muted px-4 py-3.5 text-sm leading-relaxed text-default">
             {{ props.helperText }}
@@ -78,6 +116,7 @@ const emit = defineEmits<{
                 color="primary"
                 icon="i-lucide-sparkles"
                 :loading="props.isLoading"
+                :disabled="!user"
                 class="min-w-44 justify-center"
                 @click="emit('submit')"
               >

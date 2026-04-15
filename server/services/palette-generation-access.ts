@@ -27,13 +27,13 @@ function getGenerationLimit(user: AuthSessionUser) {
 export function getPaletteGenerationAccess(session: AuthSession | null): PaletteGenerationAccess {
   if (!session) {
     return {
-      canGenerate: true,
+      canGenerate: false,
       isPaidUnlimited: false,
       isAdminUnlimited: false,
       freeLimit: FREE_PLAN_PALETTE_GENERATION_LIMIT,
       freeUsed: 0,
       freeRemaining: FREE_PLAN_PALETTE_GENERATION_LIMIT,
-      reason: 'allowed',
+      reason: 'unauthenticated',
     }
   }
 
@@ -70,6 +70,13 @@ export function assertPaletteGenerationAllowed(session: AuthSession | null) {
   const access = getPaletteGenerationAccess(session)
 
   if (!access.canGenerate) {
+    if (access.reason === 'unauthenticated') {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Authentication required for AI palette generation',
+      })
+    }
+
     throw createError({
       statusCode: 403,
       statusMessage: `Your plan only includes ${access.freeLimit} AI runs`,
