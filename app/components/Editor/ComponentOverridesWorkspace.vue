@@ -24,7 +24,7 @@ const emit = defineEmits<{
 const { focusTarget } = useComponentEditorFocus()
 const searchQuery = ref('')
 const selectedComponent = ref('button')
-const selectedArea = ref<'base' | 'slot' | 'state'>('base')
+const selectedArea = ref<'base' | 'slot' | 'state'>('state')
 const selectedSlot = ref('leading')
 const selectedState = ref('hover')
 
@@ -46,7 +46,7 @@ const availableAreas = computed(() => {
     return []
   }
 
-  const areas = definition.areas.filter(area => area === 'state')
+  const areas = definition.areas
 
   return areas.map(area => ({
     label: formatPaletteLabel(area),
