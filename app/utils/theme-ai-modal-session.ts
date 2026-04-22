@@ -5,7 +5,6 @@ import type {
   PaletteAiResultHistoryEntry,
   PaletteDirectionsGenerateResult,
   PaletteRampGenerateResult,
-  PaletteVariantGenerateResult,
 } from '~/types/palette-generation'
 import {
   buildPaletteAiPersistedSession,
@@ -17,15 +16,13 @@ export interface ThemeAiModalSessionState {
   starterHistory: Ref<PaletteAiResultHistoryEntry<PaletteDefinition>[]>
   directionsHistory: Ref<PaletteAiResultHistoryEntry<PaletteDirectionsGenerateResult>[]>
   rampsHistory: Ref<PaletteAiResultHistoryEntry<PaletteRampGenerateResult>[]>
-  variantsHistory: Ref<PaletteAiResultHistoryEntry<PaletteVariantGenerateResult>[]>
   starterResult: Ref<PaletteDefinition | null>
   directionsResult: Ref<PaletteDirectionsGenerateResult | null>
   rampsResult: Ref<PaletteRampGenerateResult | null>
-  variantsResult: Ref<PaletteVariantGenerateResult | null>
   historyId: Ref<number>
 }
 
-const sessionTabs = ['starter', 'directions', 'ramps', 'variants'] as const
+const sessionTabs = ['starter', 'directions', 'ramps'] as const
 
 type ThemeAiSessionTab = typeof sessionTabs[number]
 type ThemeAiSessionRestoredKey = `${ThemeAiSessionTab}${'History' | 'Result'}`
@@ -56,8 +53,6 @@ function buildPersistedSessionPayload(state: ThemeAiModalSessionState) {
     directionsResult: state.directionsResult.value,
     rampsHistory: state.rampsHistory.value,
     rampsResult: state.rampsResult.value,
-    variantsHistory: state.variantsHistory.value,
-    variantsResult: state.variantsResult.value,
   }
 }
 
@@ -108,7 +103,7 @@ export function syncThemeAiModalPersistedSession(
 
 export function watchThemeAiModalSessionPersistence(
   open: Ref<boolean>,
-  activeTab: Ref<'starter' | 'directions' | 'ramps' | 'variants'>,
+  activeTab: Ref<'starter' | 'directions' | 'ramps'>,
   paletteSessionKey: ComputedRef<string | null>,
   state: ThemeAiModalSessionState,
   persistedSessions: Ref<Record<string, PaletteAiPersistedSession>>,

@@ -127,4 +127,38 @@ describe('palette runtime ui', () => {
       },
     })
   })
+
+  it('adapts nested color variants into Nuxt UI compoundVariants for runtime use', () => {
+    const palette: PaletteDefinition = {
+      name: 'Test Palette',
+      modes: {
+        light: { color: { primary: '#000' } },
+        dark: { color: { primary: '#fff' } },
+      },
+      components: {
+        button: {
+          variants: {
+            solid: {
+              primary: 'text-inverted bg-primary/10 hover:bg-primary/75 focus-visible:ring-primary ring-inset',
+            },
+          },
+        },
+      },
+    }
+
+    const runtimeUi = resolvePaletteRuntimeUi(palette)
+
+    expect(runtimeUi.button).toEqual({
+      variants: {
+        solid: {
+          primary: 'text-inverted bg-primary/10 ring-inset hover:bg-primary/75 focus-visible:ring-primary',
+        },
+      },
+      compoundVariants: [{
+        variant: 'solid',
+        color: 'primary',
+        class: 'text-inverted bg-primary/10 ring-inset hover:bg-primary/75 focus-visible:ring-primary',
+      }],
+    })
+  })
 })

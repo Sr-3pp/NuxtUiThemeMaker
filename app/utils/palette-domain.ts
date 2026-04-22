@@ -15,6 +15,7 @@ import type {
 import { paletteScaleSteps } from '../types/palette'
 import type { StoredPalette } from '~/types/palette-store'
 import { parseHexColor, toHexColor, type HexRgbColor } from './color-hex'
+import { normalizeEditableComponentThemes } from './nuxt-ui-component-variants'
 import type { PaletteTokenGroup } from '~/types/palette'
 
 /**
@@ -110,11 +111,7 @@ function cloneColorScales(colors?: PaletteColorScales) {
 }
 
 function cloneComponentThemes(components?: PaletteComponentThemes) {
-  if (!components) {
-    return {}
-  }
-
-  return JSON.parse(JSON.stringify(components)) as PaletteComponentThemes
+  return normalizeEditableComponentThemes(components)
 }
 
 function cloneUiConfig(ui?: PaletteUiConfig) {

@@ -14,7 +14,6 @@ const { activeSection } = useEditorSection()
 const editorSections = [
   { label: 'Colors', value: 'colors', slot: 'colors' },
   { label: 'Semantic', value: 'semantic', slot: 'semantic' },
-  { label: 'Components', value: 'components', slot: 'components' },
   { label: 'States', value: 'states', slot: 'states' }
 ]
 const activeMode = computed<PaletteModeKey>(() => {
@@ -57,16 +56,8 @@ const activeMode = computed<PaletteModeKey>(() => {
         />
       </template>
 
-      <template #components>
-        <EditorComponentOverridesPanel
-          :palette="props.palette"
-          @update-component-token="emit('update-component-token', $event)"
-        />
-      </template>
-
       <template #states>
         <EditorComponentOverridesPanel
-          mode="states"
           :palette="props.palette"
           @update-component-token="emit('update-component-token', $event)"
         />

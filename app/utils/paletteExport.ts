@@ -1,7 +1,8 @@
 import type { PaletteColorScales, PaletteDefinition } from '../types/palette'
 import { paletteScaleSteps } from '../types/palette'
 import { normalizePaletteDefinition } from './palette-domain'
-import { serializePaletteExport, splitUiConfigEntries, normalizeComponentThemes } from './palette-io'
+import { serializePaletteExport, splitUiConfigEntries } from './palette-io'
+import { resolveNuxtUiComponentThemes } from './nuxt-ui-component-variants'
 import themeBuilder from './theme-builder'
 
 interface PaletteExportData {
@@ -61,8 +62,8 @@ function buildPaletteExportData(palette: PaletteDefinition): PaletteExportData {
   }
   const { ui, components: rawComponents } = splitUiConfigEntries(allUiConfig)
   
-  // Normalize component values to Nuxt UI format (flat strings instead of {class: "..."})
-  const components = normalizeComponentThemes(rawComponents)
+  // Normalize component values to real Nuxt UI runtime/export format.
+  const components = resolveNuxtUiComponentThemes(rawComponents)
   
   const cssVars = {
     light: {

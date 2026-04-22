@@ -142,58 +142,6 @@ describe('phase 7 AI palette endpoints', () => {
     expect(incrementPaletteGenerationUsageIfNeededMock).toHaveBeenCalledWith(session, access)
   })
 
-  it('generates component variants aligned to a prompt and optional palette', async () => {
-    generateContentMock.mockResolvedValueOnce({
-      text: JSON.stringify({
-        summary: 'Sharper B2B controls with restrained chrome.',
-        components: {
-          button: {
-            variants: {
-              solid: {
-                primary: {
-                  bg: 'var(--ui-primary)',
-                  text: 'var(--ui-bg)',
-                },
-              },
-            },
-          },
-          input: {
-            base: {
-              bg: 'var(--ui-bg-elevated)',
-              text: 'var(--ui-text)',
-              border: 'var(--ui-border)',
-            },
-          },
-        },
-      }),
-    })
-
-    const { default: handler } = await import('~~/server/api/palettes/generate/variants.post')
-    const result = await handler(createPostEvent('/api/palettes/generate/variants', {
-      prompt: 'Enterprise analytics with crisp tables and assertive call-to-actions',
-      palette: basePalette,
-      componentKeys: ['button', 'input'],
-    }) as H3Event)
-
-    expect(result).toMatchObject({
-      summary: 'Sharper B2B controls with restrained chrome.',
-      components: {
-        button: {
-          variants: {
-            solid: {
-              primary: {
-                bg: 'var(--ui-primary)',
-              },
-            },
-          },
-        },
-      },
-    })
-    expect(generateContentMock).toHaveBeenCalledWith(expect.objectContaining({
-      contents: [expect.stringContaining('Focus on these components: button, input.')],
-    }))
-  })
-
   it('generates contrast repair suggestions and a patched palette', async () => {
     getPaletteQaReportMock.mockReturnValueOnce({
       score: 61,

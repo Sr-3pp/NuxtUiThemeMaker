@@ -4,7 +4,6 @@ import type { EditablePalette } from '../../app/types/palette-editor'
 import type {
   PaletteAiPersistedSession,
   PaletteGenerateResult,
-  PaletteVariantGenerateResult,
 } from '../../app/types/palette-generation'
 
 vi.mock('~/utils/palette-domain', async () => {
@@ -219,29 +218,6 @@ function createGeneratedPaletteResult(name = 'AI Direction'): PaletteGenerateRes
   }
 }
 
-function createVariantResult(): PaletteVariantGenerateResult {
-  return {
-    summary: 'Generated focused button variants.',
-    components: {
-      button: {
-        variants: {
-          solid: {
-            primary: {
-              bg: 'var(--ui-primary)',
-              text: 'var(--ui-bg)',
-            },
-          },
-        },
-      },
-      input: {
-        base: {
-          bg: 'var(--ui-bg)',
-        },
-      },
-    },
-  }
-}
-
 function createEmptyEditablePalette(): EditablePalette {
   return {
     name: 'Empty Palette',
@@ -296,12 +272,9 @@ describe('useThemeAiModal', () => {
   const generatePaletteMock = vi.fn()
   const generatePaletteDirectionsMock = vi.fn()
   const generatePaletteRampsMock = vi.fn()
-  const generatePaletteVariantsMock = vi.fn()
   const applyGeneratedPaletteMock = vi.fn()
-  const applyGeneratedComponentsMock = vi.fn()
   const applyGeneratedRampsMock = vi.fn()
   const refreshAccessMock = vi.fn()
-  const switchToComponentsMock = vi.fn()
   const editorSidebarState = ref(false)
 
   beforeEach(() => {
@@ -331,15 +304,10 @@ describe('useThemeAiModal', () => {
       generatePalette: generatePaletteMock,
       generatePaletteDirections: generatePaletteDirectionsMock,
       generatePaletteRamps: generatePaletteRampsMock,
-      generatePaletteVariants: generatePaletteVariantsMock,
     }))
     vi.stubGlobal('usePaletteState', () => ({
       applyGeneratedPalette: applyGeneratedPaletteMock,
-      applyGeneratedComponents: applyGeneratedComponentsMock,
       applyGeneratedRamps: applyGeneratedRampsMock,
-    }))
-    vi.stubGlobal('useEditorSection', () => ({
-      switchToComponents: switchToComponentsMock,
     }))
     vi.stubGlobal('useSidebar', () => ({
       editorSidebarSw: editorSidebarState,
@@ -369,7 +337,6 @@ describe('useThemeAiModal', () => {
       },
       directions: { items: [], selectedId: null },
       ramps: { items: [], selectedId: null },
-      variants: { items: [], selectedId: null },
     }
 
     const sessions = {
@@ -486,30 +453,4 @@ describe('useThemeAiModal', () => {
     expect(modal.activeTab.value).toBe('starter')
   })
 
-  it('applies generated variants, opens the sidebar, and focuses the generated override scope', async () => {
-    const { useThemeAiModal } = await import('../../app/composables/useThemeAiModal')
-    const { useComponentEditorFocus } = await import('../../app/composables/useComponentEditorFocus')
-    const open = ref(true)
-    const modal = useThemeAiModal(open, ref(createEditablePalette()))
-    const { focusTarget } = useComponentEditorFocus()
-
-    modal.variantsResult.value = createVariantResult()
-    modal.applyVariantSuggestion()
-
-    expect(applyGeneratedComponentsMock).toHaveBeenCalledWith(modal.variantsResult.value.components)
-    expect(editorSidebarState.value).toBe(true)
-    expect(switchToComponentsMock).toHaveBeenCalledTimes(1)
-    expect(focusTarget.value).toEqual({
-      component: 'button',
-      area: 'variant',
-      variant: 'solid',
-      variantColor: 'primary',
-      requestId: 1,
-    })
-    expect(toastAddMock).toHaveBeenCalledWith(expect.objectContaining({
-      title: 'Variants updated',
-      color: 'success',
-    }))
-    expect(open.value).toBe(false)
-  })
 })

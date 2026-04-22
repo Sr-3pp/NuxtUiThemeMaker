@@ -2,7 +2,7 @@ import { createError } from 'h3'
 import { GoogleGenAI, type ContentListUnion } from '@google/genai'
 import { ZodError, type ZodSchema } from 'zod'
 
-const GEMINI_MODEL = 'gemini-3.1-pro-preview'
+const GEMINI_MODEL = 'gemini-flash-latest'
 const TRANSIENT_AI_STATUS_CODES = new Set([429, 500, 502, 503, 504])
 const TRANSIENT_AI_STATUS_TEXTS = new Set(['RESOURCE_EXHAUSTED', 'UNAVAILABLE'])
 const AI_RETRY_DELAYS_MS = [250, 750]

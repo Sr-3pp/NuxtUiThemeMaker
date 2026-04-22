@@ -42,7 +42,8 @@ describe('palette export', () => {
     
     // Should include component data
     expect(output).toContain('"button"')
-    expect(output).toContain('"bg": "var(--ui-primary)"')
+    expect(output).toContain('"compoundVariants"')
+    expect(output).toContain('"class": "bg-primary"')
     expect(output).toContain('"--ui-primary": "#11aa55"')
     
     // ui export should have proper Nuxt UI structure with nested theme
@@ -53,6 +54,13 @@ describe('palette export', () => {
     expect(uiContent.theme.light).toBeDefined()
     expect(uiContent.theme.dark).toBeDefined()
     expect(uiContent.button).toBeDefined()
+    expect(uiContent.button.compoundVariants).toEqual([
+      {
+        variant: 'solid',
+        color: 'primary',
+        class: 'bg-primary',
+      },
+    ])
   })
 
   it('references component overrides in app config export', () => {
@@ -170,6 +178,13 @@ describe('palette export', () => {
     const uiContent = JSON.parse(uiMatch![1])
     expect(uiContent.theme).toBeDefined()
     expect(uiContent.button).toBeDefined()
+    expect(uiContent.button.compoundVariants).toEqual([
+      {
+        variant: 'solid',
+        color: 'primary',
+        class: 'bg-primary',
+      },
+    ])
   })
 
   it('includes normalized ramps in the CSS export', () => {

@@ -1,5 +1,5 @@
 import type { PaletteDefinition, PaletteUiConfig } from '../types/palette'
-import { normalizeComponentThemes } from './palette-io'
+import { resolveNuxtUiComponentThemes } from './nuxt-ui-component-variants'
 
 function cloneUiConfig(ui?: PaletteUiConfig | null) {
   if (!ui) {
@@ -21,8 +21,9 @@ export function resolvePaletteRuntimeUi(palette?: PaletteDefinition | null): Pal
     return {}
   }
   
-  // Normalize component values from {class: "..."} to flat strings for Nuxt UI
-  const normalizedComponents = normalizeComponentThemes(palette.components)
+  // Normalize component values from {class: "..."} to flat strings for Nuxt UI,
+  // then adapt supported color-variant components to Nuxt UI compoundVariants.
+  const normalizedComponents = resolveNuxtUiComponentThemes(palette.components)
   
   // Merge both ui config and component overrides
   // Components should override any conflicting keys from ui

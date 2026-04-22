@@ -6,6 +6,10 @@ const props = defineProps<{
   title?: string
 }>()
 
+usePaletteRuntimeUi({
+  palette: toRef(props, 'palette'),
+})
+
 const previewFrames = computed(() => {
   return (['light', 'dark'] as const).map(mode => ({
     mode,

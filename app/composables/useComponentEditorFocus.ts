@@ -4,8 +4,6 @@ import type { ComponentEditorArea } from '~/utils/component-theme-editor'
 export interface ComponentEditorFocusTarget {
   component: string
   area: ComponentEditorArea
-  variant?: string
-  variantColor?: string
   slot?: string
   state?: string
 }
@@ -22,18 +20,6 @@ function getFocusTargetForComponent(
   component: string,
   theme?: PaletteComponentThemeSection,
 ): ComponentEditorFocusTarget {
-  const variant = getFirstKey(theme?.variants)
-  const variantColor = variant ? getFirstKey(theme?.variants?.[variant]) : undefined
-
-  if (variant && variantColor) {
-    return {
-      component,
-      area: 'variant',
-      variant,
-      variantColor,
-    }
-  }
-
   if (theme?.base) {
     return {
       component,

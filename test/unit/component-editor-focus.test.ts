@@ -14,7 +14,7 @@ describe('component editor focus', () => {
     })
   })
 
-  it('prefers the first generated variant scope when variants are present', () => {
+  it('falls back to base when a generated component only has variants', () => {
     expect(getFocusTargetForGeneratedComponents({
       button: {
         variants: {
@@ -27,9 +27,7 @@ describe('component editor focus', () => {
       },
     })).toEqual({
       component: 'button',
-      area: 'variant',
-      variant: 'solid',
-      variantColor: 'primary',
+      area: 'base',
     })
   })
 
@@ -53,16 +51,12 @@ describe('component editor focus', () => {
 
     focusComponentEditor({
       component: 'button',
-      area: 'variant',
-      variant: 'solid',
-      variantColor: 'primary',
+      area: 'base',
     })
 
     expect(focusTarget.value).toEqual({
       component: 'button',
-      area: 'variant',
-      variant: 'solid',
-      variantColor: 'primary',
+      area: 'base',
       requestId: 1,
     })
   })

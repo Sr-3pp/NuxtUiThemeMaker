@@ -11,8 +11,6 @@ import type {
   PaletteGenerationAccess,
   PaletteRampGeneratePayload,
   PaletteRampGenerateResult,
-  PaletteVariantGeneratePayload,
-  PaletteVariantGenerateResult,
 } from '~/types/palette-generation'
 import type { PaletteVersionSnapshot } from '~/types/palette-version'
 import { FREE_PLAN_PALETTE_GENERATION_LIMIT } from '../data/pricing'
@@ -194,14 +192,6 @@ export function usePaletteApi() {
     })
   }
 
-  const generatePaletteVariants = async (payload: PaletteVariantGeneratePayload) => {
-    return fetchWithGenerationAccessRefresh<PaletteVariantGenerateResult>('/api/palettes/generate/variants', {
-      method: 'POST',
-      credentials: 'include',
-      body: payload,
-    })
-  }
-
   const generatePaletteAudit = async (payload: PaletteAuditGeneratePayload) => {
     return fetchWithGenerationAccessRefresh<PaletteAuditGenerateResult>('/api/palettes/generate/audit', {
       method: 'POST',
@@ -234,7 +224,6 @@ export function usePaletteApi() {
     updatePaletteVisibility,
     generatePalette,
     generatePaletteRamps,
-    generatePaletteVariants,
     generatePaletteAudit,
     generatePaletteDirections,
   }

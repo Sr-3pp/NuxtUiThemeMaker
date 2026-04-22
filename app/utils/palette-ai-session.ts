@@ -4,7 +4,6 @@ import type {
   PaletteAiResultHistoryEntry,
   PaletteDirectionsGenerateResult,
   PaletteRampGenerateResult,
-  PaletteVariantGenerateResult,
 } from '~/types/palette-generation'
 import type { PaletteDefinition } from '~/types/palette'
 
@@ -12,15 +11,13 @@ export interface RestoredPaletteAiSession {
   starterHistory: PaletteAiResultHistoryEntry<PaletteDefinition>[]
   directionsHistory: PaletteAiResultHistoryEntry<PaletteDirectionsGenerateResult>[]
   rampsHistory: PaletteAiResultHistoryEntry<PaletteRampGenerateResult>[]
-  variantsHistory: PaletteAiResultHistoryEntry<PaletteVariantGenerateResult>[]
   starterResult: PaletteDefinition | null
   directionsResult: PaletteDirectionsGenerateResult | null
   rampsResult: PaletteRampGenerateResult | null
-  variantsResult: PaletteVariantGenerateResult | null
   historyId: number
 }
 
-const sessionTabs = ['starter', 'directions', 'ramps', 'variants'] as const
+const sessionTabs = ['starter', 'directions', 'ramps'] as const
 
 export function createEmptyPersistedHistoryState<T>(): PaletteAiPersistedHistoryState<T> {
   return {
@@ -34,7 +31,6 @@ export function createEmptyPersistedAiSession(): PaletteAiPersistedSession {
     starter: createEmptyPersistedHistoryState<PaletteDefinition>(),
     directions: createEmptyPersistedHistoryState<PaletteDirectionsGenerateResult>(),
     ramps: createEmptyPersistedHistoryState<PaletteRampGenerateResult>(),
-    variants: createEmptyPersistedHistoryState<PaletteVariantGenerateResult>(),
   }
 }
 
@@ -72,11 +68,9 @@ export function restorePaletteAiSession(session?: PaletteAiPersistedSession): Re
     starterHistory: resolvedSession.starter.items,
     directionsHistory: resolvedSession.directions.items,
     rampsHistory: resolvedSession.ramps.items,
-    variantsHistory: resolvedSession.variants.items,
     starterResult: getSelectedResult(resolvedSession.starter),
     directionsResult: getSelectedResult(resolvedSession.directions),
     rampsResult: getSelectedResult(resolvedSession.ramps),
-    variantsResult: getSelectedResult(resolvedSession.variants),
     historyId: Math.max(0, ...getSessionHistoryIds(resolvedSession)),
   }
 }
@@ -88,13 +82,10 @@ export function buildPaletteAiPersistedSession(payload: {
   directionsResult: PaletteDirectionsGenerateResult | null
   rampsHistory: PaletteAiResultHistoryEntry<PaletteRampGenerateResult>[]
   rampsResult: PaletteRampGenerateResult | null
-  variantsHistory: PaletteAiResultHistoryEntry<PaletteVariantGenerateResult>[]
-  variantsResult: PaletteVariantGenerateResult | null
 }): PaletteAiPersistedSession {
   return {
     starter: toPersistedHistoryState(payload.starterHistory, payload.starterResult),
     directions: toPersistedHistoryState(payload.directionsHistory, payload.directionsResult),
     ramps: toPersistedHistoryState(payload.rampsHistory, payload.rampsResult),
-    variants: toPersistedHistoryState(payload.variantsHistory, payload.variantsResult),
   }
 }

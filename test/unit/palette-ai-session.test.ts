@@ -3,7 +3,6 @@ import type {
   PaletteAiPersistedSession,
   PaletteDirectionsGenerateResult,
   PaletteRampGenerateResult,
-  PaletteVariantGenerateResult,
 } from '../../app/types/palette-generation'
 import type { PaletteDefinition } from '../../app/types/palette'
 import {
@@ -93,19 +92,6 @@ function createRampResult(name: string): PaletteRampGenerateResult {
   }
 }
 
-function createVariantResult(summary: string): PaletteVariantGenerateResult {
-  return {
-    summary,
-    components: {
-      button: {
-        base: {
-          bg: 'var(--ui-primary)',
-        },
-      },
-    },
-  }
-}
-
 describe('palette AI session helpers', () => {
   it('creates and restores an empty session', () => {
     const session = createEmptyPersistedAiSession()
@@ -121,7 +107,6 @@ describe('palette AI session helpers', () => {
     const starterB = createPalette('Starter B')
     const directionsA = createDirectionsResult('Direction A')
     const rampsA = createRampResult('Ramp A')
-    const variantsA = createVariantResult('Variants A')
     const session: PaletteAiPersistedSession = {
       starter: {
         items: [
@@ -138,10 +123,6 @@ describe('palette AI session helpers', () => {
         items: [{ id: 2, label: '1 ramp', createdAt: '2026-04-08T09:59:00.000Z', result: rampsA }],
         selectedId: 2,
       },
-      variants: {
-        items: [{ id: 5, label: 'Variants A', createdAt: '2026-04-08T10:03:00.000Z', result: variantsA }],
-        selectedId: 5,
-      },
     }
 
     const restored = restorePaletteAiSession(session)
@@ -150,7 +131,6 @@ describe('palette AI session helpers', () => {
     expect(restored.starterResult).toBe(starterB)
     expect(restored.directionsResult).toBe(directionsA)
     expect(restored.rampsResult).toBe(rampsA)
-    expect(restored.variantsResult).toBe(variantsA)
     expect(restored.historyId).toBe(8)
   })
 
@@ -159,7 +139,6 @@ describe('palette AI session helpers', () => {
     const starterB = createPalette('Starter B')
     const directionsA = createDirectionsResult('Direction A')
     const rampsA = createRampResult('Ramp A')
-    const variantsA = createVariantResult('Variants A')
 
     const session = buildPaletteAiPersistedSession({
       starterHistory: [
@@ -171,14 +150,11 @@ describe('palette AI session helpers', () => {
       directionsResult: directionsA,
       rampsHistory: [{ id: 6, label: '1 ramp', createdAt: '2026-04-08T10:05:00.000Z', result: rampsA }],
       rampsResult: rampsA,
-      variantsHistory: [{ id: 7, label: 'Variants A', createdAt: '2026-04-08T10:06:00.000Z', result: variantsA }],
-      variantsResult: variantsA,
     })
 
     expect(session.starter.selectedId).toBe(1)
     expect(session.directions.selectedId).toBe(5)
     expect(session.ramps.selectedId).toBe(6)
-    expect(session.variants.selectedId).toBe(7)
   })
 
   it('preserves metadata when rebuilding a persisted session with repeated labels', () => {
@@ -195,8 +171,6 @@ describe('palette AI session helpers', () => {
       directionsResult: null,
       rampsHistory: [],
       rampsResult: null,
-      variantsHistory: [],
-      variantsResult: null,
     })
 
     expect(session.starter.items).toHaveLength(2)

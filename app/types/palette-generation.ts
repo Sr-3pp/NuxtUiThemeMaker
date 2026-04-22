@@ -44,17 +44,6 @@ export interface PaletteRampGenerateResult {
   ramps: PaletteColorScales
 }
 
-export interface PaletteVariantGeneratePayload {
-  prompt: string
-  palette?: PaletteDefinition
-  componentKeys?: string[]
-}
-
-export interface PaletteVariantGenerateResult {
-  summary: string
-  components: PaletteComponentThemes
-}
-
 export interface PaletteAuditGeneratePayload {
   palette: PaletteDefinition
 }
@@ -106,5 +95,4 @@ export interface PaletteAiPersistedSession {
   starter: PaletteAiPersistedHistoryState<PaletteDefinition>
   directions: PaletteAiPersistedHistoryState<PaletteDirectionsGenerateResult>
   ramps: PaletteAiPersistedHistoryState<PaletteRampGenerateResult>
-  variants: PaletteAiPersistedHistoryState<PaletteVariantGenerateResult>
 }

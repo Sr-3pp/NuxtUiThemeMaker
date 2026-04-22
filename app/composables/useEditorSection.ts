@@ -1,16 +1,12 @@
 /**
  * Composable for managing the active editor section (tab) in the right sidebar.
- * Allows programmatic navigation between Colors, Semantic, Components, and States tabs.
+ * Allows programmatic navigation between Colors, Semantic, and States tabs.
  */
 export function useEditorSection() {
-  const activeSection = useState<'colors' | 'semantic' | 'components' | 'states'>('editor-active-section', () => 'colors')
+  const activeSection = useState<'colors' | 'semantic' | 'states'>('editor-active-section', () => 'colors')
 
-  function switchToSection(section: 'colors' | 'semantic' | 'components' | 'states') {
+  function switchToSection(section: 'colors' | 'semantic' | 'states') {
     activeSection.value = section
-  }
-
-  function switchToComponents() {
-    activeSection.value = 'components'
   }
 
   function switchToColors() {
@@ -28,7 +24,6 @@ export function useEditorSection() {
   return {
     activeSection,
     switchToSection,
-    switchToComponents,
     switchToColors,
     switchToSemantic,
     switchToStates,

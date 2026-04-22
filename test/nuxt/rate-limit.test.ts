@@ -60,7 +60,7 @@ describe('rate limit utilities', () => {
   })
 
   it('uses the AI route rule for palette AI endpoints', () => {
-    const event = createApiEvent('/api/palettes/generate/variants', 'POST')
+    const event = createApiEvent('/api/palettes/generate/directions', 'POST')
 
     expect(resolveRateLimitRule(event)).toMatchObject(AI_RATE_LIMIT_RULE)
   })

@@ -51,17 +51,6 @@ export const paletteRampGenerateResponseSchema = z.object({
   ramps: z.record(z.string().trim().min(1), paletteScaleSchema),
 })
 
-export const paletteVariantGenerateRequestSchema = z.object({
-  prompt: z.string().trim().min(1, 'Prompt is required.').max(AI_PROMPT_MAX_LENGTH),
-  palette: paletteDefinitionSchema.optional(),
-  componentKeys: z.array(z.string().trim().min(1)).min(1).max(8).optional(),
-})
-
-export const paletteVariantGenerateResponseSchema = z.object({
-  summary: z.string().trim().min(1),
-  components: paletteDefinitionSchema.shape.components.unwrap(),
-})
-
 export const paletteAuditGenerateRequestSchema = z.object({
   palette: paletteDefinitionSchema,
 })

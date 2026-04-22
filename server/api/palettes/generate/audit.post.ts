@@ -24,6 +24,43 @@ const instructions = [
 ].join(' ')
 
 type PaletteDefinition = z.infer<typeof paletteAuditGenerateRequestSchema.shape.palette>
+type AuditFix = z.infer<typeof paletteAuditGenerateResponseSchema.shape.fixes.element>
+
+function normalizeAuditFix(rawFix: unknown): AuditFix | null {
+  if (rawFix && typeof rawFix === 'object') {
+    return rawFix as AuditFix
+  }
+
+  if (typeof rawFix !== 'string') {
+    return null
+  }
+
+  const trimmed = rawFix.trim()
+
+  if (!trimmed) {
+    return null
+  }
+
+  const match = trimmed.match(/^(light|dark|shared)\s+([^:]+):\s*(.+)$/i)
+
+  if (!match) {
+    return {
+      token: 'unknown',
+      mode: 'shared',
+      suggestedValue: trimmed,
+      reason: trimmed,
+    }
+  }
+
+  const [, mode, token, reason] = match
+
+  return {
+    token: token.trim(),
+    mode: mode.toLowerCase() as AuditFix['mode'],
+    suggestedValue: reason.trim(),
+    reason: reason.trim(),
+  }
+}
 
 function ensureValidAuditResult(rawResult: unknown, fallbackPalette: PaletteDefinition) {
   if (!rawResult || typeof rawResult !== 'object') {
@@ -44,7 +81,11 @@ function ensureValidAuditResult(rawResult: unknown, fallbackPalette: PaletteDefi
     summary: typeof candidate.summary === 'string' && candidate.summary.trim()
       ? candidate.summary.trim()
       : 'Applied audit-driven theme repair suggestions.',
-    fixes: Array.isArray(candidate.fixes) ? candidate.fixes : [],
+    fixes: Array.isArray(candidate.fixes)
+      ? candidate.fixes
+          .map(normalizeAuditFix)
+          .filter((fix): fix is AuditFix => Boolean(fix))
+      : [],
     patchedPalette: candidate.patchedPalette ?? fallbackPalette,
   }
 }
@@ -64,9 +105,10 @@ export default defineEventHandler(async (event) => {
 
   const rawResult = await generateStructuredPaletteAiResult({
     prompt,
-    schema: paletteAuditGenerateResponseSchema.partial({
-      fixes: true,
-      patchedPalette: true,
+    schema: z.object({
+      summary: z.string().trim().min(1).optional(),
+      fixes: z.array(z.union([paletteAuditGenerateResponseSchema.shape.fixes.element, z.string().trim().min(1)])).optional(),
+      patchedPalette: paletteAuditGenerateRequestSchema.shape.palette.optional(),
     }),
     responseSchema: paletteAuditResponseSchema,
   })
