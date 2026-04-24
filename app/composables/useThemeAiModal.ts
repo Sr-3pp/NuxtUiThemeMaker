@@ -1,4 +1,4 @@
-import type { Ref } from 'vue'
+import { reactive, type Ref } from 'vue'
 import type { EditablePalette } from '~/types/palette-editor'
 import type { PaletteDefinition } from '~/types/palette'
 import type {
@@ -7,14 +7,12 @@ import type {
   PaletteDirectionsGenerateResult,
   PaletteRampGenerateResult,
   PaletteReferenceImageAsset,
-  PaletteVariantGenerateResult,
 } from '~/types/palette-generation'
 import {
   clonePaletteDefinition,
-  createPaletteWithGeneratedComponents,
   createPaletteWithGeneratedRamps,
 } from '~/utils/palette-domain'
-import { getComponentThemeEditorDefinitions } from '~/utils/component-theme-editor'
+import { attachPaletteRuntimeUi } from '../utils/palette-runtime-ui'
 import {
   getSelectedThemeAiHistoryId,
   pushThemeAiResultHistory,
@@ -30,40 +28,16 @@ import {
   watchThemeAiModalSessionPersistence,
 } from '~/utils/theme-ai-modal-session'
 import { runThemeAiModalAction } from '~/utils/theme-ai-modal-actions'
-
-const themeAiMessages = {
-  starter: {
-    generateError: 'Failed to generate the starter theme.',
-    applyDescription: 'Applied the generated starter theme to the current draft.',
-  },
-  directions: {
-    generateError: 'Failed to generate theme directions.',
-    applyDescription: (name: string) => `Applied the ${name} direction to the current draft.`,
-  },
-  ramps: {
-    generateError: 'Failed to generate color ramps.',
-    applyTitle: 'Ramps updated',
-    applyDescription: (paletteName: string) => `Applied the generated ramps to ${paletteName}.`,
-  },
-  variants: {
-    defaultPrompt: 'Generate practical component variants for this palette.',
-    generateError: 'Failed to generate component variants.',
-    applyTitle: 'Variants updated',
-    applyDescription: 'Applied the generated component variants to the current draft.',
-  },
-  palette: {
-    applyTitle: 'Palette updated',
-  },
-} as const
+import { themeAiMessages, type ThemeAiTab } from '../utils/theme-ai-modal-config'
 
 export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette | null>) {
   const toast = useToast()
   const { showErrorToast } = useErrorToast()
-  const { generatePalette, generatePaletteDirections, generatePaletteRamps, generatePaletteVariants } = usePaletteApi()
-  const { applyGeneratedPalette, applyGeneratedComponents, applyGeneratedRamps } = usePaletteState()
+  const { generatePalette, generatePaletteDirections, generatePaletteRamps } = usePaletteApi()
+  const { applyGeneratedPalette, applyGeneratedRamps } = usePaletteState()
   const access = usePaletteGenerationAccess()
 
-  const activeTab = ref<'starter' | 'directions' | 'ramps' | 'variants'>('starter')
+  const activeTab = ref<ThemeAiTab>('starter')
   const starterPrompt = ref('')
   const starterReferenceSummary = ref('')
   const starterBrandColors = ref<string[]>([])
@@ -71,23 +45,18 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   const starterReferenceImage = ref<PaletteReferenceImageAsset | null>(null)
   const directionsPrompt = ref('')
   const rampsPrompt = ref('')
-  const variantsPrompt = ref('')
   const directionsCount = ref<1 | 2 | 3>(3)
   const rampBrandColors = ref<string[]>([])
   const rampInput = ref('')
-  const selectedVariantComponents = ref<string[]>(['button', 'input', 'card'])
   const isDirectionsLoading = ref(false)
   const isRampsLoading = ref(false)
-  const isVariantsLoading = ref(false)
   const isStarterLoading = ref(false)
   const starterResult = ref<PaletteDefinition | null>(null)
   const directionsResult = ref<PaletteDirectionsGenerateResult | null>(null)
   const rampsResult = ref<PaletteRampGenerateResult | null>(null)
-  const variantsResult = ref<PaletteVariantGenerateResult | null>(null)
   const starterHistory = ref<PaletteAiResultHistoryEntry<PaletteDefinition>[]>([])
   const directionsHistory = ref<PaletteAiResultHistoryEntry<PaletteDirectionsGenerateResult>[]>([])
   const rampsHistory = ref<PaletteAiResultHistoryEntry<PaletteRampGenerateResult>[]>([])
-  const variantsHistory = ref<PaletteAiResultHistoryEntry<PaletteVariantGenerateResult>[]>([])
   const historyId = ref(0)
   const persistedSessions = useState<Record<string, PaletteAiPersistedSession>>('theme-ai-modal-sessions', () => ({}))
 
@@ -101,12 +70,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
   })
   const canGenerateStarter = computed(() => Boolean(starterPrompt.value.trim()) && !access.isDisabled.value)
   const canGenerateRamps = computed(() => rampBrandColors.value.length > 0 && !access.isDisabled.value)
-  const canGenerateVariants = computed(() => hasPalette.value && selectedVariantComponents.value.length > 0 && !access.isDisabled.value)
   const canGenerateFromPalette = computed(() => hasPalette.value && !access.isDisabled.value)
-  const componentOptions = computed(() => getComponentThemeEditorDefinitions(palette.value?.components).map(definition => ({
-    label: definition.label,
-    value: definition.value,
-  })))
   const rampPreviewPalette = computed(() => {
     if (!palette.value || !rampsResult.value) {
       return null
@@ -114,23 +78,14 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
 
     return createPaletteWithGeneratedRamps(clonePaletteDefinition(palette.value), rampsResult.value.ramps)
   })
-  const variantPreviewPalette = computed(() => {
-    if (!palette.value || !variantsResult.value) {
-      return null
-    }
-
-    return createPaletteWithGeneratedComponents(clonePaletteDefinition(palette.value), variantsResult.value.components)
-  })
 
   const sessionState = {
     starterHistory,
     directionsHistory,
     rampsHistory,
-    variantsHistory,
     starterResult,
     directionsResult,
     rampsResult,
-    variantsResult,
     historyId,
   }
 
@@ -181,10 +136,6 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     clearResult(rampsResult, rampsHistory)
   }
 
-  function clearVariantsResult() {
-    clearResult(variantsResult, variantsHistory)
-  }
-
   function addStarterBrandColor() {
     addBrandColor(starterBrandColors, starterBrandInput, 'starter theme generation')
   }
@@ -217,8 +168,9 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
               }
             : undefined,
         })
-        starterResult.value = result
-        pushThemeAiResultHistory(starterHistory, historyId, result, result.name, summarizeThemeAiPrompt(starterPrompt.value, 'Starter theme'))
+        const starterPalette = attachPaletteRuntimeUi(result.palette, result.ui)
+        starterResult.value = starterPalette
+        pushThemeAiResultHistory(starterHistory, historyId, starterPalette, starterPalette.name, summarizeThemeAiPrompt(starterPrompt.value, 'Starter theme'))
       },
       handleError: async (error) => {
         showErrorToast(error, themeAiMessages.starter.generateError)
@@ -293,38 +245,6 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     })
   }
 
-  async function handleVariants() {
-    await runThemeAiModalAction({
-      loading: isVariantsLoading,
-      canRun: canGenerateVariants.value,
-      execute: async () => {
-        const currentPalette = getCurrentPaletteClone()
-
-        if (!currentPalette) {
-          return
-        }
-
-        const result = await generatePaletteVariants({
-          prompt: variantsPrompt.value.trim() || themeAiMessages.variants.defaultPrompt,
-          palette: currentPalette,
-          componentKeys: selectedVariantComponents.value,
-        })
-        variantsResult.value = result
-        pushThemeAiResultHistory(
-          variantsHistory,
-          historyId,
-          result,
-          result.summary,
-          selectedVariantComponents.value.slice(0, 3).join(', '),
-        )
-      },
-      handleError: async (error) => {
-        showErrorToast(error, themeAiMessages.variants.generateError)
-        await access.refresh()
-      },
-    })
-  }
-
   function applyPaletteSuggestion(targetPalette: PaletteDefinition, message: string) {
     applyGeneratedPalette(targetPalette)
     closeWithSuccessToast(themeAiMessages.palette.applyTitle, message)
@@ -347,19 +267,59 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     closeWithSuccessToast(themeAiMessages.ramps.applyTitle, themeAiMessages.ramps.applyDescription(rampsResult.value.paletteName))
   }
 
-  function applyVariantSuggestion() {
-    if (!variantsResult.value) {
-      return
-    }
+  const starter = reactive({
+    prompt: starterPrompt,
+    referenceSummary: starterReferenceSummary,
+    brandColors: starterBrandColors,
+    brandInput: starterBrandInput,
+    referenceImage: starterReferenceImage,
+    isLoading: isStarterLoading,
+    result: starterResult,
+    history: starterHistory,
+    canGenerate: canGenerateStarter,
+    addBrandColor: addStarterBrandColor,
+    removeBrandColor: removeStarterBrandColor,
+    clearReferenceImage: clearStarterReferenceImage,
+    uploadImage: handleStarterImageUpload,
+    clearResult: clearStarterResult,
+    generate: handleStarterTheme,
+    apply: applyStarterSuggestion,
+  })
 
-    applyGeneratedComponents(variantsResult.value.components)
-    closeWithSuccessToast(themeAiMessages.variants.applyTitle, themeAiMessages.variants.applyDescription)
-  }
+  const directions = reactive({
+    prompt: directionsPrompt,
+    count: directionsCount,
+    isLoading: isDirectionsLoading,
+    result: directionsResult,
+    history: directionsHistory,
+    clearResult: clearDirectionsResult,
+    generate: handleDirections,
+    apply: applyDirectionSuggestion,
+  })
+
+  const ramps = reactive({
+    prompt: rampsPrompt,
+    brandColors: rampBrandColors,
+    brandInput: rampInput,
+    isLoading: isRampsLoading,
+    result: rampsResult,
+    history: rampsHistory,
+    canGenerate: canGenerateRamps,
+    previewPalette: rampPreviewPalette,
+    addBrandColor: addRampBrandColor,
+    removeBrandColor: removeRampBrandColor,
+    clearResult: clearRampsResult,
+    generate: handleRamps,
+    apply: applyRampSuggestion,
+  })
 
   return {
     ...access,
     activeTab,
     hasPalette,
+    starter,
+    directions,
+    ramps,
     starterPrompt,
     starterReferenceSummary,
     starterBrandColors,
@@ -367,33 +327,24 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     starterReferenceImage,
     directionsPrompt,
     rampsPrompt,
-    variantsPrompt,
     directionsCount,
     rampBrandColors,
     rampInput,
-    selectedVariantComponents,
     isDirectionsLoading,
     isRampsLoading,
-    isVariantsLoading,
     isStarterLoading,
     starterResult,
     directionsResult,
     rampsResult,
-    variantsResult,
     starterHistory,
     directionsHistory,
     rampsHistory,
-    variantsHistory,
     canGenerateStarter,
     canGenerateRamps,
-    canGenerateVariants,
-    componentOptions,
     rampPreviewPalette,
-    variantPreviewPalette,
     clearStarterResult,
     clearDirectionsResult,
     clearRampsResult,
-    clearVariantsResult,
     addStarterBrandColor,
     removeStarterBrandColor,
     clearStarterReferenceImage,
@@ -403,12 +354,10 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     addRampBrandColor,
     removeRampBrandColor,
     handleRamps,
-    handleVariants,
     applyPaletteSuggestion,
     applyStarterSuggestion,
     applyDirectionSuggestion,
     applyRampSuggestion,
-    applyVariantSuggestion,
     getSelectedHistoryId: getSelectedThemeAiHistoryId,
     selectHistoryResult: selectThemeAiHistoryResult,
   }

@@ -35,10 +35,32 @@ describe('palette export', () => {
       },
     })
 
+    // Should include all export constants
+    expect(output).toContain('export const theme =')
     expect(output).toContain('export const components =')
+    expect(output).toContain('export const ui =')
+    
+    // Should include component data
     expect(output).toContain('"button"')
-    expect(output).toContain('"bg": "var(--ui-primary)"')
-    expect(output).toContain('"--ui-color-primary-500": "#11aa55"')
+    expect(output).toContain('"compoundVariants"')
+    expect(output).toContain('"class": "bg-primary"')
+    expect(output).toContain('"--ui-primary": "#11aa55"')
+    
+    // ui export should have proper Nuxt UI structure with nested theme
+    const uiMatch = output.match(/export const ui = \n([\s\S]+)$/)
+    expect(uiMatch).toBeTruthy()
+    const uiContent = JSON.parse(uiMatch![1])
+    expect(uiContent.theme).toBeDefined()
+    expect(uiContent.theme.light).toBeDefined()
+    expect(uiContent.theme.dark).toBeDefined()
+    expect(uiContent.button).toBeDefined()
+    expect(uiContent.button.compoundVariants).toEqual([
+      {
+        variant: 'solid',
+        color: 'primary',
+        class: 'bg-primary',
+      },
+    ])
   })
 
   it('references component overrides in app config export', () => {
@@ -57,8 +79,8 @@ describe('palette export', () => {
       components: {},
     })
 
-    expect(output).toContain("import { components, theme } from './theme'")
-    expect(output).toContain('...components')
+    expect(output).toContain("import { ui } from './theme'")
+    expect(output).toContain('  ui,')
   })
 
   it('exports component overrides as a standalone components file', () => {
@@ -83,9 +105,14 @@ describe('palette export', () => {
       },
     })
 
+    // Only exports components, not theme or full ui config
     expect(output).toContain('export const components =')
     expect(output).toContain('"input"')
     expect(output).toContain('"border": "var(--ui-border)"')
+    
+    // Should NOT include generatedUi or ui (components export is standalone)
+    expect(output).not.toContain('export const ui =')
+    expect(output).not.toContain('export const theme =')
   })
 
   it('exports an install-ready snippet', () => {
@@ -105,8 +132,8 @@ describe('palette export', () => {
     })
 
     expect(output).toContain('defineAppConfig')
-    expect(output).toContain('theme,')
-    expect(output).toContain('...components')
+    expect(output).toContain("import { ui } from './theme'")
+    expect(output).toContain('  ui,')
   })
 
   it('exports a self-contained Nuxt bundle', () => {
@@ -135,11 +162,29 @@ describe('palette export', () => {
       },
     })
 
+    // Should include all exports
     expect(output).toContain('export const theme = {')
+    expect(output).toContain('export const ui =')
     expect(output).toContain('export const components =')
+    
+    // Should include defineAppConfig wrapper
     expect(output).toContain('export default defineAppConfig({')
-    expect(output).toContain('...components')
+    expect(output).toContain('  ui,')
     expect(output).toContain('"--ui-color-primary-500": "#11aa55"')
+    
+    // Verify ui structure includes theme and components
+    const uiMatch = output.match(/export const ui = \n([\s\S]+?)\n\nexport default/)
+    expect(uiMatch).toBeTruthy()
+    const uiContent = JSON.parse(uiMatch![1])
+    expect(uiContent.theme).toBeDefined()
+    expect(uiContent.button).toBeDefined()
+    expect(uiContent.button.compoundVariants).toEqual([
+      {
+        variant: 'solid',
+        color: 'primary',
+        class: 'bg-primary',
+      },
+    ])
   })
 
   it('includes normalized ramps in the CSS export', () => {

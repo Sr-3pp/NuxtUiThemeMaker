@@ -1,4 +1,4 @@
-import { createError, defineEventHandler } from 'h3'
+
 import { deleteAdminManagedUser } from '~~/server/services/admin-users'
 import { requireAuthSession } from '~~/server/utils/auth-session'
 

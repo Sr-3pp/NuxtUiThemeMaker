@@ -1,6 +1,15 @@
-import type { PaletteDefinition, PaletteModeKey } from '~/types/palette'
+import type { PaletteDefinition, PaletteModeKey, PaletteTokenGroup } from '~/types/palette'
 import type { ThemeQaIssue, ThemeQaReadinessItem, ThemeQaReport, ThemeQaSeverity, ThemeQaStatus } from '~/types/theme-qa'
 import { parseHexColor, type HexRgbColor } from './color-hex'
+
+/**
+ * Normalize component theme value to object form
+ */
+function normalizeToTokenGroup(value: string | PaletteTokenGroup | undefined): PaletteTokenGroup {
+  if (!value) return {}
+  if (typeof value === 'string') return { class: value }
+  return value
+}
 
 interface ContrastPairDefinition {
   id: string
@@ -298,9 +307,9 @@ export function auditPaletteTheme(palette: PaletteDefinition | null | undefined)
     }
   })
 
-  const buttonPrimary = palette.components?.button?.variants?.solid?.primary
+  const buttonPrimary = normalizeToTokenGroup(palette.components?.button?.variants?.solid?.primary)
 
-  if (buttonPrimary && (!buttonPrimary.bg || !buttonPrimary.text)) {
+  if (Object.keys(buttonPrimary).length > 0 && (!buttonPrimary.bg || !buttonPrimary.text)) {
     issues.push({
       id: 'button-solid-primary-incomplete',
       category: 'component',
@@ -312,9 +321,9 @@ export function auditPaletteTheme(palette: PaletteDefinition | null | undefined)
     })
   }
 
-  const inputBase = palette.components?.input?.base
+  const inputBase = normalizeToTokenGroup(palette.components?.input?.base)
 
-  if (inputBase && (!inputBase.bg || !inputBase.text || !inputBase.border)) {
+  if (Object.keys(inputBase).length > 0 && (!inputBase.bg || !inputBase.text || !inputBase.border)) {
     issues.push({
       id: 'input-base-incomplete',
       category: 'component',

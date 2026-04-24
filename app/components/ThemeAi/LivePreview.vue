@@ -6,6 +6,10 @@ const props = defineProps<{
   title?: string
 }>()
 
+usePaletteRuntimeUi({
+  palette: toRef(props, 'palette'),
+})
+
 const previewFrames = computed(() => {
   return (['light', 'dark'] as const).map(mode => ({
     mode,
@@ -16,7 +20,7 @@ const previewFrames = computed(() => {
 </script>
 
 <template>
-  <UCard variant="outline" class="rounded-2xl shadow-none">
+  <UCard variant="outline">
     <template #header>
       <div class="space-y-1">
         <p class="text-sm font-medium text-highlighted">
@@ -42,7 +46,7 @@ const previewFrames = computed(() => {
             </UBadge>
           </div>
 
-          <div :style="frame.theme" class="max-h-[520px] overflow-auto rounded-2xl border border-default/60 bg-default p-3">
+          <div :style="frame.theme" class="max-h-[520px] overflow-auto rounded -lg border border-default/60 bg-default p-3">
             <PreviewBrowserTab :disable-interactive="true" :palette="props.palette" />
           </div>
         </div>

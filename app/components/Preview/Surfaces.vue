@@ -40,7 +40,7 @@ const surfaceCards = [
         <div
           v-for="surface in surfaceCards"
           :key="surface.title"
-          :class="['rounded-2xl border p-4', surface.classes]"
+          :class="['rounded -lg border p-4', surface.classes]"
         >
           <p class="text-sm font-semibold">{{ surface.title }}</p>
           <p class="mt-2 text-sm opacity-85">

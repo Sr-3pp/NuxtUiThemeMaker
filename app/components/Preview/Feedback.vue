@@ -81,7 +81,7 @@ const alerts = [
 
         <PreviewCard title="Skeletons" variant="soft">
           <div class="space-y-4">
-            <div class="space-y-3 rounded-2xl border border-default bg-default p-4">
+            <div class="space-y-3 rounded -lg border border-default bg-default p-4">
               <USkeleton class="h-4 w-24" />
               <USkeleton class="h-9 w-full rounded-lg" />
               <USkeleton class="h-24 w-full rounded-xl" />

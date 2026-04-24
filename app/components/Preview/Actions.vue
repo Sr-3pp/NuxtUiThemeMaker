@@ -80,7 +80,7 @@ function buttonStyle(variant: ButtonVariant, color: ButtonColor) {
             <UButton color="success" variant="solid" icon="i-lucide-check" square aria-label="Approve" :style="buttonStyle('solid', 'success')" />
           </div>
 
-          <div class="rounded-2xl border border-default bg-muted/60 p-3">
+          <div class="rounded-lg border border-default bg-muted/60 p-3">
             <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted">
               Badge sweep
             </p>

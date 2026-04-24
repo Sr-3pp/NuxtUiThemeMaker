@@ -2,10 +2,11 @@
 import { toRef } from 'vue'
 import type { EditablePalette } from '~/types/palette-editor'
 import { useThemeAiModal } from '~/composables/useThemeAiModal'
+import { type ThemeAiTab } from '../../utils/theme-ai-modal-config'
 
 const props = defineProps<{
   palette: EditablePalette | null
-  initialTab?: 'starter' | 'directions' | 'ramps' | 'variants'
+  initialTab?: ThemeAiTab
 }>()
 
 const { isOpen: open } = useModal('theme-ai-modal')
@@ -16,54 +17,9 @@ const {
   helperText,
   isDisabled,
   hasPalette,
-  starterPrompt,
-  starterReferenceSummary,
-  starterBrandColors,
-  starterBrandInput,
-  starterReferenceImage,
-  directionsPrompt,
-  rampsPrompt,
-  variantsPrompt,
-  directionsCount,
-  rampBrandColors,
-  rampInput,
-  selectedVariantComponents,
-  isDirectionsLoading,
-  isRampsLoading,
-  isVariantsLoading,
-  isStarterLoading,
-  starterResult,
-  directionsResult,
-  rampsResult,
-  variantsResult,
-  starterHistory,
-  directionsHistory,
-  rampsHistory,
-  variantsHistory,
-  canGenerateStarter,
-  canGenerateRamps,
-  canGenerateVariants,
-  componentOptions,
-  rampPreviewPalette,
-  variantPreviewPalette,
-  clearStarterResult,
-  clearDirectionsResult,
-  clearRampsResult,
-  clearVariantsResult,
-  addStarterBrandColor,
-  removeStarterBrandColor,
-  clearStarterReferenceImage,
-  handleStarterImageUpload,
-  handleStarterTheme,
-  handleDirections,
-  addRampBrandColor,
-  removeRampBrandColor,
-  handleRamps,
-  handleVariants,
-  applyStarterSuggestion,
-  applyDirectionSuggestion,
-  applyRampSuggestion,
-  applyVariantSuggestion,
+  starter,
+  directions,
+  ramps,
   selectHistoryResult,
 } = useThemeAiModal(open, toRef(props, 'palette'))
 
@@ -80,7 +36,7 @@ watch(open, (value) => {
   <UModal
     v-model:open="open"
     title="AI Theme Assist"
-    description="Generate starter themes, color ramps, variants, and alternative directions from the current palette."
+    description="Generate starter themes, color ramps, and alternative directions from the current palette."
     :ui="{ content: 'sm:max-w-5xl' }"
   >
     <template #body>
@@ -117,102 +73,80 @@ watch(open, (value) => {
 
         <UTabs
           v-model="activeTab"
+          class="space-y-4"
           :items="[
             { label: 'Starter', value: 'starter', slot: 'starter' },
             { label: 'Ramps', value: 'ramps', slot: 'ramps' },
-            { label: 'Variants', value: 'variants', slot: 'variants' },
             { label: 'Directions', value: 'directions', slot: 'directions' },
           ]"
           color="neutral"
           variant="link"
-          :ui="{ root: 'space-y-4', list: 'w-full border-b border-default/60' }"
         >
           <template #starter>
             <ThemeAiStarterTab
               :palette="props.palette"
-              :prompt="starterPrompt"
-              :reference-summary="starterReferenceSummary"
-              :brand-colors="starterBrandColors"
-              :brand-input="starterBrandInput"
-              :reference-image="starterReferenceImage"
-              :can-generate="canGenerateStarter"
-              :is-loading="isStarterLoading"
-              :result="starterResult"
-              :history="starterHistory"
-              @update:prompt="starterPrompt = $event"
-              @update:reference-summary="starterReferenceSummary = $event"
-              @update:brand-input="starterBrandInput = $event"
-              @add-brand-color="addStarterBrandColor()"
-              @remove-brand-color="removeStarterBrandColor($event)"
-              @upload-image="handleStarterImageUpload($event)"
-              @clear-image="clearStarterReferenceImage()"
-              @clear-form="starterPrompt = ''; starterReferenceSummary = ''; starterBrandColors = []; starterBrandInput = ''; clearStarterReferenceImage(); clearStarterResult()"
-              @generate="handleStarterTheme()"
-              @clear-result="clearStarterResult()"
-              @select-history="starterResult = selectHistoryResult(starterHistory, $event)"
-              @apply-result="applyStarterSuggestion($event)"
+              :prompt="starter.prompt"
+              :reference-summary="starter.referenceSummary"
+              :brand-colors="starter.brandColors"
+              :brand-input="starter.brandInput"
+              :reference-image="starter.referenceImage"
+              :can-generate="starter.canGenerate"
+              :is-loading="starter.isLoading"
+              :result="starter.result"
+              :history="starter.history"
+              @update:prompt="starter.prompt = $event"
+              @update:reference-summary="starter.referenceSummary = $event"
+              @update:brand-input="starter.brandInput = $event"
+              @add-brand-color="starter.addBrandColor()"
+              @remove-brand-color="starter.removeBrandColor($event)"
+              @upload-image="starter.uploadImage($event)"
+              @clear-image="starter.clearReferenceImage()"
+              @clear-form="starter.prompt = ''; starter.referenceSummary = ''; starter.brandColors = []; starter.brandInput = ''; starter.clearReferenceImage(); starter.clearResult()"
+              @generate="starter.generate()"
+              @clear-result="starter.clearResult()"
+              @select-history="starter.result = selectHistoryResult(starter.history, $event)"
+              @apply-result="starter.apply($event)"
             />
           </template>
 
           <template #ramps>
             <ThemeAiRampsTab
               :palette="props.palette"
-              :prompt="rampsPrompt"
-              :brand-colors="rampBrandColors"
-              :brand-input="rampInput"
-              :can-generate="canGenerateRamps"
-              :is-loading="isRampsLoading"
-              :result="rampsResult"
-              :history="rampsHistory"
-              :preview-palette="rampPreviewPalette"
-              @update:prompt="rampsPrompt = $event"
-              @update:brand-input="rampInput = $event"
-              @add-brand-color="addRampBrandColor()"
-              @remove-brand-color="removeRampBrandColor($event)"
-              @clear="rampBrandColors = []; rampInput = ''; rampsPrompt = ''; clearRampsResult()"
-              @generate="handleRamps()"
-              @clear-result="clearRampsResult()"
-              @select-history="rampsResult = selectHistoryResult(rampsHistory, $event)"
-              @apply="applyRampSuggestion()"
-            />
-          </template>
-
-          <template #variants>
-            <ThemeAiVariantsTab
-              :palette="props.palette"
-              :prompt="variantsPrompt"
-              :selected-components="selectedVariantComponents"
-              :component-options="componentOptions"
-              :can-generate="canGenerateVariants"
-              :is-loading="isVariantsLoading"
-              :result="variantsResult"
-              :history="variantsHistory"
-              :preview-palette="variantPreviewPalette"
-              @update:prompt="variantsPrompt = $event"
-              @update:selected-components="selectedVariantComponents = $event"
-              @reset="selectedVariantComponents = ['button', 'input', 'card']; variantsPrompt = ''; clearVariantsResult()"
-              @generate="handleVariants()"
-              @clear-result="clearVariantsResult()"
-              @select-history="variantsResult = selectHistoryResult(variantsHistory, $event)"
-              @apply="applyVariantSuggestion()"
+              :prompt="ramps.prompt"
+              :brand-colors="ramps.brandColors"
+              :brand-input="ramps.brandInput"
+              :can-generate="ramps.canGenerate"
+              :is-loading="ramps.isLoading"
+              :result="ramps.result"
+              :history="ramps.history"
+              :preview-palette="ramps.previewPalette"
+              @update:prompt="ramps.prompt = $event"
+              @update:brand-input="ramps.brandInput = $event"
+              @add-brand-color="ramps.addBrandColor()"
+              @remove-brand-color="ramps.removeBrandColor($event)"
+              @clear="ramps.brandColors = []; ramps.brandInput = ''; ramps.prompt = ''; ramps.clearResult()"
+              @generate="ramps.generate()"
+              @clear-result="ramps.clearResult()"
+              @select-history="ramps.result = selectHistoryResult(ramps.history, $event)"
+              @apply="ramps.apply()"
             />
           </template>
 
           <template #directions>
             <ThemeAiDirectionsTab
               :palette="props.palette"
-              :prompt="directionsPrompt"
-              :count="directionsCount"
+              :prompt="directions.prompt"
+              :count="directions.count"
               :is-disabled="isDisabled"
-              :is-loading="isDirectionsLoading"
-              :result="directionsResult"
-              :history="directionsHistory"
-              @update:prompt="directionsPrompt = $event"
-              @update:count="directionsCount = $event"
-              @reset="directionsPrompt = ''; directionsCount = 3; clearDirectionsResult()"
-              @generate="handleDirections()"
-              @select-history="directionsResult = selectHistoryResult(directionsHistory, $event)"
-              @apply-direction="applyDirectionSuggestion($event)"
+              :is-loading="directions.isLoading"
+              :result="directions.result"
+              :history="directions.history"
+              @update:prompt="directions.prompt = $event"
+              @update:count="directions.count = $event"
+              @reset="directions.prompt = ''; directions.count = 3; directions.clearResult()"
+              @generate="directions.generate()"
+              @select-history="directions.result = selectHistoryResult(directions.history, $event)"
+              @apply-direction="directions.apply($event)"
             />
           </template>
         </UTabs>

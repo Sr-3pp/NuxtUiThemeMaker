@@ -10,8 +10,8 @@ usePageSeo({
 
 const route = useRoute()
 const { normalizeRedirectTarget, refetchSession, session, signUpWithEmail } = useAuth()
+const { showErrorToast } = useErrorToast()
 const isSubmitting = ref(false)
-const errorMessage = ref('')
 
 const redirectTarget = computed(() => normalizeRedirectTarget(route.query.redirect))
 
@@ -34,7 +34,6 @@ watch(session, async (currentSession) => {
 }, { immediate: true })
 
 async function submit() {
-  errorMessage.value = ''
   isSubmitting.value = true
 
   try {
@@ -43,7 +42,7 @@ async function submit() {
     const result = await signUpWithEmail(formState.name, formState.email, formState.password)
 
     if (result.error) {
-      errorMessage.value = result.error.message ?? 'Registration failed'
+      showErrorToast(result.error, 'Registration failed')
       return
     }
 
@@ -51,7 +50,7 @@ async function submit() {
     await navigateTo(redirectTarget.value)
   }
   catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Registration failed'
+    showErrorToast(error, 'Registration failed')
   }
   finally {
     isSubmitting.value = false
@@ -88,18 +87,13 @@ async function submit() {
         <UFormField label="Password" name="password" required>
           <UInput v-model="formState.password" type="password" placeholder="Minimum 8 characters" />
         </UFormField>
-
-        <p v-if="errorMessage" class="text-sm text-red-400">
-          {{ errorMessage }}
-        </p>
-
         <div class="space-y-3">
           <UButton type="submit" color="primary" block :loading="isSubmitting" class="bg-[#4cd964] text-black hover:bg-[#65e27c]">
             Create account
           </UButton>
 
           <UButton to="/" color="neutral" variant="outline" block>
-            Back to builder
+            Back to home
           </UButton>
         </div>
       </UForm>

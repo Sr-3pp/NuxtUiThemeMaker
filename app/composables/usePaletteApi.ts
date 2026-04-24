@@ -7,23 +7,36 @@ import type {
   PaletteDirectionsGeneratePayload,
   PaletteDirectionsGenerateResult,
   PaletteGeneratePayload,
+  PaletteGenerateResult,
   PaletteGenerationAccess,
   PaletteRampGeneratePayload,
   PaletteRampGenerateResult,
-  PaletteVariantGeneratePayload,
-  PaletteVariantGenerateResult,
 } from '~/types/palette-generation'
 import type { PaletteVersionSnapshot } from '~/types/palette-version'
 import { FREE_PLAN_PALETTE_GENERATION_LIMIT } from '../data/pricing'
 import { clonePaletteDefinition } from '../utils/palette-domain'
 
 export function usePaletteApi() {
+  function refreshNuxtDataInBackground(key: string) {
+    Promise.resolve(refreshNuxtData(key)).catch((error) => {
+      console.error(`Failed to refresh Nuxt data for "${key}"`, error)
+    })
+  }
+
   async function fetchWithRefresh<T>(
     input: string,
     init: Parameters<typeof $fetch<T>>[1],
     refreshKey: string,
+    options?: {
+      awaitRefresh?: boolean
+    },
   ) {
     const result = await $fetch<T>(input, init)
+
+    if (options?.awaitRefresh === false) {
+      refreshNuxtDataInBackground(refreshKey)
+      return result
+    }
 
     await refreshNuxtData(refreshKey)
 
@@ -41,7 +54,9 @@ export function usePaletteApi() {
     input: string,
     init: Parameters<typeof $fetch<T>>[1],
   ) {
-    return fetchWithRefresh<T>(input, init, 'palette-generation-access')
+    return fetchWithRefresh<T>(input, init, 'palette-generation-access', {
+      awaitRefresh: false,
+    })
   }
 
   const savePalette = async (palette: EditablePalette) => {
@@ -162,7 +177,7 @@ export function usePaletteApi() {
   })
 
   const generatePalette = async (payload: string | PaletteGeneratePayload) => {
-    return fetchWithGenerationAccessRefresh<EditablePalette>('/api/palettes/generate', {
+    return fetchWithGenerationAccessRefresh<PaletteGenerateResult>('/api/palettes/generate', {
       method: 'POST',
       credentials: 'include',
       body: typeof payload === 'string' ? { prompt: payload } : payload,
@@ -171,14 +186,6 @@ export function usePaletteApi() {
 
   const generatePaletteRamps = async (payload: PaletteRampGeneratePayload) => {
     return fetchWithGenerationAccessRefresh<PaletteRampGenerateResult>('/api/palettes/generate/ramp', {
-      method: 'POST',
-      credentials: 'include',
-      body: payload,
-    })
-  }
-
-  const generatePaletteVariants = async (payload: PaletteVariantGeneratePayload) => {
-    return fetchWithGenerationAccessRefresh<PaletteVariantGenerateResult>('/api/palettes/generate/variants', {
       method: 'POST',
       credentials: 'include',
       body: payload,
@@ -217,7 +224,6 @@ export function usePaletteApi() {
     updatePaletteVisibility,
     generatePalette,
     generatePaletteRamps,
-    generatePaletteVariants,
     generatePaletteAudit,
     generatePaletteDirections,
   }

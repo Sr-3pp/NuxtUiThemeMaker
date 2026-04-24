@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, nextTick, ref, watch } from 'vue'
 import type { EditablePalette } from '../../app/types/palette-editor'
-import type { PaletteAiPersistedSession } from '../../app/types/palette-generation'
+import type {
+  PaletteAiPersistedSession,
+  PaletteGenerateResult,
+} from '../../app/types/palette-generation'
 
 vi.mock('~/utils/palette-domain', async () => {
   const actual = await vi.importActual<typeof import('../../app/utils/palette-domain')>('../../app/utils/palette-domain')
@@ -197,6 +200,24 @@ function createGeneratedPalette(name = 'AI Direction') {
   }
 }
 
+function createGeneratedPaletteResult(name = 'AI Direction'): PaletteGenerateResult {
+  return {
+    palette: createGeneratedPalette(name),
+    ui: {
+      card: {
+        slots: {
+          root: 'rounded-lg overflow-hidden ring ring-default',
+        },
+      },
+      button: {
+        defaultVariants: {
+          variant: 'solid',
+        },
+      },
+    },
+  }
+}
+
 function createEmptyEditablePalette(): EditablePalette {
   return {
     name: 'Empty Palette',
@@ -251,11 +272,10 @@ describe('useThemeAiModal', () => {
   const generatePaletteMock = vi.fn()
   const generatePaletteDirectionsMock = vi.fn()
   const generatePaletteRampsMock = vi.fn()
-  const generatePaletteVariantsMock = vi.fn()
   const applyGeneratedPaletteMock = vi.fn()
-  const applyGeneratedComponentsMock = vi.fn()
   const applyGeneratedRampsMock = vi.fn()
   const refreshAccessMock = vi.fn()
+  const editorSidebarState = ref(false)
 
   beforeEach(() => {
     vi.resetModules()
@@ -284,12 +304,13 @@ describe('useThemeAiModal', () => {
       generatePalette: generatePaletteMock,
       generatePaletteDirections: generatePaletteDirectionsMock,
       generatePaletteRamps: generatePaletteRampsMock,
-      generatePaletteVariants: generatePaletteVariantsMock,
     }))
     vi.stubGlobal('usePaletteState', () => ({
       applyGeneratedPalette: applyGeneratedPaletteMock,
-      applyGeneratedComponents: applyGeneratedComponentsMock,
       applyGeneratedRamps: applyGeneratedRampsMock,
+    }))
+    vi.stubGlobal('useSidebar', () => ({
+      editorSidebarSw: editorSidebarState,
     }))
     vi.stubGlobal('usePaletteGenerationAccess', () => ({
       isDisabled: ref(false),
@@ -297,6 +318,8 @@ describe('useThemeAiModal', () => {
       cta: ref(null),
       refresh: refreshAccessMock,
     }))
+
+    editorSidebarState.value = false
   })
 
   it('restores persisted history for the current palette session', async () => {
@@ -314,7 +337,6 @@ describe('useThemeAiModal', () => {
       },
       directions: { items: [], selectedId: null },
       ramps: { items: [], selectedId: null },
-      variants: { items: [], selectedId: null },
     }
 
     const sessions = {
@@ -357,7 +379,7 @@ describe('useThemeAiModal', () => {
   })
 
   it('generates a starter theme, records history, and applies the suggestion', async () => {
-    const result = createGeneratedPalette('Coastal Ledger')
+    const result = createGeneratedPaletteResult('Coastal Ledger')
     generatePaletteMock.mockResolvedValueOnce(result)
 
     const { useThemeAiModal } = await import('../../app/composables/useThemeAiModal')
@@ -375,13 +397,29 @@ describe('useThemeAiModal', () => {
       referenceImage: undefined,
     })
     expect(modal.starterResult.value?.name).toBe('Coastal Ledger')
+    expect(modal.starterResult.value?.ui).toEqual(expect.objectContaining({
+      button: expect.objectContaining({
+        defaultVariants: expect.objectContaining({
+          variant: 'solid',
+        }),
+      }),
+    }))
     expect(modal.starterHistory.value).toHaveLength(1)
     expect(modal.starterHistory.value[0]?.label).toBe('Coastal Ledger')
     expect(modal.starterHistory.value[0]?.detail).toBe('Ocean dashboard')
 
-    modal.applyPaletteSuggestion(result, 'Applied the generated starter theme to the current draft.')
+    modal.applyPaletteSuggestion(modal.starterResult.value!, 'Applied the generated starter theme to the current draft.')
 
-    expect(applyGeneratedPaletteMock).toHaveBeenCalledWith(result)
+    expect(applyGeneratedPaletteMock).toHaveBeenCalledWith(expect.objectContaining({
+      name: 'Coastal Ledger',
+      ui: expect.objectContaining({
+        button: expect.objectContaining({
+          defaultVariants: expect.objectContaining({
+            variant: 'solid',
+          }),
+        }),
+      }),
+    }))
     expect(toastAddMock).toHaveBeenCalledWith(expect.objectContaining({
       title: 'Palette updated',
       color: 'success',
@@ -414,4 +452,5 @@ describe('useThemeAiModal', () => {
 
     expect(modal.activeTab.value).toBe('starter')
   })
+
 })

@@ -1,16 +1,12 @@
 import { createError } from 'h3'
 import { GoogleGenAI, type ContentListUnion } from '@google/genai'
 import { ZodError, type ZodSchema } from 'zod'
-import {
-  assertPaletteGenerationAllowed,
-  incrementPaletteGenerationUsageIfNeeded,
-} from '~~/server/services/palette-generation-access'
-import type { AuthSession } from '~~/server/types/auth-session'
 
 const GEMINI_MODEL = 'gemini-flash-latest'
 const TRANSIENT_AI_STATUS_CODES = new Set([429, 500, 502, 503, 504])
 const TRANSIENT_AI_STATUS_TEXTS = new Set(['RESOURCE_EXHAUSTED', 'UNAVAILABLE'])
 const AI_RETRY_DELAYS_MS = [250, 750]
+const AI_MAX_OUTPUT_TOKENS = 8192
 
 class IncompleteAiJsonError extends Error {
   constructor(message: string) {
@@ -206,7 +202,7 @@ async function requestStructuredPaletteAiContent(
         config: {
           responseMimeType: 'application/json',
           responseSchema,
-          maxOutputTokens: 4096,
+          maxOutputTokens: AI_MAX_OUTPUT_TOKENS,
         },
       })
     } catch (error) {
@@ -221,22 +217,6 @@ async function requestStructuredPaletteAiContent(
   }
 
   throw lastError
-}
-
-export async function assertPaletteAiAccess(session: AuthSession | null) {
-  const access = assertPaletteGenerationAllowed(session)
-
-  if (!session) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Authentication required',
-    })
-  }
-
-  return {
-    session,
-    access,
-  }
 }
 
 export function getGeminiApiKey() {
@@ -264,61 +244,61 @@ export async function generateStructuredPaletteAiResult<T>({
   schema: ZodSchema<T>
   responseSchema?: Record<string, unknown>
 }) {
-  try {
-    const ai = new GoogleGenAI({ apiKey: getGeminiApiKey() })
-    const response = await requestStructuredPaletteAiContent(ai, contents ?? [prompt], responseSchema)
+  const ai = new GoogleGenAI({ apiKey: getGeminiApiKey() })
+  let lastError: unknown
 
-    if (!response?.text) {
-      throw new IncompleteAiJsonError('Gemini returned an empty response')
-    }
+  for (let attempt = 0; attempt <= AI_RETRY_DELAYS_MS.length; attempt += 1) {
+    try {
+      const response = await ai.models.generateContent({
+        model: GEMINI_MODEL,
+        contents: contents ?? [prompt],
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema,
+          maxOutputTokens: AI_MAX_OUTPUT_TOKENS,
+        },
+      })
 
-    let lastError: unknown
+      if (!response?.text) {
+        throw new IncompleteAiJsonError('Gemini returned an empty response')
+      }
 
-    for (let attempt = 0; attempt <= AI_RETRY_DELAYS_MS.length; attempt += 1) {
-      try {
-        return schema.parse(parseStructuredResponse(response.text))
-      } catch (error) {
-        lastError = error
+      return schema.parse(parseStructuredResponse(response.text))
+    } catch (error) {
+      lastError = error
 
-        if (!isRetryableAiError(error) || attempt === AI_RETRY_DELAYS_MS.length) {
-          throw error
+      if (error instanceof ZodError) {
+        throw createError({
+          statusCode: 422,
+          statusMessage: `AI response failed validation: ${formatSchemaError(error)}`,
+        })
+      }
+
+      if (error && typeof error === 'object' && 'statusCode' in error) {
+        throw error
+      }
+
+      if (!isRetryableAiError(error) || attempt === AI_RETRY_DELAYS_MS.length) {
+        if (isRetryableAiError(error)) {
+          console.error('AI provider temporarily unavailable:', error)
+
+          throw createError({
+            statusCode: 503,
+            statusMessage: 'AI provider is temporarily unavailable. Please try again shortly.',
+          })
         }
 
-        await waitForAiRetry(AI_RETRY_DELAYS_MS[attempt]!)
+        console.error('Error generating AI content:', error)
+
+        throw createError({
+          statusCode: 500,
+          message: 'Failed to generate content.',
+        })
       }
+
+      await waitForAiRetry(AI_RETRY_DELAYS_MS[attempt]!)
     }
-
-    throw lastError
-  } catch (error) {
-    if (error instanceof ZodError) {
-      throw createError({
-        statusCode: 422,
-        statusMessage: `AI response failed validation: ${formatSchemaError(error)}`,
-      })
-    }
-
-    if (error && typeof error === 'object' && 'statusCode' in error) {
-      throw error
-    }
-
-    if (isRetryableAiError(error)) {
-      console.error('AI provider temporarily unavailable:', error)
-
-      throw createError({
-        statusCode: 503,
-        statusMessage: 'AI provider is temporarily unavailable. Please try again shortly.',
-      })
-    }
-
-    console.error('Error generating AI content:', error)
-
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to generate content.',
-    })
   }
-}
 
-export async function finalizePaletteAiUsage(session: AuthSession, access: ReturnType<typeof assertPaletteGenerationAllowed>) {
-  await incrementPaletteGenerationUsageIfNeeded(session, access)
+  throw lastError
 }

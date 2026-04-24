@@ -34,7 +34,7 @@ function createSession(overrides: Partial<{
 }
 
 describe('palette generation access', () => {
-  it('returns an unauthenticated response for guests', () => {
+  it('blocks unauthenticated guests from AI generation', () => {
     expect(getPaletteGenerationAccess(null)).toEqual({
       canGenerate: false,
       isPaidUnlimited: false,

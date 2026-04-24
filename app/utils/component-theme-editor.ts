@@ -2,6 +2,27 @@ import type { PaletteComponentThemeSection, PaletteComponentThemes, PaletteToken
 
 export type ComponentEditorArea = 'base' | 'slot' | 'variant' | 'state'
 
+/**
+ * Normalize a component theme value to PaletteTokenGroup.
+ * Nuxt UI supports both flat strings ("rounded-lg px-4") and objects ({ bg: "...", text: "..." })
+ */
+function normalizeTokenGroup(value: string | PaletteTokenGroup | undefined): PaletteTokenGroup {
+  if (!value) return {}
+  if (typeof value === 'string') {
+    return { class: value }
+  }
+  return value
+}
+
+/**
+ * Get token keys from a value that can be either a string or token group object
+ */
+function getTokenKeys(value: string | PaletteTokenGroup | undefined): string[] {
+  if (!value) return []
+  if (typeof value === 'string') return ['class']
+  return Object.keys(value)
+}
+
 export interface ComponentThemeEditorDefinition {
   value: string
   label: string
@@ -140,9 +161,20 @@ function getDynamicDefinition(value: string, theme: PaletteComponentThemeSection
       Object.values(theme.variants ?? {}).flatMap(variant => Object.keys(variant ?? {}))
     ),
     tokenSuggestions: createTokenSuggestions({
-      slot: mergeUniqueValues(['bg', 'text', 'border', 'ring'], Object.keys(theme.slots ?? {}).flatMap(slot => Object.keys(theme.slots?.[slot] ?? {}))),
-      variant: mergeUniqueValues(['bg', 'text', 'border', 'ring', 'shadow'], Object.values(theme.variants ?? {}).flatMap(variant => Object.values(variant ?? {}).flatMap(tokens => Object.keys(tokens ?? {})))),
-      state: mergeUniqueValues(['bg', 'text', 'border', 'ring', 'shadow', 'opacity'], Object.values(theme.states ?? {}).flatMap(tokens => Object.keys(tokens ?? {}))),
+      slot: mergeUniqueValues(
+        ['bg', 'text', 'border', 'ring'], 
+        Object.keys(theme.slots ?? {}).flatMap(slot => getTokenKeys(theme.slots?.[slot]))
+      ),
+      variant: mergeUniqueValues(
+        ['bg', 'text', 'border', 'ring', 'shadow'], 
+        Object.values(theme.variants ?? {}).flatMap(variant => 
+          Object.values(variant ?? {}).flatMap(tokens => getTokenKeys(tokens))
+        )
+      ),
+      state: mergeUniqueValues(
+        ['bg', 'text', 'border', 'ring', 'shadow', 'opacity'], 
+        Object.values(theme.states ?? {}).flatMap(tokens => getTokenKeys(tokens))
+      ),
     }),
   }
 }
@@ -194,19 +226,19 @@ export function getComponentThemeTokenGroup(
   }
 
   if (area === 'base') {
-    return theme.base ?? {}
+    return normalizeTokenGroup(theme.base)
   }
 
   if (area === 'slot' && options.slot) {
-    return theme.slots?.[options.slot] ?? {}
+    return normalizeTokenGroup(theme.slots?.[options.slot])
   }
 
   if (area === 'variant' && options.variant && options.variantColor) {
-    return theme.variants?.[options.variant]?.[options.variantColor] ?? {}
+    return normalizeTokenGroup(theme.variants?.[options.variant]?.[options.variantColor])
   }
 
   if (area === 'state' && options.state) {
-    return theme.states?.[options.state] ?? {}
+    return normalizeTokenGroup(theme.states?.[options.state])
   }
 
   return {}

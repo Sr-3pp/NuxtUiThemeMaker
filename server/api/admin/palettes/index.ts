@@ -1,4 +1,5 @@
 import { listAdminPalettes } from "~~/server/db/repositories/admin/palettes-repository"
+import { requireAuthSession } from '~~/server/utils/auth-session'
 
 export default defineEventHandler(async (event) => {
   const session = await requireAuthSession(event)

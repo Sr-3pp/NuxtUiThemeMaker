@@ -139,7 +139,7 @@ function stateCardClass(label: string) {
             <div
               v-for="state in buttonStates"
               :key="`${row.color}-${row.variant}-${state.label}`"
-              class="rounded-2xl border p-3"
+              class="rounded -lg border p-3"
               :class="stateCardClass(state.label)"
             >
               <div class="mb-3 flex items-center justify-between gap-2">
@@ -175,7 +175,7 @@ function stateCardClass(label: string) {
             <div
               v-for="fieldState in fieldStates"
               :key="fieldState.label"
-              class="space-y-2 rounded-2xl border border-default bg-muted/20 p-4"
+              class="space-y-2 rounded -lg border border-default bg-muted/20 p-4"
               :class="fieldState.focused ? 'ring-2 ring-primary/40' : ''"
             >
               <div class="space-y-1">

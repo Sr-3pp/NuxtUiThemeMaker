@@ -136,7 +136,7 @@ const swatches = computed(() => {
             class="space-y-2"
           >
             <div
-              class="h-12 rounded-2xl border border-default bg-muted/60"
+              class="h-12 rounded -lg border border-default bg-muted/60"
               :style="swatch.value ? { backgroundColor: swatch.value } : undefined"
             />
             <p class="truncate text-[11px] uppercase tracking-[0.14em] text-muted">

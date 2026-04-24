@@ -3,8 +3,8 @@ import { expect, test } from '@nuxt/test-utils/playwright'
 test('home page renders the builder shell', async ({ page, goto }) => {
   await goto('/', { waitUntil: 'hydration' })
 
-  await expect(page.getByText('Nuxt UI Theme Builder')).toBeVisible()
-  await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible()
+  await expect(page.locator('header').getByText('Nuxt UI Theme Builder')).toBeVisible()
+  await expect(page.locator('header').getByRole('link', { name: /sign in/i })).toBeVisible()
 })
 
 test('login page renders the sign-in form', async ({ page, goto }) => {

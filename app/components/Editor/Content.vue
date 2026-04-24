@@ -10,12 +10,11 @@ const props = defineProps<EditorProps>()
 const emit = defineEmits<EditorEmits>()
 
 const colorMode = useColorMode()
-const editorSection = ref<'colors' | 'semantic' | 'components' | 'states'>('colors')
+const { activeSection } = useEditorSection()
 const editorSections = [
   { label: 'Colors', value: 'colors', slot: 'colors' },
   { label: 'Semantic', value: 'semantic', slot: 'semantic' },
-  { label: 'Components', value: 'components', slot: 'components' },
-  { label: 'States', value: 'states', slot: 'states' },
+  { label: 'States', value: 'states', slot: 'states' }
 ]
 const activeMode = computed<PaletteModeKey>(() => {
   if (colorMode.value === 'dark') {
@@ -34,11 +33,11 @@ const activeMode = computed<PaletteModeKey>(() => {
   <template v-if="props.tab === 'tokens'">
     <EditorModeBanner :active-mode="activeMode" />
     <UTabs
-      v-model="editorSection"
+      v-model="activeSection"
+      class="mb-4"
       :items="editorSections"
       color="neutral"
       variant="link"
-      :ui="{ root: 'mb-4', list: 'w-full border-b border-default/60' }"
     >
       <template #colors>
         <EditorColorScalesPanel
@@ -57,16 +56,8 @@ const activeMode = computed<PaletteModeKey>(() => {
         />
       </template>
 
-      <template #components>
-        <EditorComponentOverridesPanel
-          :palette="props.palette"
-          @update-component-token="emit('update-component-token', $event)"
-        />
-      </template>
-
       <template #states>
         <EditorComponentOverridesPanel
-          mode="states"
           :palette="props.palette"
           @update-component-token="emit('update-component-token', $event)"
         />

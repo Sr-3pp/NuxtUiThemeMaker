@@ -99,7 +99,7 @@ function buttonStyle(variant: string, color: string) {
     >
       <template #body>
         <div class="space-y-4">
-          <div class="rounded-2xl border border-default bg-muted/60 p-4">
+          <div class="rounded -lg border border-default bg-muted/60 p-4">
             <p class="text-sm text-default">
               Modal body content should preserve hierarchy without washing out the palette.
             </p>

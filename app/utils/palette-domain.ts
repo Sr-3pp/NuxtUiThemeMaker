@@ -9,11 +9,24 @@ import type {
   PaletteColorScales,
   PaletteComponentThemes,
   PaletteDefinition,
+  PaletteUiConfig,
   PaletteTokenValue,
 } from '../types/palette'
 import { paletteScaleSteps } from '../types/palette'
 import type { StoredPalette } from '~/types/palette-store'
 import { parseHexColor, toHexColor, type HexRgbColor } from './color-hex'
+import { normalizeEditableComponentThemes } from './nuxt-ui-component-variants'
+import type { PaletteTokenGroup } from '~/types/palette'
+
+/**
+ * Normalize component theme value to object form
+ * Nuxt UI supports both flat strings and token group objects
+ */
+function normalizeToTokenGroup(value: string | PaletteTokenGroup | undefined): PaletteTokenGroup {
+  if (!value) return {}
+  if (typeof value === 'string') return { class: value }
+  return value
+}
 
 const scaleMixMap: Record<string, { target: HexRgbColor, amount: number }> = {
   '50': { target: { r: 255, g: 255, b: 255 }, amount: 0.95 },
@@ -105,6 +118,14 @@ function cloneComponentThemes(components?: PaletteComponentThemes) {
   return JSON.parse(JSON.stringify(components)) as PaletteComponentThemes
 }
 
+function cloneUiConfig(ui?: PaletteUiConfig) {
+  if (!ui) {
+    return {}
+  }
+
+  return JSON.parse(JSON.stringify(ui)) as PaletteUiConfig
+}
+
 function ensureComponentThemeSection(palette: EditablePalette, componentKey: string) {
   if (!palette.components) {
     palette.components = {}
@@ -168,6 +189,7 @@ export function normalizePaletteDefinition(palette: PaletteDefinition): PaletteD
     colors: deriveColorScales(hydratedPalette),
     aliases: deriveAliases(hydratedPalette),
     components: cloneComponentThemes(hydratedPalette.components),
+    ui: cloneUiConfig(hydratedPalette.ui),
     metadata: normalizePaletteMetadata(hydratedPalette),
   }
 }
@@ -179,13 +201,18 @@ export function clonePaletteDefinition(palette: PaletteDefinition): PaletteDefin
 export function toEditablePalette(palette: PaletteDefinition | StoredPalette): EditablePalette {
   if ('_id' in palette) {
     const clonedPalette = clonePaletteDefinition({
+      ...palette.palette,
       name: palette.name,
-      modes: palette.palette.modes,
     })
 
     return {
       name: clonedPalette.name,
       modes: clonedPalette.modes,
+      colors: clonedPalette.colors,
+      aliases: clonedPalette.aliases,
+      components: clonedPalette.components,
+      ui: clonedPalette.ui,
+      metadata: clonedPalette.metadata,
       _id: palette._id,
       userId: palette.userId,
       slug: palette.slug,
@@ -209,6 +236,7 @@ export function toEditablePalette(palette: PaletteDefinition | StoredPalette): E
     colors: clonedPalette.colors,
     aliases: clonedPalette.aliases,
     components: clonedPalette.components,
+    ui: clonedPalette.ui,
     metadata: clonedPalette.metadata,
   }
 }
@@ -233,6 +261,7 @@ export function hydratePaletteDefinition(palette: PaletteDefinition) {
   palette.colors = deriveColorScales(palette)
   palette.aliases = deriveAliases(palette)
   palette.components = cloneComponentThemes(palette.components)
+  palette.ui = cloneUiConfig(palette.ui)
   palette.metadata = normalizePaletteMetadata(palette)
 
   return palette
@@ -378,7 +407,7 @@ export function updateEditablePaletteComponentToken(
 
   if (payload.area === 'base') {
     componentSection.base = {
-      ...componentSection.base,
+      ...normalizeToTokenGroup(componentSection.base),
       [payload.token]: payload.value,
     }
 
@@ -389,7 +418,7 @@ export function updateEditablePaletteComponentToken(
     componentSection.slots = {
       ...componentSection.slots,
       [payload.slot]: {
-        ...(componentSection.slots?.[payload.slot] ?? {}),
+        ...normalizeToTokenGroup(componentSection.slots?.[payload.slot]),
         [payload.token]: payload.value,
       },
     }
@@ -403,7 +432,7 @@ export function updateEditablePaletteComponentToken(
       [payload.variant]: {
         ...(componentSection.variants?.[payload.variant] ?? {}),
         [payload.variantColor]: {
-          ...(componentSection.variants?.[payload.variant]?.[payload.variantColor] ?? {}),
+          ...normalizeToTokenGroup(componentSection.variants?.[payload.variant]?.[payload.variantColor]),
           [payload.token]: payload.value,
         },
       },
@@ -416,7 +445,7 @@ export function updateEditablePaletteComponentToken(
     componentSection.states = {
       ...componentSection.states,
       [payload.state]: {
-        ...(componentSection.states?.[payload.state] ?? {}),
+        ...normalizeToTokenGroup(componentSection.states?.[payload.state]),
         [payload.token]: payload.value,
       },
     }

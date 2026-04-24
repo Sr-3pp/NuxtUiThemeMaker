@@ -1,8 +1,15 @@
 import { z } from 'zod'
-
 const paletteTokenValueSchema = z.union([z.string().trim().min(1), z.null()])
 const paletteTokenGroupSchema = z.record(z.string(), paletteTokenValueSchema)
 const paletteModeSchema = z.record(z.string(), paletteTokenGroupSchema)
+const jsonValueSchema: z.ZodType<unknown> = z.lazy(() => z.union([
+  z.string(),
+  z.number(),
+  z.boolean(),
+  z.null(),
+  z.array(jsonValueSchema),
+  z.record(z.string(), jsonValueSchema),
+]))
 const paletteColorScaleSchema = z.object({
   '50': paletteTokenValueSchema,
   '100': paletteTokenValueSchema,
@@ -17,11 +24,14 @@ const paletteColorScaleSchema = z.object({
   '950': paletteTokenValueSchema,
 })
 const paletteComponentThemeSectionSchema = z.object({
-  base: paletteTokenGroupSchema.optional(),
-  slots: z.record(z.string(), paletteTokenGroupSchema).optional(),
-  variants: z.record(z.string(), z.record(z.string(), paletteTokenGroupSchema)).optional(),
-  states: z.record(z.string(), paletteTokenGroupSchema).optional(),
+  base: z.union([z.string(), paletteTokenGroupSchema]).optional(),
+  slots: z.record(z.string(), z.union([z.string(), paletteTokenGroupSchema])).optional(),
+  variants: z.record(z.string(), z.record(z.string(), z.union([z.string(), paletteTokenGroupSchema]))).optional(),
+  states: z.record(z.string(), z.union([z.string(), paletteTokenGroupSchema])).optional(),
+  defaultVariants: z.record(z.string(), z.string()).optional(),
+  compoundVariants: z.array(z.record(z.string(), z.unknown())).optional(),
 })
+const paletteUiSchema = z.record(z.string(), jsonValueSchema)
 
 export const paletteDefinitionSchema = z.object({
   name: z.string().trim().min(1, 'Palette name is required'),
@@ -32,6 +42,7 @@ export const paletteDefinitionSchema = z.object({
   colors: z.record(z.string(), paletteColorScaleSchema).optional(),
   aliases: z.record(z.string(), z.union([z.string().trim().min(1), z.null()])).optional(),
   components: z.record(z.string(), paletteComponentThemeSectionSchema).optional(),
+  ui: paletteUiSchema.optional(),
   metadata: z.object({
     version: z.number().int().min(1),
     normalizedAt: z.string().datetime().nullish(),
@@ -95,6 +106,18 @@ export const paletteResponseSchema = createObjectResponseSchema({
     light: paletteTokenGroupsResponseSchema,
     dark: paletteTokenGroupsResponseSchema,
   }),
+})
+
+export const paletteGenerateResultSchema = z.object({
+  palette: paletteDefinitionSchema,
+  ui: paletteUiSchema,
+})
+
+export const paletteGenerateResultResponseSchema = createObjectResponseSchema({
+  palette: paletteResponseSchema,
+  ui: {
+    type: 'object',
+  },
 })
 
 export const paletteWriteSchema = z.object({

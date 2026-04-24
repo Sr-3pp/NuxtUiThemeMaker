@@ -44,7 +44,7 @@ function asTokenGroup(scale: PaletteColorScale) {
 </script>
 
 <template>
-  <UCard variant="outline" class="rounded-2xl shadow-none dark:border-white/10 dark:bg-black/40">
+  <UCard variant="outline">
     <template #header>
       <div class="space-y-1">
         <p class="text-sm font-medium dark:text-white">
@@ -113,7 +113,7 @@ function asTokenGroup(scale: PaletteColorScale) {
                 </UButton>
 
                 <template #content>
-                  <div class="rounded-2xl border border-white/10 bg-black/95 p-3 shadow-2xl backdrop-blur">
+                  <div class="rounded -lg border border-white/10 bg-black/95 p-3 shadow-2xl backdrop-blur">
                     <UColorPicker
                       :model-value="getPalettePickerValue(asTokenGroup(scale), String(step))"
                       format="hex"

@@ -9,6 +9,8 @@ export interface DropdownMenuItem {
   icon?: string
   type?: 'label'
   disabled?: boolean
+  to?: string
+  href?: string
   onSelect?: () => void | Promise<void>
 }
 

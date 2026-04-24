@@ -1,4 +1,4 @@
-import { createError, defineEventHandler, readBody } from 'h3'
+
 import { z } from 'zod'
 import type { AdminPaletteUpdateInput } from '~/types/admin-palette'
 import { updateAdminManagedPalette } from '~~/server/services/admin-palettes'

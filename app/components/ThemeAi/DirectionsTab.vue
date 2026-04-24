@@ -28,7 +28,7 @@ const selectedHistoryId = computed(() => props.history.find(entry => entry.resul
 
 <template>
   <div class="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-    <UCard variant="outline" class="rounded-2xl shadow-none">
+    <UCard variant="outline">
       <template #header>
         <ThemeAiSectionHeader
           title="Direction brief"
@@ -81,7 +81,7 @@ const selectedHistoryId = computed(() => props.history.find(entry => entry.resul
     <div class="space-y-3">
       <div
         v-if="history.length > 1"
-        class="rounded-2xl border border-default/60 bg-muted/15 px-4 py-3"
+        class="rounded -lg border border-default/60 bg-muted/15 px-4 py-3"
       >
         <ThemeAiHistory
           :entries="history"
@@ -94,7 +94,7 @@ const selectedHistoryId = computed(() => props.history.find(entry => entry.resul
         v-for="direction in result?.directions ?? []"
         :key="direction.name"
         variant="outline"
-        class="rounded-2xl shadow-none"
+        class="rounded -lg shadow-none"
       >
         <template #header>
           <div class="flex items-start justify-between gap-3">
@@ -160,7 +160,7 @@ const selectedHistoryId = computed(() => props.history.find(entry => entry.resul
 
       <div
         v-if="!result"
-        class="rounded-2xl border border-dashed border-default/70 px-4 py-10 text-center text-sm text-muted"
+        class="rounded -lg border border-dashed border-default/70 px-4 py-10 text-center text-sm text-muted"
       >
         Generate directions to compare alternate takes on the current palette.
       </div>

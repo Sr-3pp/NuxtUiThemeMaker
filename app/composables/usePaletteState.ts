@@ -4,7 +4,7 @@ import type {
   UpdateEditablePaletteComponentTokenPayload,
   UpdateEditablePaletteTokenPayload,
 } from '~/types/palette-editor'
-import type { PaletteColorScales, PaletteComponentThemes, PaletteDefinition } from '~/types/palette'
+import type { PaletteColorScales, PaletteComponentThemes, PaletteDefinition, PaletteUiConfig } from '~/types/palette'
 import type { StoredPalette } from '~/types/palette-store'
 import { emptyPalette } from '~/utils/paletteRegistry'
 import {
@@ -16,6 +16,7 @@ import {
   updateEditablePaletteComponentToken,
   updateEditablePaletteToken,
 } from '~/utils/palette-domain'
+import { attachPaletteRuntimeUi } from '../utils/palette-runtime-ui'
 
 export function usePaletteState() {
   const currentPalette = useState<EditablePalette | null>('current-palette', () => {
@@ -25,18 +26,35 @@ export function usePaletteState() {
     return createEditablePalette(emptyPalette)
   })
 
-  const setCurrentPalette = (palette: PaletteDefinition | StoredPalette) => {
-    currentPalette.value = createEditablePalette(palette)
-    sourcePalette.value = createEditablePalette(palette)
+  const setCurrentPalette = (palette: PaletteDefinition | StoredPalette, ui?: PaletteUiConfig | null) => {
+    const resolvedPalette = attachPaletteRuntimeUi(
+      'palette' in palette ? palette.palette : palette,
+      ui,
+    )
+
+    if ('palette' in palette) {
+      const storedPalette = {
+        ...palette,
+        palette: resolvedPalette,
+      }
+
+      currentPalette.value = createEditablePalette(storedPalette)
+      sourcePalette.value = createEditablePalette(storedPalette)
+      return
+    }
+
+    currentPalette.value = createEditablePalette(resolvedPalette)
+    sourcePalette.value = createEditablePalette(resolvedPalette)
   }
 
-  const applyGeneratedPalette = (palette: PaletteDefinition) => {
-    const nextPalette = createEditablePalette(palette)
+  const applyGeneratedPalette = (palette: PaletteDefinition, ui?: PaletteUiConfig | null) => {
+    const resolvedPalette = attachPaletteRuntimeUi(palette, ui)
+    const nextPalette = createEditablePalette(resolvedPalette)
     const previousPalette = currentPalette.value ?? sourcePalette.value
 
     if (!previousPalette) {
       currentPalette.value = nextPalette
-      sourcePalette.value = createEditablePalette(palette)
+      sourcePalette.value = createEditablePalette(resolvedPalette)
       return
     }
 

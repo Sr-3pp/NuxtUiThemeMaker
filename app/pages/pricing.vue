@@ -41,7 +41,7 @@ watch(() => route.query.checkout, async (value) => {
     await refreshBillingStatus()
 
     if (billingStatus.value.hasActivePlan) {
-      await navigateTo('/?checkout=success')
+      await navigateTo('/editor?checkout=success')
       return
     }
 
@@ -132,7 +132,7 @@ function getPlanAction(planId: PricingPlanId) {
   if (!isPaidPricingPlanId(planId)) {
     return {
       label: 'Current free plan',
-      onClick: () => navigateTo('/'),
+      onClick: () => navigateTo('/editor'),
     }
   }
 
@@ -244,7 +244,7 @@ function getPlanAction(planId: PricingPlanId) {
         class="mx-auto w-auto"
         variant="link"
         color="primary"
-        to="/"
+        to="/editor"
       >
         Go to Theme Editor
       </UButton>

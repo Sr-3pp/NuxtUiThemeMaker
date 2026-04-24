@@ -14,6 +14,7 @@ interface ExportedThemeModule {
     light?: Record<string, string>
     dark?: Record<string, string>
   }
+  ui?: Record<string, unknown>
   components?: PaletteDefinition['components']
 }
 
@@ -24,6 +25,88 @@ interface ParsedAppConfigModule {
       dark?: Record<string, string>
     }
     [key: string]: unknown
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+function isComponentThemeSectionLike(value: unknown) {
+  if (!isRecord(value)) {
+    return false
+  }
+
+  const componentThemeKeys = ['base', 'slots', 'variants', 'states']
+
+  return componentThemeKeys.some(key => key in value)
+}
+
+/**
+ * Normalize component theme value to Nuxt UI format.
+ * Converts {class: "..."} to flat string, keeps token objects like {bg: "...", text: "..."}
+ */
+function normalizeComponentValue(value: unknown): unknown {
+  if (typeof value === 'string') {
+    return value
+  }
+
+  if (!isRecord(value)) {
+    return value
+  }
+
+  // If it's an object with only "class" key, extract the class value
+  const keys = Object.keys(value)
+  if (keys.length === 1 && keys[0] === 'class' && typeof value.class === 'string') {
+    return value.class
+  }
+
+  // Otherwise recursively normalize nested objects
+  const normalized: Record<string, unknown> = {}
+  for (const [key, val] of Object.entries(value)) {
+    normalized[key] = normalizeComponentValue(val)
+  }
+  return normalized
+}
+
+/**
+ * Normalize all component theme sections to Nuxt UI format.
+ * Converts {class: "..."} values to flat strings throughout the component tree.
+ */
+export function normalizeComponentThemes(
+  components: Record<string, unknown> | undefined
+): NonNullable<PaletteDefinition['components']> {
+  if (!components) {
+    return {}
+  }
+
+  const normalized: Record<string, unknown> = {}
+  for (const [componentKey, section] of Object.entries(components)) {
+    normalized[componentKey] = normalizeComponentValue(section)
+  }
+  return normalized as NonNullable<PaletteDefinition['components']>
+}
+
+/**
+ * Separates component theme sections from other UI config.
+ * Component sections have keys like 'base', 'slots', 'variants', or 'states'.
+ */
+export function splitUiConfigEntries(uiConfig: Record<string, unknown> | undefined) {
+  const paletteUi: Record<string, unknown> = {}
+  const components: NonNullable<PaletteDefinition['components']> = {}
+
+  Object.entries(uiConfig ?? {}).forEach(([key, value]) => {
+    if (isComponentThemeSectionLike(value)) {
+      components[key] = value as NonNullable<PaletteDefinition['components']>[string]
+      return
+    }
+
+    paletteUi[key] = value
+  })
+
+  return {
+    ui: paletteUi,
+    components,
   }
 }
 
@@ -227,9 +310,10 @@ function parseThemeVariablesToMode(themeTokens: Record<string, string> | undefin
 
 function parseExportedThemeModule(content: string): ExportedThemeModule | null {
   const themeExportIndex = content.indexOf('export const theme')
+  const uiExportIndex = content.indexOf('export const ui')
   const componentsExportIndex = content.indexOf('export const components')
 
-  if (themeExportIndex === -1 && componentsExportIndex === -1) {
+  if (themeExportIndex === -1 && componentsExportIndex === -1 && uiExportIndex === -1) {
     return null
   }
 
@@ -251,7 +335,15 @@ function parseExportedThemeModule(content: string): ExportedThemeModule | null {
     }
   }
 
-  return exportedModule.theme || exportedModule.components ? exportedModule : null
+  if (uiExportIndex !== -1) {
+    const uiLiteral = extractBalancedObjectLiteral(content, uiExportIndex)
+
+    if (uiLiteral) {
+      exportedModule.ui = JSON.parse(uiLiteral) as Record<string, unknown>
+    }
+  }
+
+  return exportedModule.theme || exportedModule.components || exportedModule.ui ? exportedModule : null
 }
 
 function paletteFromExportedThemeModule(content: string): PaletteDefinition | null {
@@ -261,13 +353,19 @@ function paletteFromExportedThemeModule(content: string): PaletteDefinition | nu
     return null
   }
 
+  const splitUiConfig = splitUiConfigEntries(exportedThemeModule.ui)
+
   return {
     name: 'Imported Theme Module',
     modes: {
       light: parseThemeVariablesToMode(exportedThemeModule.theme.light),
       dark: parseThemeVariablesToMode(exportedThemeModule.theme.dark),
     },
-    components: exportedThemeModule.components ?? {},
+    ui: splitUiConfig.ui,
+    components: {
+      ...splitUiConfig.components,
+      ...(exportedThemeModule.components ?? {}),
+    },
   }
 }
 
@@ -296,6 +394,7 @@ function paletteFromAppConfigModule(content: string): PaletteDefinition | null {
   }
 
   const { theme, ...componentConfig } = uiConfig
+  const splitUiConfig = splitUiConfigEntries(componentConfig)
 
   return {
     name: 'Imported App Config Theme',
@@ -303,7 +402,8 @@ function paletteFromAppConfigModule(content: string): PaletteDefinition | null {
       light: parseThemeVariablesToMode(theme.light),
       dark: parseThemeVariablesToMode(theme.dark),
     },
-    components: componentConfig as PaletteDefinition['components'],
+    ui: splitUiConfig.ui,
+    components: splitUiConfig.components,
   }
 }
 

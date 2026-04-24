@@ -1,4 +1,4 @@
-import type { PaletteColorScales, PaletteComponentThemes, PaletteDefinition, PaletteModeKey } from '~/types/palette'
+import type { PaletteColorScales, PaletteComponentThemes, PaletteDefinition, PaletteModeKey, PaletteUiConfig } from '~/types/palette'
 
 export type PaletteGenerationAccessReason = 'unauthenticated' | 'free_limit_reached' | 'allowed'
 
@@ -22,6 +22,11 @@ export interface PaletteGeneratePayload {
   }
 }
 
+export interface PaletteGenerateResult {
+  palette: PaletteDefinition
+  ui: PaletteUiConfig
+}
+
 export interface PaletteReferenceImageAsset {
   data: string
   mimeType: string
@@ -37,17 +42,6 @@ export interface PaletteRampGeneratePayload {
 export interface PaletteRampGenerateResult {
   paletteName: string
   ramps: PaletteColorScales
-}
-
-export interface PaletteVariantGeneratePayload {
-  prompt: string
-  palette?: PaletteDefinition
-  componentKeys?: string[]
-}
-
-export interface PaletteVariantGenerateResult {
-  summary: string
-  components: PaletteComponentThemes
 }
 
 export interface PaletteAuditGeneratePayload {
@@ -101,5 +95,4 @@ export interface PaletteAiPersistedSession {
   starter: PaletteAiPersistedHistoryState<PaletteDefinition>
   directions: PaletteAiPersistedHistoryState<PaletteDirectionsGenerateResult>
   ramps: PaletteAiPersistedHistoryState<PaletteRampGenerateResult>
-  variants: PaletteAiPersistedHistoryState<PaletteVariantGenerateResult>
 }

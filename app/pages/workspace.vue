@@ -106,8 +106,8 @@ function formatDate(value: string | null | undefined) {
         </div>
 
         <div class="flex flex-wrap gap-2">
-          <UButton to="/" color="neutral" variant="outline" icon="i-lucide-wand-sparkles">
-            Open builder
+          <UButton to="/editor" color="neutral" variant="outline" icon="i-lucide-wand-sparkles">
+            Open editor
           </UButton>
           <UButton color="neutral" variant="soft" icon="i-lucide-refresh-cw" @click="refresh()">
             Refresh workspace
@@ -169,7 +169,7 @@ function formatDate(value: string | null | undefined) {
 
             <div
               v-if="!needsAttentionItems.length"
-              class="rounded-2xl border border-default px-4 py-4 text-sm text-muted"
+              class="rounded -lg border border-default px-4 py-4 text-sm text-muted"
             >
               No palettes are currently blocked by review pressure or QA risk.
             </div>
@@ -178,7 +178,7 @@ function formatDate(value: string | null | undefined) {
               <div
                 v-for="item in needsAttentionItems"
                 :key="item.palette._id"
-                class="rounded-2xl border border-default px-4 py-4"
+                class="rounded -lg border border-default px-4 py-4"
               >
                 <div class="flex flex-wrap items-center gap-2">
                   <p class="text-sm font-medium text-highlighted">
@@ -236,7 +236,7 @@ function formatDate(value: string | null | undefined) {
               <div
                 v-for="item in recentItems"
                 :key="item.palette._id"
-                class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-default px-4 py-4"
+                class="flex flex-wrap items-center justify-between gap-3 rounded -lg border border-default px-4 py-4"
               >
                 <div class="min-w-0">
                   <p class="truncate text-sm font-medium text-highlighted">
@@ -278,7 +278,7 @@ function formatDate(value: string | null | undefined) {
 
             <div
               v-if="!sharedItems.length"
-              class="rounded-2xl border border-default px-4 py-4 text-sm text-muted"
+              class="rounded -lg border border-default px-4 py-4 text-sm text-muted"
             >
               No private palettes have been shared with you yet.
             </div>
@@ -287,7 +287,7 @@ function formatDate(value: string | null | undefined) {
               <div
                 v-for="item in sharedItems"
                 :key="item.palette._id"
-                class="rounded-2xl border border-default px-4 py-4"
+                class="rounded -lg border border-default px-4 py-4"
               >
                 <div class="flex flex-wrap items-center gap-2">
                   <p class="text-sm font-medium text-highlighted">
@@ -333,7 +333,7 @@ function formatDate(value: string | null | undefined) {
               <div
                 v-for="item in workspaceItems"
                 :key="`${item.palette._id}-qa`"
-                class="rounded-2xl border border-default px-4 py-4"
+                class="rounded -lg border border-default px-4 py-4"
               >
                 <div class="flex flex-wrap items-center gap-2">
                   <p class="text-sm font-medium text-highlighted">
