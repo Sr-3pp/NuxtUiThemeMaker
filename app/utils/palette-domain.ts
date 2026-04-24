@@ -111,7 +111,11 @@ function cloneColorScales(colors?: PaletteColorScales) {
 }
 
 function cloneComponentThemes(components?: PaletteComponentThemes) {
-  return normalizeEditableComponentThemes(components)
+  if (!components) {
+    return {}
+  }
+
+  return JSON.parse(JSON.stringify(components)) as PaletteComponentThemes
 }
 
 function cloneUiConfig(ui?: PaletteUiConfig) {

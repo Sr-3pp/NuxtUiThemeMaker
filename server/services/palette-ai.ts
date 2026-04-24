@@ -244,41 +244,61 @@ export async function generateStructuredPaletteAiResult<T>({
   schema: ZodSchema<T>
   responseSchema?: Record<string, unknown>
 }) {
-  try {
-    const ai = new GoogleGenAI({ apiKey: getGeminiApiKey() })
-    const response = await requestStructuredPaletteAiContent(ai, contents ?? [prompt], responseSchema)
+  const ai = new GoogleGenAI({ apiKey: getGeminiApiKey() })
+  let lastError: unknown
 
-    if (!response?.text) {
-      throw new IncompleteAiJsonError('Gemini returned an empty response')
-    }
-
-    return schema.parse(parseStructuredResponse(response.text))
-  } catch (error) {
-    if (error instanceof ZodError) {
-      throw createError({
-        statusCode: 422,
-        statusMessage: `AI response failed validation: ${formatSchemaError(error)}`,
+  for (let attempt = 0; attempt <= AI_RETRY_DELAYS_MS.length; attempt += 1) {
+    try {
+      const response = await ai.models.generateContent({
+        model: GEMINI_MODEL,
+        contents: contents ?? [prompt],
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema,
+          maxOutputTokens: AI_MAX_OUTPUT_TOKENS,
+        },
       })
+
+      if (!response?.text) {
+        throw new IncompleteAiJsonError('Gemini returned an empty response')
+      }
+
+      return schema.parse(parseStructuredResponse(response.text))
+    } catch (error) {
+      lastError = error
+
+      if (error instanceof ZodError) {
+        throw createError({
+          statusCode: 422,
+          statusMessage: `AI response failed validation: ${formatSchemaError(error)}`,
+        })
+      }
+
+      if (error && typeof error === 'object' && 'statusCode' in error) {
+        throw error
+      }
+
+      if (!isRetryableAiError(error) || attempt === AI_RETRY_DELAYS_MS.length) {
+        if (isRetryableAiError(error)) {
+          console.error('AI provider temporarily unavailable:', error)
+
+          throw createError({
+            statusCode: 503,
+            statusMessage: 'AI provider is temporarily unavailable. Please try again shortly.',
+          })
+        }
+
+        console.error('Error generating AI content:', error)
+
+        throw createError({
+          statusCode: 500,
+          message: 'Failed to generate content.',
+        })
+      }
+
+      await waitForAiRetry(AI_RETRY_DELAYS_MS[attempt]!)
     }
-
-    if (error && typeof error === 'object' && 'statusCode' in error) {
-      throw error
-    }
-
-    if (isRetryableAiError(error)) {
-      console.error('AI provider temporarily unavailable:', error)
-
-      throw createError({
-        statusCode: 503,
-        statusMessage: 'AI provider is temporarily unavailable. Please try again shortly.',
-      })
-    }
-
-    console.error('Error generating AI content:', error)
-
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to generate content.',
-    })
   }
+
+  throw lastError
 }
