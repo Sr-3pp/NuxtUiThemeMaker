@@ -9,6 +9,13 @@ definePageMeta({
   middleware: ['panel-admin'],
 })
 
+usePageSeo({
+  title: 'Admin Palettes',
+  description: 'Private admin area for reviewing and moderating saved palettes.',
+  path: '/panel/palettes',
+  robots: 'noindex, nofollow',
+})
+
 const requestFetch = import.meta.server ? useRequestFetch() : $fetch
 const toast = useToast()
 const { showErrorToast } = useErrorToast()

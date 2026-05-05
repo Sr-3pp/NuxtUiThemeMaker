@@ -1,11 +1,14 @@
+import { toValue } from 'vue'
 import type { PageSeoOptions } from '~/types/seo'
 
 function normalizeJsonLd(input: PageSeoOptions['jsonLd']) {
-  if (!input) {
+  const value = toValue(input)
+
+  if (!value) {
     return []
   }
 
-  const items = Array.isArray(input) ? input : [input]
+  const items = Array.isArray(value) ? value : [value]
 
   return items.filter((item): item is Record<string, unknown> => {
     return Boolean(item && typeof item === 'object' && typeof item['@context'] === 'string')
@@ -22,62 +25,64 @@ export function usePageSeo(options: PageSeoOptions) {
   const config = useRuntimeConfig()
   const siteName = config.public.siteName
   const siteUrl = config.public.siteUrl
-  const canonicalPath = options.path ?? route.path
-  const canonical = joinUrl(siteUrl, canonicalPath)
-  const socialImage = joinUrl(siteUrl, options.image ?? '/og-image.svg')
-  const robots = options.robots ?? 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
-  const title = options.title
-  const jsonLdEntries = normalizeJsonLd(options.jsonLd)
+  const title = computed(() => toValue(options.title))
+  const description = computed(() => toValue(options.description))
+  const canonicalPath = computed(() => toValue(options.path) ?? route.path)
+  const canonical = computed(() => joinUrl(siteUrl, canonicalPath.value))
+  const socialImage = computed(() => joinUrl(siteUrl, toValue(options.image) ?? '/og-image.svg'))
+  const robots = computed(() => toValue(options.robots) ?? 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1')
+  const ogType = computed(() => toValue(options.type) ?? 'website')
+  const jsonLdEntries = computed(() => normalizeJsonLd(options.jsonLd))
 
-  useHead({
-    title,
+  useHead(() => ({
+    title: title.value,
     titleTemplate: `%s | ${siteName}`,
     link: [
       {
         rel: 'canonical',
-        href: canonical,
+        href: canonical.value,
       },
     ],
-    script: jsonLdEntries.map((entry) => ({
+    script: jsonLdEntries.value.map((entry) => ({
       type: 'application/ld+json',
       innerHTML: JSON.stringify(entry),
     })),
-  })
+  }))
 
   useSeoMeta({
     title,
-    description: options.description,
+    description,
     robots,
     ogTitle: title,
-    ogDescription: options.description,
-    ogType: options.type ?? 'website',
+    ogDescription: description,
+    ogType,
     ogUrl: canonical,
     ogSiteName: siteName,
     ogLocale: 'en_US',
     ogImage: socialImage,
-    ogImageAlt: `${title} preview`,
+    ogImageAlt: computed(() => `${title.value} preview`),
     twitterCard: 'summary_large_image',
     twitterTitle: title,
-    twitterDescription: options.description,
+    twitterDescription: description,
     twitterImage: socialImage,
   })
 
   if (import.meta.server) {
     useServerSeoMeta({
       title,
-      description: options.description,
+      description,
       robots,
       ogTitle: title,
-      ogDescription: options.description,
-      ogType: options.type ?? 'website',
+      ogDescription: description,
+      ogType,
       ogUrl: canonical,
       ogSiteName: siteName,
       ogLocale: 'en_US',
       ogImage: socialImage,
-      ogImageAlt: `${title} preview`,
+      ogImageAlt: computed(() => `${title.value} preview`),
       twitterCard: 'summary_large_image',
       twitterTitle: title,
-      twitterDescription: options.description,
+      twitterDescription: description,
       twitterImage: socialImage,
     })
   }

@@ -9,6 +9,13 @@ definePageMeta({
   middleware: ['panel-admin'],
 })
 
+usePageSeo({
+  title: 'Admin Users',
+  description: 'Private admin area for managing user accounts and access.',
+  path: '/panel/users',
+  robots: 'noindex, nofollow',
+})
+
 const requestFetch = import.meta.server ? useRequestFetch() : $fetch
 const toast = useToast()
 const { showErrorToast } = useErrorToast()

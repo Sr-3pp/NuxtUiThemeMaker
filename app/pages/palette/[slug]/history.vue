@@ -21,6 +21,13 @@ if (paletteError.value) {
   })
 }
 
+usePageSeo({
+  title: computed(() => palette.value?.name ? `${palette.value.name} Palette History` : 'Palette History'),
+  description: 'Review private version history for a saved Nuxt UI palette.',
+  path: computed(() => `/palette/${slug.value}/history`),
+  robots: 'noindex, nofollow',
+})
+
 const paletteId = computed(() => palette.value?._id ?? '')
 
 const { data: history, error: historyError } = await useAsyncData(

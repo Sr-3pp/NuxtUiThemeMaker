@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PaletteReviewStatus, PaletteReviewThread } from '~/types/palette-review'
 import type { StoredPalette } from '~/types/palette-store'
-import { buildPaletteDescription, buildPaletteJsonLd } from '~/utils/seo'
+import { buildPaletteBreadcrumbJsonLd, buildPaletteDescription, buildPaletteJsonLd } from '~/utils/seo'
 
 const route = useRoute()
 const slug = computed(() => String(route.params.slug))
@@ -149,8 +149,8 @@ async function handleReviewSubmit() {
 }
 
 usePageSeo({
-  title: computed(() => paletteValue.value?.name ? `${paletteValue.value.name} Palette` : 'Shared Palette').value,
-  description: computed(() => paletteValue.value ? buildPaletteDescription(paletteValue.value) : 'Shared Nuxt UI palette preview.').value,
+  title: computed(() => paletteValue.value?.name ? `${paletteValue.value.name} Palette` : 'Shared Palette'),
+  description: computed(() => paletteValue.value ? buildPaletteDescription(paletteValue.value) : 'Shared Nuxt UI palette preview.'),
   path: `/palette/${slug.value}`,
   type: 'article',
   robots: computed(() => {
@@ -165,8 +165,11 @@ usePageSeo({
       return undefined
     }
 
-    return buildPaletteJsonLd(siteConfig.public.siteUrl, paletteValue.value)
-  }).value,
+    return [
+      buildPaletteJsonLd(siteConfig.public.siteUrl, paletteValue.value),
+      buildPaletteBreadcrumbJsonLd(siteConfig.public.siteUrl, paletteValue.value),
+    ]
+  }),
 })
 </script>
 
