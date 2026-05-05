@@ -10,8 +10,16 @@ export default function useSidebar() {
     state.value = false
   }
 
+  function open(state: typeof palettesSidebarSw | typeof editorSidebarSw) {
+    state.value = true
+  }
+
   function togglePalettesSidebar() {
     toggle(palettesSidebarSw)
+  }
+
+  function openPalettesSidebar() {
+    open(palettesSidebarSw)
   }
 
   function closePalettesSidebar() {
@@ -22,15 +30,21 @@ export default function useSidebar() {
     toggle(editorSidebarSw)
   }
 
+  function openEditorSidebar() {
+    open(editorSidebarSw)
+  }
+
   function closeEditorSidebar() {
     close(editorSidebarSw)
   }
 
   return {
     palettesSidebarSw,
+    openPalettesSidebar,
     togglePalettesSidebar,
     closePalettesSidebar,
     editorSidebarSw,
+    openEditorSidebar,
     toggleEditorSidebar,
     closeEditorSidebar,
   }

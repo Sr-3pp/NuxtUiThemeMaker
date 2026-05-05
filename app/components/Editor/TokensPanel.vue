@@ -106,7 +106,7 @@ function getTokenEntries(tokens: PaletteTokenGroup) {
         header: 'flex',
         trigger: 'w-full px-4 py-4 text-sm font-medium hover:bg-white/5 dark:hover:bg-white/5',
         content: 'px-4 pb-4',
-        body: 'space-y-4'
+        body: 'space-y-4 grid grid-cols-1 md:grid-cols-2 gap-4',
       }"
     >
       <template #body="{ item }">

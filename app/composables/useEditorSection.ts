@@ -3,14 +3,14 @@
  * Allows programmatic navigation between Colors, Semantic, and States tabs.
  */
 export function useEditorSection() {
-  const activeSection = useState<'colors' | 'semantic' | 'states'>('editor-active-section', () => 'colors')
+  const activeSection = useState<'shades' | 'semantic' | 'states'>('editor-active-section', () => 'semantic')
 
-  function switchToSection(section: 'colors' | 'semantic' | 'states') {
+  function switchToSection(section: 'shades' | 'semantic' | 'states') {
     activeSection.value = section
   }
 
-  function switchToColors() {
-    activeSection.value = 'colors'
+  function switchToShades() {
+    activeSection.value = 'shades'
   }
 
   function switchToSemantic() {
@@ -24,7 +24,7 @@ export function useEditorSection() {
   return {
     activeSection,
     switchToSection,
-    switchToColors,
+    switchToShades,
     switchToSemantic,
     switchToStates,
   }

@@ -28,9 +28,9 @@ function handleExportOpen() {
 }
 
 const { signOut, user } = useAuth()
-const { selectedArea, areaOptions, activeArea } = usePreviewAreaState()
+const { selectedArea, selectArea, areaOptions, activeArea } = usePreviewAreaState()
 
-const { palettesSidebarSw, closePalettesSidebar } = useSidebar()
+const { palettesSidebarSw, openPalettesSidebar, closePalettesSidebar } = useSidebar()
 
 function toggleSidebar() {
   palettesSidebarSw.value = !palettesSidebarSw.value
@@ -172,6 +172,10 @@ const activeAreaDefinition = computed(() => {
   return activeArea.value ? getPreviewAreaDefinition(activeArea.value.value) : null
 })
 
+function openPreviewComponentsSidebar() {
+  openPalettesSidebar()
+}
+
 const previewBrowserItems = computed<NavigationMenuItem[]>(() => {
   const componentItems = areaOptions.value.map((option) => {
     const definition = getPreviewAreaDefinition(option.value)
@@ -181,7 +185,7 @@ const previewBrowserItems = computed<NavigationMenuItem[]>(() => {
       icon: selectedArea.value === option.value ? 'i-lucide-check' : 'i-lucide-component',
       description: definition?.description,
       onSelect: () => {
-        selectedArea.value = option.value
+        selectArea(option.value)
       },
     } satisfies NavigationMenuItem
   })
@@ -190,6 +194,7 @@ const previewBrowserItems = computed<NavigationMenuItem[]>(() => {
     label: 'Preview components',
     icon: 'i-lucide-panels-top-left',
     defaultOpen: true,
+    onSelect: openPreviewComponentsSidebar,
     children: componentItems,
   }]
 })
@@ -251,17 +256,19 @@ const previewBrowserItems = computed<NavigationMenuItem[]>(() => {
         :ui="{ link: 'overflow-hidden' }"
       />
 
-      <UNavigationMenu
-        :key="`preview-${state}`"
-        :items="[
-          {
-            ...previewBrowserItems[0],
-            children: state === 'expanded' ? (previewBrowserItems[0]?.children ?? []) : []
-          }
-        ]"
-        orientation="vertical"
-        :ui="{ link: 'overflow-hidden' }"
-      />
+      <div @click.capture="openPreviewComponentsSidebar">
+        <UNavigationMenu
+          :key="`preview-${state}`"
+          :items="[
+            {
+              ...previewBrowserItems[0],
+              children: state === 'expanded' ? (previewBrowserItems[0]?.children ?? []) : []
+            }
+          ]"
+          orientation="vertical"
+          :ui="{ link: 'overflow-hidden' }"
+        />
+      </div>
 
       <div
         v-if="state === 'expanded' && activeAreaDefinition"

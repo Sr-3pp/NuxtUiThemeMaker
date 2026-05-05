@@ -3,6 +3,7 @@ import { previewAreaDefinitions } from '~/utils/preview-areas'
 
 export function usePreviewAreaState() {
   const selectedArea = useState<PreviewAreaKey>('preview-area', () => 'actions')
+  const { openEditorSidebar } = useSidebar()
 
   const areaOptions = computed(() => previewAreaDefinitions.map(area => ({
     label: area.label,
@@ -23,8 +24,14 @@ export function usePreviewAreaState() {
     }
   })
 
+  function selectArea(area: PreviewAreaKey) {
+    selectedArea.value = area
+    openEditorSidebar()
+  }
+
   return {
     selectedArea,
+    selectArea,
     areaOptions,
     activeArea,
   }

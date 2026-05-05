@@ -9,7 +9,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'update-color-scale': [payload: UpdatePaletteColorScalePayload]
+  'update-shade': [payload: UpdatePaletteColorScalePayload]
 }>()
 
 const searchQuery = ref('')
@@ -30,7 +30,7 @@ function updateScale(colorKey: string, step: string, value: string | number | un
     ? String(value).trim() || null
     : null
 
-  emit('update-color-scale', {
+  emit('update-shade', {
     colorKey,
     step,
     value: normalized,

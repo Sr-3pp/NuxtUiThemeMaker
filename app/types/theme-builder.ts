@@ -29,7 +29,7 @@ export interface EditorEmits {
   save: []
   saveAsNew: []
   'update-token': [payload: UpdatePaletteTokenPayload]
-  'update-color-scale': [payload: UpdatePaletteColorScalePayload]
+  'update-shade': [payload: UpdatePaletteColorScalePayload]
   'update-component-token': [payload: UpdatePaletteComponentTokenPayload]
   'update:tab': [value: EditorTab]
 }

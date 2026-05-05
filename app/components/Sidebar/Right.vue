@@ -109,7 +109,7 @@ const handlePaletteNameInput = (event: Event) => {
           default-mode="dark"
           tab="tokens"
           @update-token="handleUpdateToken"
-          @update-color-scale="handleUpdateColorScale"
+          @update-shade="handleUpdateColorScale"
           @update-component-token="handleUpdateComponentToken"
         />
       </div>
