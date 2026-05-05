@@ -1,13 +1,6 @@
 import type { PaletteDefinition } from '~/types/palette'
 import { normalizePaletteDefinition } from './palette-domain'
-
-const semanticColorKeys = new Set(['primary', 'secondary', 'neutral', 'success', 'info', 'warning', 'error'])
-const knownUiKeys = new Set(['border', 'border-muted', 'border-accented', 'ring'])
-
-interface ParsedThemeTokenTarget {
-  section: string
-  key: string
-}
+import { parsePaletteThemeTokens, splitPaletteUiConfigEntries } from './palette-theme'
 
 interface ExportedThemeModule {
   theme?: {
@@ -30,16 +23,6 @@ interface ParsedAppConfigModule {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
-}
-
-function isComponentThemeSectionLike(value: unknown) {
-  if (!isRecord(value)) {
-    return false
-  }
-
-  const componentThemeKeys = ['base', 'slots', 'variants', 'states']
-
-  return componentThemeKeys.some(key => key in value)
 }
 
 /**
@@ -92,69 +75,7 @@ export function normalizeComponentThemes(
  * Component sections have keys like 'base', 'slots', 'variants', or 'states'.
  */
 export function splitUiConfigEntries(uiConfig: Record<string, unknown> | undefined) {
-  const paletteUi: Record<string, unknown> = {}
-  const components: NonNullable<PaletteDefinition['components']> = {}
-
-  Object.entries(uiConfig ?? {}).forEach(([key, value]) => {
-    if (isComponentThemeSectionLike(value)) {
-      components[key] = value as NonNullable<PaletteDefinition['components']>[string]
-      return
-    }
-
-    paletteUi[key] = value
-  })
-
-  return {
-    ui: paletteUi,
-    components,
-  }
-}
-
-function parseThemeTokenName(tokenName: string): ParsedThemeTokenTarget | null {
-  const normalized = tokenName.trim()
-
-  if (!normalized.startsWith('--ui-')) {
-    return null
-  }
-
-  const rawKey = normalized.slice(5)
-
-  if (!rawKey) {
-    return null
-  }
-
-  if (semanticColorKeys.has(rawKey)) {
-    return {
-      section: 'color',
-      key: rawKey,
-    }
-  }
-
-  if (knownUiKeys.has(rawKey)) {
-    return {
-      section: 'ui',
-      key: rawKey,
-    }
-  }
-
-  const segments = rawKey.split('-')
-  const section = segments[0]
-
-  if (!section) {
-    return null
-  }
-
-  if (segments.length === 1) {
-    return {
-      section,
-      key: 'default',
-    }
-  }
-
-  return {
-    section,
-    key: segments.slice(1).join('-'),
-  }
+  return splitPaletteUiConfigEntries(uiConfig)
 }
 
 function parseCssVariableBlock(content: string, selector: string) {
@@ -192,25 +113,7 @@ function paletteFromCssVariables(content: string): PaletteDefinition | null {
     ['light', lightTokens],
     ['dark', darkTokens],
   ] as const).forEach(([modeKey, tokens]) => {
-    Object.entries(tokens).forEach(([tokenName, tokenValue]) => {
-      const target = parseThemeTokenName(tokenName)
-
-      if (!target) {
-        return
-      }
-
-      if (!palette.modes[modeKey][target.section]) {
-        palette.modes[modeKey][target.section] = {}
-      }
-
-      const sectionTokens = palette.modes[modeKey][target.section]
-
-      if (!sectionTokens) {
-        return
-      }
-
-      sectionTokens[target.key] = tokenValue
-    })
+    palette.modes[modeKey] = parsePaletteThemeTokens(tokens)
   })
 
   return palette
@@ -278,36 +181,6 @@ function parseJsonLikeObjectLiteral(objectLiteral: string) {
   ) as Record<string, unknown>
 }
 
-function parseThemeVariablesToMode(themeTokens: Record<string, string> | undefined) {
-  const mode: PaletteDefinition['modes']['light'] = {}
-
-  if (!themeTokens) {
-    return mode
-  }
-
-  Object.entries(themeTokens).forEach(([tokenName, tokenValue]) => {
-    const target = parseThemeTokenName(tokenName)
-
-    if (!target) {
-      return
-    }
-
-    if (!mode[target.section]) {
-      mode[target.section] = {}
-    }
-
-    const sectionTokens = mode[target.section]
-
-    if (!sectionTokens) {
-      return
-    }
-
-    sectionTokens[target.key] = tokenValue
-  })
-
-  return mode
-}
-
 function parseExportedThemeModule(content: string): ExportedThemeModule | null {
   const themeExportIndex = content.indexOf('export const theme')
   const uiExportIndex = content.indexOf('export const ui')
@@ -358,8 +231,8 @@ function paletteFromExportedThemeModule(content: string): PaletteDefinition | nu
   return {
     name: 'Imported Theme Module',
     modes: {
-      light: parseThemeVariablesToMode(exportedThemeModule.theme.light),
-      dark: parseThemeVariablesToMode(exportedThemeModule.theme.dark),
+      light: parsePaletteThemeTokens(exportedThemeModule.theme.light),
+      dark: parsePaletteThemeTokens(exportedThemeModule.theme.dark),
     },
     ui: splitUiConfig.ui,
     components: {
@@ -399,8 +272,8 @@ function paletteFromAppConfigModule(content: string): PaletteDefinition | null {
   return {
     name: 'Imported App Config Theme',
     modes: {
-      light: parseThemeVariablesToMode(theme.light),
-      dark: parseThemeVariablesToMode(theme.dark),
+      light: parsePaletteThemeTokens(theme.light),
+      dark: parsePaletteThemeTokens(theme.dark),
     },
     ui: splitUiConfig.ui,
     components: splitUiConfig.components,

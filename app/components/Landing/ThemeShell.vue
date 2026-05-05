@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PaletteDefinition } from '~/types/palette'
-import { buildPaletteRuntimeTheme } from '~/utils/palette-runtime-styles'
+import { buildPaletteRuntimeTheme } from '~/utils/palette-theme'
 
 const props = withDefaults(defineProps<{
   isGenerated?: boolean

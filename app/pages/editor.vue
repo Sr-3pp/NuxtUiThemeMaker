@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { emptyPalette } from '~/utils/paletteRegistry'
-import { buildPaletteRuntimeTheme } from '~/utils/palette-runtime-styles'
+import { buildPaletteRuntimeTheme } from '~/utils/palette-theme'
 
 const route = useRoute()
 const router = useRouter()

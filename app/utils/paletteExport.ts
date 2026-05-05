@@ -1,19 +1,6 @@
-import type { PaletteColorScales, PaletteDefinition } from '../types/palette'
-import { paletteScaleSteps } from '../types/palette'
-import { normalizePaletteDefinition } from './palette-domain'
-import { serializePaletteExport, splitUiConfigEntries } from './palette-io'
-import { resolveNuxtUiComponentThemes } from './nuxt-ui-component-variants'
-import themeBuilder from './theme-builder'
-
-interface PaletteExportData {
-  palette: PaletteDefinition
-  cssVars: {
-    light: Record<string, string>
-    dark: Record<string, string>
-  }
-  ui: Record<string, unknown>
-  components: NonNullable<PaletteDefinition['components']>
-}
+import type { PaletteDefinition } from '../types/palette'
+import { serializePaletteExport } from './palette-io'
+import { buildNuxtUiConfig, buildPaletteThemeData } from './palette-theme'
 
 function formatThemeBlock(selector: string, tokens: Record<string, string>) {
   const entries = Object.entries(tokens)
@@ -33,68 +20,8 @@ export function exportPaletteJson(palette: PaletteDefinition) {
   return serializePaletteExport(palette)
 }
 
-function buildRampTokens(colors?: PaletteColorScales) {
-  if (!colors) {
-    return {}
-  }
-
-  return Object.entries(colors).reduce<Record<string, string>>((tokens, [colorKey, scale]) => {
-    for (const step of paletteScaleSteps) {
-      const value = scale[step]
-
-      if (value != null) {
-        tokens[`--ui-color-${colorKey}-${step}`] = value
-      }
-    }
-
-    return tokens
-  }, {})
-}
-
-function buildPaletteExportData(palette: PaletteDefinition): PaletteExportData {
-  const normalizedPalette = normalizePaletteDefinition(palette)
-  
-  // Separate component overrides from other UI config
-  // Components may be mixed in the ui field or already separated
-  const allUiConfig = {
-    ...(normalizedPalette.ui ?? {}),
-    ...(normalizedPalette.components ?? {}),
-  }
-  const { ui, components: rawComponents } = splitUiConfigEntries(allUiConfig)
-  
-  // Normalize component values to real Nuxt UI runtime/export format.
-  const components = resolveNuxtUiComponentThemes(rawComponents)
-  
-  const cssVars = {
-    light: {
-      ...themeBuilder(normalizedPalette.modes.light),
-      ...buildRampTokens(normalizedPalette.colors),
-    },
-    dark: themeBuilder(normalizedPalette.modes.dark),
-  }
-
-  return {
-    palette: normalizedPalette,
-    cssVars,
-    ui,
-    components,
-  }
-}
-
-/**
- * Builds the complete Nuxt UI app.config.ui object structure.
- * Includes theme (CSS custom properties) and all component overrides.
- */
-function buildNuxtUiConfig(data: PaletteExportData): Record<string, unknown> {
-  return {
-    theme: data.cssVars,
-    ...data.ui,
-    ...data.components,
-  }
-}
-
 export function exportPaletteCss(palette: PaletteDefinition) {
-  const { cssVars } = buildPaletteExportData(palette)
+  const { cssVars } = buildPaletteThemeData(palette)
 
   return [
     formatThemeBlock(':root', cssVars.light),
@@ -103,7 +30,7 @@ export function exportPaletteCss(palette: PaletteDefinition) {
 }
 
 export function exportPaletteTs(palette: PaletteDefinition) {
-  const data = buildPaletteExportData(palette)
+  const data = buildPaletteThemeData(palette)
   const uiConfig = buildNuxtUiConfig(data)
 
   return [
@@ -124,7 +51,7 @@ export function exportPaletteTs(palette: PaletteDefinition) {
 }
 
 export function exportPaletteComponentsTs(palette: PaletteDefinition) {
-  const data = buildPaletteExportData(palette)
+  const data = buildPaletteThemeData(palette)
 
   return [
     '// Component overrides only (no theme CSS variables)',
@@ -157,7 +84,7 @@ export function exportPaletteInstallSnippet(_palette: PaletteDefinition) {
 }
 
 export function exportPaletteBundleTs(palette: PaletteDefinition) {
-  const data = buildPaletteExportData(palette)
+  const data = buildPaletteThemeData(palette)
   const uiConfig = buildNuxtUiConfig(data)
 
   return [
