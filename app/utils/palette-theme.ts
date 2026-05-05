@@ -152,8 +152,8 @@ export function parsePaletteThemeTokens(themeTokens: Record<string, string> | un
       return
     }
 
-    mode[target.section] ??= {}
-    mode[target.section][target.key] = tokenValue
+    const sectionTokens = mode[target.section] ??= {}
+    sectionTokens[target.key] = tokenValue
   })
 
   return mode
