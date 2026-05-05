@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PaletteDefinition } from '~/types/palette'
+import { buildPaletteRuntimeTheme } from '~/utils/palette-theme'
 
 const props = defineProps<{
   palette: PaletteDefinition
@@ -14,7 +15,7 @@ const previewFrames = computed(() => {
   return (['light', 'dark'] as const).map(mode => ({
     mode,
     label: mode === 'light' ? 'Light preview' : 'Dark preview',
-    theme: themeBuilder(props.palette.modes[mode]),
+    theme: buildPaletteRuntimeTheme(props.palette, mode),
   }))
 })
 </script>

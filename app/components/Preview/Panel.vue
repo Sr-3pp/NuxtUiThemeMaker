@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PaletteDefinition } from '~/types/palette'
+import { buildPaletteRuntimeTheme } from '~/utils/palette-theme'
 
 const props = withDefaults(defineProps<{
   disableInteractive?: boolean
@@ -9,57 +10,50 @@ const props = withDefaults(defineProps<{
 })
 
 const colorMode = useColorMode()
-const { isSplitView } = usePreviewSplitView()
 
 const currentMode = computed(() => {
   return colorMode.value === 'dark' ? 'dark' : 'light'
 })
 
-const previewFrames = computed(() => {
+const previewFrame = computed(() => {
   if (!props.palette) {
-    return []
+    return null
   }
 
-  const modes = isSplitView.value
-    ? ['light', 'dark'] as const
-    : [currentMode.value as 'light' | 'dark']
+  const mode = currentMode.value
 
-  return modes.map(mode => ({
+  return {
     mode,
     label: mode === 'light' ? 'Light preview' : 'Dark preview',
-    theme: themeBuilder(props.palette!.modes[mode]),
-  }))
+    theme: buildPaletteRuntimeTheme(props.palette, mode),
+  }
 })
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div class="space-y-3">
     <div
-      class="grid gap-6"
-      :class="previewFrames.length === 2 ? 'xl:grid-cols-2' : ''"
+      v-if="previewFrame"
+      class="flex items-center justify-between rounded-xl border border-default/60 bg-muted/20 px-3 py-2 text-xs text-muted"
     >
-      <div
-        v-for="frame in previewFrames"
-        :key="frame.mode"
-        class="space-y-3"
-      >
-        <div
-          v-if="previewFrames.length > 1"
-          class="flex items-center justify-between rounded-xl border border-default/60 bg-muted/20 px-3 py-2 text-xs text-muted"
-        >
-          <span>{{ frame.label }}</span>
-          <UBadge color="neutral" variant="soft">
-            {{ frame.mode }}
-          </UBadge>
-        </div>
+      <span>{{ previewFrame.label }}</span>
+      <UBadge color="neutral" variant="soft">
+        {{ previewFrame.mode }}
+      </UBadge>
+    </div>
 
-        <div :style="frame.theme" class="mx-auto w-full max-w-6xl">
-          <PreviewBrowserTab
-            :disable-interactive="props.disableInteractive"
-            :palette="props.palette"
-          />
-        </div>
-      </div>
+    <div v-if="previewFrame" :style="previewFrame.theme" class="mx-auto w-full max-w-6xl">
+      <PreviewBrowserTab
+        :disable-interactive="props.disableInteractive"
+        :palette="props.palette"
+      />
+    </div>
+
+    <div
+      v-else
+      class="rounded-xl border border-dashed border-default/60 bg-muted/10 px-4 py-6 text-sm text-muted"
+    >
+      No palette selected.
     </div>
   </div>
 </template>

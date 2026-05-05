@@ -18,7 +18,6 @@ const {
 const { savePalette, saveNewPalette } = usePaletteApi()
 const { editorSidebarSw } = useSidebar()
 const { showErrorToast } = useErrorToast()
-const { isSplitView, toggleSplitView } = usePreviewSplitView()
 
 const saveItems = computed<DropdownMenuItem[][]>(() => [[
   {
@@ -91,15 +90,6 @@ const handlePaletteNameInput = (event: Event) => {
           </p>
 
           <div class="ml-auto flex items-center gap-2">
-            <UButton
-              color="neutral"
-              variant="outline"
-              size="sm"
-              :icon="isSplitView ? 'i-lucide-columns-2' : 'i-lucide-square'"
-              :label="isSplitView ? 'Split on' : 'Split off'"
-              @click="toggleSplitView"
-            />
-
             <UColorModeSwitch />
           </div>
         </div>
