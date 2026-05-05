@@ -12,8 +12,8 @@ const emit = defineEmits<EditorEmits>()
 const colorMode = useColorMode()
 const { activeSection } = useEditorSection()
 const editorSections = [
-  { label: 'Colors', value: 'colors', slot: 'colors' },
   { label: 'Semantic', value: 'semantic', slot: 'semantic' },
+  { label: 'Shades', value: 'shades', slot: 'shades' },
   { label: 'States', value: 'states', slot: 'states' }
 ]
 const activeMode = computed<PaletteModeKey>(() => {
@@ -39,20 +39,20 @@ const activeMode = computed<PaletteModeKey>(() => {
       color="neutral"
       variant="link"
     >
-      <template #colors>
-        <EditorColorScalesPanel
-          :active-mode="activeMode"
-          :palette="props.palette"
-          @update-color-scale="emit('update-color-scale', $event)"
-        />
-      </template>
-
       <template #semantic>
         <EditorTokensPanel
           :active-mode="activeMode"
           :palette="props.palette"
           :source-palette="props.sourcePalette"
           @update-token="emit('update-token', $event)"
+        />
+      </template>
+
+      <template #shades>
+        <EditorShadesPanel
+          :active-mode="activeMode"
+          :palette="props.palette"
+          @update-shade="emit('update-shade', $event)"
         />
       </template>
 
