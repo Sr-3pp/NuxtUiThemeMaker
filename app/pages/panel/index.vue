@@ -3,6 +3,13 @@ definePageMeta({
   middleware: ['panel-admin'],
 })
 
+usePageSeo({
+  title: 'Admin Panel',
+  description: 'Private admin area for managing users, palettes, and email testing.',
+  path: '/panel',
+  robots: 'noindex, nofollow',
+})
+
 const panelLinks = [
   {
     title: 'Users',

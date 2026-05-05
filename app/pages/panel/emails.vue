@@ -7,6 +7,13 @@ definePageMeta({
   middleware: ['panel-admin'],
 })
 
+usePageSeo({
+  title: 'Admin Emails',
+  description: 'Private admin area for testing transactional email templates.',
+  path: '/panel/emails',
+  robots: 'noindex, nofollow',
+})
+
 const requestFetch = import.meta.server ? useRequestFetch() : $fetch
 const toast = useToast()
 const { showErrorToast } = useErrorToast()

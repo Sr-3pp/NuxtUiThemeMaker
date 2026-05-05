@@ -1,34 +1,25 @@
 <script setup lang="ts">
 import { emptyPalette } from '~/utils/paletteRegistry'
 import { buildPaletteRuntimeTheme } from '~/utils/palette-theme'
+import { buildSoftwareApplicationJsonLd, indexableSeoRoutes } from '~/utils/seo'
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const siteConfig = useRuntimeConfig()
+const pageSeo = indexableSeoRoutes.find(route => route.path === '/editor') ?? indexableSeoRoutes[0]
 const colorMode = useColorMode()
 
 usePageSeo({
-  title: 'Build and Share Nuxt UI Themes',
-  description: 'Create Nuxt UI color palettes with live previews, token editing, export tools, and shareable public links.',
-  path: '/editor',
+  title: pageSeo.title,
+  description: pageSeo.description,
+  path: pageSeo.path,
   jsonLd: [
-    {
-      '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      name: siteConfig.public.siteName,
-      url: siteConfig.public.siteUrl,
-      description: siteConfig.public.siteDescription,
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'SoftwareApplication',
-      applicationCategory: 'DesignApplication',
-      name: siteConfig.public.siteName,
-      operatingSystem: 'Web',
-      url: `${siteConfig.public.siteUrl}/editor`,
-      description: 'Interactive Nuxt UI palette builder with previews, token editing, export, and sharing.',
-    },
+    buildSoftwareApplicationJsonLd(
+      siteConfig.public.siteName,
+      `${siteConfig.public.siteUrl}/editor`,
+      'Interactive Nuxt UI palette builder with previews, token editing, export, and sharing.',
+    ),
   ],
 })
 

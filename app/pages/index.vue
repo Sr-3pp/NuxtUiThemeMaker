@@ -2,8 +2,10 @@
 import type { StoredPalette } from '~/types/palette-store'
 import type { ComponentPublicInstance } from 'vue'
 import type { DropdownMenuItem } from '~/types/ui-local'
+import { buildSiteJsonLd, buildSoftwareApplicationJsonLd, indexableSeoRoutes } from '~/utils/seo'
 
 const siteConfig = useRuntimeConfig()
+const pageSeo = indexableSeoRoutes.find(route => route.path === '/') ?? indexableSeoRoutes[0]
 const { cta, helperText } = usePaletteGenerationAccess()
 const { signOut, user } = useAuth()
 const {
@@ -33,26 +35,16 @@ const generatedPalette = computed(() => generated.value.palette)
 const isSaved = computed(() => generated.value.persistence.lifecycle === 'saved')
 
 usePageSeo({
-  title: 'Generate Nuxt UI Themes From a Prompt',
-  description: 'Generate a Nuxt UI palette, watch the landing page restyle itself, then continue in the full editor, export flow, and workspace.',
-  path: '/',
+  title: pageSeo.title,
+  description: pageSeo.description,
+  path: pageSeo.path,
   jsonLd: [
-    {
-      '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      name: siteConfig.public.siteName,
-      url: siteConfig.public.siteUrl,
-      description: siteConfig.public.siteDescription,
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'SoftwareApplication',
-      applicationCategory: 'DesignApplication',
-      name: siteConfig.public.siteName,
-      operatingSystem: 'Web',
-      url: siteConfig.public.siteUrl,
-      description: 'AI-assisted Nuxt UI palette builder with live theme previews, export, sharing, and workspace workflows.',
-    },
+    buildSiteJsonLd(siteConfig.public.siteName, siteConfig.public.siteUrl, siteConfig.public.siteDescription),
+    buildSoftwareApplicationJsonLd(
+      siteConfig.public.siteName,
+      siteConfig.public.siteUrl,
+      'AI-assisted Nuxt UI palette builder with live theme previews, export, sharing, and workspace workflows.',
+    ),
   ],
 })
 

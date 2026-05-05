@@ -1,4 +1,5 @@
 import { listPublicPalettes } from '~~/server/db/repositories/palette-repository'
+import { indexableSeoRoutes } from '~~/app/utils/seo'
 
 function escapeXml(value: string) {
   return value
@@ -16,13 +17,14 @@ export default defineEventHandler(async (event) => {
     : `${config.public.siteUrl}/`
   const publicPalettes = await listPublicPalettes()
 
+  const generatedAt = new Date().toISOString()
   const urls = [
-    {
-      loc: new URL('/', siteUrl).toString(),
-      lastmod: new Date().toISOString(),
-      changefreq: 'weekly',
-      priority: '1.0',
-    },
+    ...indexableSeoRoutes.map(route => ({
+      loc: new URL(route.path, siteUrl).toString(),
+      lastmod: generatedAt,
+      changefreq: route.changefreq,
+      priority: route.priority,
+    })),
     ...publicPalettes.map((palette) => ({
       loc: new URL(`/palette/${palette.slug}`, siteUrl).toString(),
       lastmod: palette.updatedAt.toISOString(),

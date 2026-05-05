@@ -8,6 +8,13 @@ definePageMeta({
   middleware: ['auth'],
 })
 
+usePageSeo({
+  title: 'Workspace',
+  description: 'Manage saved Nuxt UI palettes, review activity, sharing, and QA status.',
+  path: '/workspace',
+  robots: 'noindex, nofollow',
+})
+
 function apiFetch<T>(
   url: string,
   options?: Parameters<WorkspaceRequestFetch>[1],

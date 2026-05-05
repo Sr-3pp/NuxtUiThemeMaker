@@ -2,10 +2,12 @@
 import { isPaidPricingPlanId, pricingPlans } from '~/data/pricing'
 import type { BillingStatus } from '~/types/billing'
 import type { PaidPricingPlan, PricingPlanId } from '~/types/pricing'
+import { indexableSeoRoutes } from '~/utils/seo'
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
+const pageSeo = indexableSeoRoutes.find(route => route.path === '/pricing') ?? indexableSeoRoutes[0]
 const { user, refetchSession } = useAuth()
 const { createCheckoutSession } = useStripeCheckout()
 const { showErrorToast } = useErrorToast()
@@ -21,9 +23,9 @@ const { data: billingStatus, refresh: refreshBillingStatus } = await useFetch<Bi
 })
 
 usePageSeo({
-  title: 'Pricing',
-  description: 'Choose the plan with the generation and save limits that fit your palette workflow.',
-  path: '/pricing',
+  title: pageSeo.title,
+  description: pageSeo.description,
+  path: pageSeo.path,
 })
 
 const billingInterval = ref<'monthly' | 'yearly'>('monthly')
