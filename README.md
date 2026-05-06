@@ -48,6 +48,15 @@ NUXT_PUBLIC_SITE_DESCRIPTION=Build, preview, save, and share Nuxt UI color palet
 NUXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
+For production, make the canonical deployed origin match the browser URL and include every served origin in both auth host/origin settings. For example, if the app is available at `https://www.nuxtthemes.dev` and redirects or also serves `https://nuxtthemes.dev`:
+
+```bash
+NUXT_BETTER_AUTH_URL=https://www.nuxtthemes.dev
+NUXT_BETTER_AUTH_ALLOWED_HOSTS=www.nuxtthemes.dev,nuxtthemes.dev
+NUXT_BETTER_AUTH_TRUSTED_ORIGINS=https://www.nuxtthemes.dev,https://nuxtthemes.dev
+NUXT_PUBLIC_SITE_URL=https://www.nuxtthemes.dev
+```
+
 ## Scripts
 
 ```bash

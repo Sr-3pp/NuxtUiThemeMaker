@@ -8,6 +8,17 @@ function normalizeOrigin(value: string) {
   }
 }
 
+function parseList(value: string[] | string | undefined) {
+  if (Array.isArray(value)) {
+    return value.map(entry => entry.trim()).filter(Boolean)
+  }
+
+  return String(value ?? '')
+    .split(',')
+    .map(entry => entry.trim())
+    .filter(Boolean)
+}
+
 function getTrustedOrigins() {
   const config = useRuntimeConfig()
   const trustedOrigins = new Set<string>()
@@ -15,7 +26,7 @@ function getTrustedOrigins() {
   for (const candidate of [
     config.public.siteUrl,
     config.betterAuthUrl,
-    ...(config.betterAuthTrustedOrigins ?? []),
+    ...parseList(config.betterAuthTrustedOrigins),
   ]) {
     if (typeof candidate !== 'string' || !candidate.trim()) {
       continue
