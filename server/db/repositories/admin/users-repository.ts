@@ -1,4 +1,5 @@
-import { isPricingPlanId } from '../../../../app/data/pricing'
+import { isPricingPlanId } from '~/data/pricing'
+import { getEffectivePaletteGenerationLimit } from '~/data/limits'
 import type { AdminUserListItem } from '~/types/admin-user'
 import { listUserDocuments } from '~~/server/db/repositories/user-repository'
 
@@ -45,27 +46,43 @@ export async function listAdminUsers(): Promise<AdminUserListItem[]> {
     sort: { createdAt: -1 },
   })
 
-  return users.map(user => ({
-    id: String(user.id ?? user._id),
-    name: typeof user.name === 'string' ? user.name : '',
-    email: typeof user.email === 'string' ? user.email : '',
-    emailVerified: Boolean(user.emailVerified),
-    isAdmin: Boolean(user.isAdmin),
-    plan: isPricingPlanId(user.plan) ? user.plan : 'free',
-    planStatus: user.planStatus === 'trialing'
+  return users.map((user) => {
+    const plan = isPricingPlanId(user.plan) ? user.plan : 'free'
+    const planStatus = user.planStatus === 'trialing'
       || user.planStatus === 'active'
       || user.planStatus === 'past_due'
       || user.planStatus === 'canceled'
       ? user.planStatus
-      : 'inactive',
-    planInterval: user.planInterval === 'monthly' || user.planInterval === 'yearly'
-      ? user.planInterval
-      : null,
-    planExpiresAt: normalizeNullableDate(user.planExpiresAt),
-    aiPaletteGenerationsUsed: typeof user.aiPaletteGenerationsUsed === 'number'
+      : 'inactive'
+    const isAdmin = Boolean(user.isAdmin)
+    const aiPaletteGenerationsUsed = typeof user.aiPaletteGenerationsUsed === 'number'
       ? user.aiPaletteGenerationsUsed
-      : 0,
-    createdAt: normalizeDate(user.createdAt),
-    updatedAt: normalizeDate(user.updatedAt),
-  }))
+      : 0
+    const aiPaletteGenerationLimit = getEffectivePaletteGenerationLimit({
+      isAdmin,
+      plan,
+      planStatus,
+    })
+
+    return {
+      id: String(user.id ?? user._id),
+      name: typeof user.name === 'string' ? user.name : '',
+      email: typeof user.email === 'string' ? user.email : '',
+      emailVerified: Boolean(user.emailVerified),
+      isAdmin,
+      plan,
+      planStatus,
+      planInterval: user.planInterval === 'monthly' || user.planInterval === 'yearly'
+        ? user.planInterval
+        : null,
+      planExpiresAt: normalizeNullableDate(user.planExpiresAt),
+      aiPaletteGenerationsUsed,
+      aiPaletteGenerationLimit,
+      aiPaletteGenerationsRemaining: aiPaletteGenerationLimit === null
+        ? null
+        : Math.max(aiPaletteGenerationLimit - aiPaletteGenerationsUsed, 0),
+      createdAt: normalizeDate(user.createdAt),
+      updatedAt: normalizeDate(user.updatedAt),
+    }
+  })
 }

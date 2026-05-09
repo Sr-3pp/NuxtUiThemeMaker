@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { panelSectionItems } from '~/utils/panel-navigation'
+
 definePageMeta({
+  layout: 'panel',
   middleware: ['panel-admin'],
 })
 
@@ -10,23 +13,7 @@ usePageSeo({
   robots: 'noindex, nofollow',
 })
 
-const panelLinks = [
-  {
-    title: 'Users',
-    description: 'Manage accounts, admin access, and password resets.',
-    to: '/panel/users',
-  },
-  {
-    title: 'Palettes',
-    description: 'Review saved palettes and moderate visibility or content.',
-    to: '/panel/palettes',
-  },
-  {
-    title: 'Emails',
-    description: 'Send test registration and purchase confirmation emails.',
-    to: '/panel/emails',
-  },
-]
+const panelLinks = panelSectionItems.filter(item => item.to !== '/panel')
 </script>
 
 <template>
@@ -45,8 +32,9 @@ const panelLinks = [
         v-for="item in panelLinks"
         :key="item.to"
         :to="item.to"
-        class="rounded-3xl border border-default bg-default/50 p-6 transition hover:border-primary/50 hover:bg-default"
+        class="rounded-lg border border-default bg-default/50 p-6 transition hover:border-primary/50 hover:bg-default"
       >
+        <UIcon :name="item.icon" class="mb-4 size-5 text-primary" />
         <p class="text-base font-semibold text-highlighted">
           {{ item.title }}
         </p>

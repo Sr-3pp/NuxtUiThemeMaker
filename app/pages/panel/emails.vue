@@ -4,6 +4,7 @@ import { getDefaultPaidPricingPlanId, isPaidPricingPlanId, paidPricingPlans } fr
 import type { PaidPricingPlan } from '~/types/pricing'
 
 definePageMeta({
+  layout: 'panel',
   middleware: ['panel-admin'],
 })
 
@@ -18,23 +19,35 @@ const requestFetch = import.meta.server ? useRequestFetch() : $fetch
 const toast = useToast()
 const { showErrorToast } = useErrorToast()
 
-const templateOptions = [
-  {
-    label: 'Registration welcome',
-    value: 'registration',
-  },
+type EmailTemplateOption = {
+  label: string
+  value: 'registration' | 'purchase'
+}
+
+type BillingIntervalOption = {
+  label: string
+  value: 'monthly' | 'yearly'
+}
+
+const defaultTemplateOption: EmailTemplateOption = {
+  label: 'Registration welcome',
+  value: 'registration',
+}
+
+const templateOptions: EmailTemplateOption[] = [
+  defaultTemplateOption,
   {
     label: 'Plan purchase confirmation',
     value: 'purchase',
   },
-] as const
+]
 
 const planOptions = paidPricingPlans.map(plan => ({
   label: plan.name,
   value: plan.id,
 })) as { label: string, value: PaidPricingPlan }[]
 
-const billingIntervalOptions = [
+const billingIntervalOptions: BillingIntervalOption[] = [
   {
     label: 'Monthly',
     value: 'monthly',
@@ -43,7 +56,7 @@ const billingIntervalOptions = [
     label: 'Yearly',
     value: 'yearly',
   },
-] as const
+]
 
 const formState = reactive({
   template: 'registration' as 'registration' | 'purchase',
@@ -71,7 +84,7 @@ const schema = z.discriminatedUnion('template', [
 ])
 
 const selectedTemplate = computed(() =>
-  templateOptions.find(option => option.value === formState.template) ?? templateOptions[0],
+  templateOptions.find(option => option.value === formState.template) ?? defaultTemplateOption,
 )
 
 const previewLines = computed(() => {

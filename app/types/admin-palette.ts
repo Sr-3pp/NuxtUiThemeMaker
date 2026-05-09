@@ -3,6 +3,7 @@ import type { PaletteLifecycleStatus } from '~/types/palette-version'
 export interface AdminPaletteListItem {
   id: string
   userId: string
+  ownerName: string
   slug: string
   name: string
   isPublic: boolean

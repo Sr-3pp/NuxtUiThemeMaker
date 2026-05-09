@@ -6,6 +6,7 @@ import { z } from 'zod'
 import type { AdminPaletteListItem } from '~/types/admin-palette'
 
 definePageMeta({
+  layout: 'panel',
   middleware: ['panel-admin'],
 })
 
@@ -54,6 +55,7 @@ const filteredPalettes = computed(() => {
   return items.filter(palette =>
     palette.name.toLowerCase().includes(query)
     || palette.slug.toLowerCase().includes(query)
+    || palette.ownerName.toLowerCase().includes(query)
     || palette.userId.toLowerCase().includes(query),
   )
 })
@@ -162,8 +164,9 @@ const tableColumns: TableColumn<AdminPaletteListItem>[] = [
     header: 'Slug',
   },
   {
-    accessorKey: 'userId',
+    accessorKey: 'ownerName',
     header: 'Owner',
+    cell: ({ row }: TableCellContext<AdminPaletteListItem>) => row.original.ownerName || row.original.userId,
   },
   {
     accessorKey: 'isPublic',
@@ -256,6 +259,9 @@ const tableColumns: TableColumn<AdminPaletteListItem>[] = [
           <div class="rounded -lg border border-default px-4 py-3 space-y-1">
             <p class="text-sm font-medium text-highlighted">
               Owner
+            </p>
+            <p class="text-sm text-highlighted">
+              {{ selectedPalette?.ownerName || 'Unknown user' }}
             </p>
             <p class="text-xs text-muted break-all">
               {{ selectedPalette?.userId }}

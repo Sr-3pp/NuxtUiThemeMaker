@@ -3,17 +3,27 @@ import { defineConfig } from 'vitest/config'
 import { defineVitestProject } from '@nuxt/test-utils/config'
 
 const rootDir = fileURLToPath(new URL('.', import.meta.url))
+const aliases = [
+  {
+    find: /^~~\/(.*)$/,
+    replacement: `${rootDir}$1`,
+  },
+  {
+    find: /^~\/(.*)$/,
+    replacement: `${rootDir}app/$1`,
+  },
+]
 
 export default defineConfig({
   resolve: {
-    alias: {
-      '~': rootDir,
-      '~~': rootDir,
-    },
+    alias: aliases,
   },
   test: {
     projects: [
       {
+        resolve: {
+          alias: aliases,
+        },
         test: {
           name: 'unit',
           include: ['test/unit/*.{test,spec}.ts'],
