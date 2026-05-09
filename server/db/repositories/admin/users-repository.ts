@@ -1,5 +1,5 @@
-import { isPricingPlanId } from '../../../../app/data/pricing'
-import { getEffectivePaletteGenerationLimit } from '../../../../shared/data/limits'
+import { isPricingPlanId } from '~/data/pricing'
+import { getEffectivePaletteGenerationLimit } from '~/data/limits'
 import type { AdminUserListItem } from '~/types/admin-user'
 import { listUserDocuments } from '~~/server/db/repositories/user-repository'
 

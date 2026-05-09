@@ -2,7 +2,7 @@ import { createError } from 'h3'
 import {
   FREE_PLAN_PALETTE_GENERATION_LIMIT,
   getEffectivePaletteGenerationLimit,
-} from '../../shared/data/limits'
+} from '~/data/limits'
 import type { PaletteGenerationAccess } from '~/types/palette-generation'
 import { incrementAiPaletteGenerationsUsed } from '~~/server/db/repositories/user-repository'
 import type { AuthSession, AuthSessionUser } from '~~/server/types/auth-session'

@@ -6,6 +6,7 @@ import type { TableCellContext } from '~/types/ui-local'
 import type { AdminUserListItem } from '~/types/admin-user'
 
 definePageMeta({
+  layout: 'panel',
   middleware: ['panel-admin'],
 })
 

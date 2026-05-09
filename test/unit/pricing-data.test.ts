@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { pricingPlans } from '../../app/data/pricing'
-import { planLimits } from '../../shared/data/limits'
+import { planLimits } from '../../app/data/limits'
 
 describe('pricing config', () => {
   it('defines placeholder monthly and yearly prices for the paid plans', () => {

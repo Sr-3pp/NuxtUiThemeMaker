@@ -5,7 +5,7 @@ import {
   PRO_PLAN_PALETTE_SAVE_LIMIT,
   TEAMS_PLAN_PALETTE_GENERATION_LIMIT,
   TEAMS_PLAN_PALETTE_SAVE_LIMIT,
-} from '../../shared/data/limits'
+} from './limits'
 export {
   FREE_PLAN_PALETTE_GENERATION_LIMIT,
   FREE_PLAN_PALETTE_SAVE_LIMIT,
@@ -16,7 +16,7 @@ export {
   getPaletteGenerationLimit,
   getPaletteSaveLimit,
   planLimits,
-} from '../../shared/data/limits'
+} from './limits'
 
 export type BillingInterval = 'monthly' | 'yearly'
 

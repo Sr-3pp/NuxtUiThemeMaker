@@ -6,6 +6,7 @@ import { z } from 'zod'
 import type { AdminPaletteListItem } from '~/types/admin-palette'
 
 definePageMeta({
+  layout: 'panel',
   middleware: ['panel-admin'],
 })
 
