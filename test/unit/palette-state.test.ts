@@ -1,3 +1,4 @@
+import { ref } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { StoredPalette } from '../../app/types/palette-store'
 
@@ -158,11 +159,11 @@ describe('usePaletteState', () => {
   beforeEach(() => {
     vi.resetModules()
 
-    const stateMap = new Map<string, { value: unknown }>()
+    const stateMap = new Map<string, ReturnType<typeof ref>>()
 
     vi.stubGlobal('useState', (key: string, init: () => unknown) => {
       if (!stateMap.has(key)) {
-        stateMap.set(key, { value: init() })
+        stateMap.set(key, ref(init()))
       }
 
       return stateMap.get(key)
@@ -172,11 +173,14 @@ describe('usePaletteState', () => {
   it('sets source and current palettes independently', async () => {
     const palette = createStoredPalette()
     const { usePaletteState } = await import('../../app/composables/usePaletteState')
-    const { currentPalette, sourcePalette, setCurrentPalette } = usePaletteState()
+    const { currentPalette, sourcePalette, isCurrentPaletteSaved, setCurrentPalette } = usePaletteState()
+
+    expect(isCurrentPaletteSaved.value).toBe(false)
 
     setCurrentPalette(palette)
     currentPalette.value!.modes.light.ui.primary = '#ffffff'
 
+    expect(isCurrentPaletteSaved.value).toBe(true)
     expect(sourcePalette.value?._id).toBe('palette-1')
     expect(sourcePalette.value?.modes.light.ui.primary).toBe('#11aa55')
     expect(sourcePalette.value?.components?.button?.variants?.solid?.primary?.bg).toBe('var(--ui-primary)')

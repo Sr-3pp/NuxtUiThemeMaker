@@ -1,3 +1,4 @@
+import { computed } from 'vue'
 import type {
   EditablePalette,
   UpdateEditablePaletteColorScalePayload,
@@ -25,6 +26,7 @@ export function usePaletteState() {
   const sourcePalette = useState<EditablePalette | null>('source-palette', () => {
     return createEditablePalette(emptyPalette)
   })
+  const isCurrentPaletteSaved = computed(() => Boolean(currentPalette.value?._id))
 
   const setCurrentPalette = (palette: PaletteDefinition | StoredPalette, ui?: PaletteUiConfig | null) => {
     const resolvedPalette = attachPaletteRuntimeUi(
@@ -174,6 +176,7 @@ export function usePaletteState() {
   return {
     currentPalette,
     sourcePalette,
+    isCurrentPaletteSaved,
     createEmptyPalette,
     resetCurrentPalette,
     setCurrentPalette,
