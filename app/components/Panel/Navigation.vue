@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { panelExitItems, panelSectionItems } from '~/utils/panel-navigation'
 
+const props = defineProps<{
+  currentPath?: string
+}>()
+
 const route = useRoute()
+const activePath = computed(() => props.currentPath ?? route.path)
 
 function isActive(to: string) {
-  return route.path === to
+  return activePath.value === to
 }
 </script>
 
