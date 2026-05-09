@@ -11,6 +11,8 @@ export interface AdminUserListItem {
   planInterval: BillingInterval | null
   planExpiresAt: string | null
   aiPaletteGenerationsUsed: number
+  aiPaletteGenerationLimit: number | null
+  aiPaletteGenerationsRemaining: number | null
   createdAt: string
   updatedAt: string
 }

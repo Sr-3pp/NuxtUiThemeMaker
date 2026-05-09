@@ -66,6 +66,14 @@ function formatDate(value: string | null) {
   }).format(new Date(value))
 }
 
+function formatAiUsage(user: AdminUserListItem) {
+  if (user.aiPaletteGenerationLimit === null) {
+    return `${user.aiPaletteGenerationsUsed} / Unlimited`
+  }
+
+  return `${user.aiPaletteGenerationsUsed} / ${user.aiPaletteGenerationLimit}`
+}
+
 function openEdit(user: AdminUserListItem) {
   selectedUser.value = user
   editState.name = user.name
@@ -199,7 +207,23 @@ const tableColumns: TableColumn<AdminUserListItem>[] = [
   },
   {
     accessorKey: 'aiPaletteGenerationsUsed',
-    header: 'AI Uses',
+    header: 'AI Runs',
+    cell: ({ row }: TableCellContext<AdminUserListItem>) => {
+      const UBadge = resolveComponent('UBadge')
+      const limit = row.original.aiPaletteGenerationLimit
+      const remaining = row.original.aiPaletteGenerationsRemaining
+      const isLimitedOut = limit !== null && remaining === 0
+
+      return h('div', { class: 'flex flex-col gap-1' }, [
+        h('span', { class: 'text-sm font-medium text-highlighted' }, formatAiUsage(row.original)),
+        h(UBadge, {
+          color: isLimitedOut ? 'error' : 'neutral',
+          variant: 'soft',
+          size: 'xs',
+          label: remaining === null ? 'Unlimited remaining' : `${remaining} remaining`,
+        }),
+      ])
+    },
   },
   {
     accessorKey: 'createdAt',

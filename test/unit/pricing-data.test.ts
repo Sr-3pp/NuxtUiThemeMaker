@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { pricingPlans } from '../../app/data/pricing'
+import { planLimits } from '../../shared/data/limits'
 
 describe('pricing config', () => {
   it('defines placeholder monthly and yearly prices for the paid plans', () => {
@@ -18,21 +19,24 @@ describe('pricing config', () => {
   })
 
   it('centralizes palette generation and save limits on each plan', () => {
+    expect(planLimits.free.paletteGenerationLimit).toBe(5)
+    expect(planLimits.free.paletteSaveLimit).toBe(1)
+
     expect(pricingPlans).toEqual(expect.arrayContaining([
       expect.objectContaining({
         id: 'free',
-        paletteGenerationLimit: 5,
-        paletteSaveLimit: 1,
+        paletteGenerationLimit: planLimits.free.paletteGenerationLimit,
+        paletteSaveLimit: planLimits.free.paletteSaveLimit,
       }),
       expect.objectContaining({
         id: 'pro',
-        paletteGenerationLimit: 60,
-        paletteSaveLimit: 25,
+        paletteGenerationLimit: planLimits.pro.paletteGenerationLimit,
+        paletteSaveLimit: planLimits.pro.paletteSaveLimit,
       }),
       expect.objectContaining({
         id: 'teams',
-        paletteGenerationLimit: 300,
-        paletteSaveLimit: null,
+        paletteGenerationLimit: planLimits.teams.paletteGenerationLimit,
+        paletteSaveLimit: planLimits.teams.paletteSaveLimit,
       }),
     ]))
   })

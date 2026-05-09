@@ -1,11 +1,24 @@
-export type BillingInterval = 'monthly' | 'yearly'
+import {
+  FREE_PLAN_PALETTE_GENERATION_LIMIT,
+  FREE_PLAN_PALETTE_SAVE_LIMIT,
+  PRO_PLAN_PALETTE_GENERATION_LIMIT,
+  PRO_PLAN_PALETTE_SAVE_LIMIT,
+  TEAMS_PLAN_PALETTE_GENERATION_LIMIT,
+  TEAMS_PLAN_PALETTE_SAVE_LIMIT,
+} from '../../shared/data/limits'
+export {
+  FREE_PLAN_PALETTE_GENERATION_LIMIT,
+  FREE_PLAN_PALETTE_SAVE_LIMIT,
+  PRO_PLAN_PALETTE_GENERATION_LIMIT,
+  PRO_PLAN_PALETTE_SAVE_LIMIT,
+  TEAMS_PLAN_PALETTE_GENERATION_LIMIT,
+  TEAMS_PLAN_PALETTE_SAVE_LIMIT,
+  getPaletteGenerationLimit,
+  getPaletteSaveLimit,
+  planLimits,
+} from '../../shared/data/limits'
 
-export const FREE_PLAN_PALETTE_GENERATION_LIMIT = 5
-export const PRO_PLAN_PALETTE_GENERATION_LIMIT = 60
-export const TEAMS_PLAN_PALETTE_GENERATION_LIMIT = 300
-export const FREE_PLAN_PALETTE_SAVE_LIMIT = 1
-export const PRO_PLAN_PALETTE_SAVE_LIMIT = 25
-export const TEAMS_PLAN_PALETTE_SAVE_LIMIT = null
+export type BillingInterval = 'monthly' | 'yearly'
 
 function formatPaletteGenerationLimitFeature(limit: number) {
   return `${limit} AI runs per month`
@@ -97,14 +110,6 @@ export function isPaidPricingPlanId(value: unknown): value is PaidPricingPlan {
 
 export function getPricingPlanById(planId: PricingPlanId) {
   return pricingPlans.find(plan => plan.id === planId) ?? null
-}
-
-export function getPaletteSaveLimit(planId: string | undefined) {
-  return getPricingPlanById(planId as PricingPlanId)?.paletteSaveLimit ?? FREE_PLAN_PALETTE_SAVE_LIMIT
-}
-
-export function getPaletteGenerationLimit(planId: string | undefined) {
-  return getPricingPlanById(planId as PricingPlanId)?.paletteGenerationLimit ?? FREE_PLAN_PALETTE_GENERATION_LIMIT
 }
 
 export function getDefaultPaidPricingPlanId(): PaidPricingPlan {

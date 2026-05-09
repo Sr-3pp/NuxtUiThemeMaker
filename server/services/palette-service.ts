@@ -1,5 +1,5 @@
 import { createError } from 'h3'
-import { getPaletteSaveLimit } from '../../app/data/pricing'
+import { getPaletteSaveLimit } from '../../shared/data/limits'
 import type { PaletteDefinition } from '~/types/palette'
 import type { PaletteCollaborator, PaletteForkSource, StoredPalette } from '~/types/palette-store'
 import type { PaletteVersionEvent } from '~/types/palette-version'
