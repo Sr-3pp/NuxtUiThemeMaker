@@ -8,7 +8,7 @@ const router = useRouter()
 const toast = useToast()
 const siteConfig = useRuntimeConfig()
 const pageSeo = getSeoRoute('/editor')
-const colorMode = useColorMode()
+const resolvedMode = useResolvedPaletteMode()
 
 usePageSeo({
   title: pageSeo.title,
@@ -33,12 +33,9 @@ usePaletteRuntimeUi({
 const disableInteractivePreviews = ref(false)
 
 const activeEditorPalette = computed(() => currentPalette.value ?? emptyPalette)
-const activeEditorMode = computed(() => {
-  return colorMode.value === 'dark' ? 'dark' : 'light'
-})
 
 const editorTheme = computed<Record<string, string>>(() => {
-  return buildPaletteRuntimeTheme(activeEditorPalette.value, activeEditorMode.value)
+  return buildPaletteRuntimeTheme(activeEditorPalette.value, resolvedMode.value)
 })
 
 const documentThemeSnapshot = import.meta.client

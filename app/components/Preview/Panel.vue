@@ -9,11 +9,7 @@ const props = withDefaults(defineProps<{
   disableInteractive: false,
 })
 
-const colorMode = useColorMode()
-
-const currentMode = computed(() => {
-  return colorMode.value === 'dark' ? 'dark' : 'light'
-})
+const currentMode = useResolvedPaletteMode()
 
 const previewFrame = computed(() => {
   if (!props.palette) {

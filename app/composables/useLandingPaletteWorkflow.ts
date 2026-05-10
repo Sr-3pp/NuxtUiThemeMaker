@@ -5,7 +5,7 @@ import type {
 import type { PaletteDefinition } from '~/types/palette'
 import type { StoredPalette } from '~/types/palette-store'
 import { FREE_PLAN_PALETTE_GENERATION_LIMIT } from '~/data/pricing'
-import { defaultPalettes } from '~/utils/paletteRegistry'
+import { getRandomDefaultPalette } from '~/utils/paletteRegistry'
 import { clonePaletteDefinition, createEditablePalette } from '~/utils/palette-domain'
 import { exportPaletteJson } from '~/utils/paletteExport'
 import { attachPaletteRuntimeUi } from '~/utils/palette-runtime-ui'
@@ -19,7 +19,7 @@ import {
 } from '~/utils/landing-demo-session'
 
 function getDefaultLandingPalette() {
-  return clonePaletteDefinition(defaultPalettes[0]!)
+  return clonePaletteDefinition(getRandomDefaultPalette())
 }
 
 function formatPaletteFileName(name: string) {
@@ -41,11 +41,12 @@ export function useLandingPaletteWorkflow() {
   const { access: generationAccess } = usePaletteGenerationAccess()
 
   const promptInput = useState('landing-demo-prompt-input', () => '')
+  const defaultLandingPalette = useState<PaletteDefinition>('landing-demo-default-palette', getDefaultLandingPalette)
   const generated = useState<LandingGeneratedPaletteState>('landing-demo-generated', createEmptyLandingGeneratedState)
   const restoredFromSession = useState('landing-demo-restored', () => false)
   const isSaving = ref(false)
 
-  const activePalette = computed(() => generated.value.palette ?? getDefaultLandingPalette())
+  const activePalette = computed(() => generated.value.palette ?? defaultLandingPalette.value)
   const hasGeneratedPalette = computed(() => Boolean(generated.value.palette))
   const isGenerating = computed(() => generated.value.status === 'loading')
   const remainingGuestRunsLabel = `${FREE_PLAN_PALETTE_GENERATION_LIMIT} demo prompts`

@@ -9,7 +9,7 @@ const props = withDefaults(defineProps<{
   isLoading: false,
 })
 
-const colorMode = useColorMode()
+const resolvedMode = useResolvedPaletteMode()
 const { activePalette, generated, isGenerating } = useLandingPaletteWorkflow()
 
 usePaletteRuntimeUi({
@@ -17,7 +17,7 @@ usePaletteRuntimeUi({
 })
 
 const shellTheme = computed(() => {
-  const mode = colorMode.value === 'dark' ? 'dark' : 'light'
+  const mode = resolvedMode.value
   const modeColors = activePalette.value.modes[mode]
 
   return {
