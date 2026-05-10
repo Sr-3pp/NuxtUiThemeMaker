@@ -1,5 +1,8 @@
 <script setup lang="ts">
 const { currentPalette, setCurrentPalette } = usePaletteState()
+const route = useRoute()
+
+const showPublicTheme = computed(() => route.path !== '/editor')
 
 function handlePaletteImport(palette: Parameters<typeof setCurrentPalette>[0]) {
   setCurrentPalette(palette)
@@ -10,7 +13,11 @@ function handlePaletteImport(palette: Parameters<typeof setCurrentPalette>[0]) {
   <UApp>
     <NuxtRouteAnnouncer />
 
-    <NuxtPage />
+    <PublicThemeShell v-if="showPublicTheme">
+      <PublicNavbar />
+      <NuxtPage />
+    </PublicThemeShell>
+    <NuxtPage v-else />
 
     <PaletteOwnDrawer />
     <PaletteDefaultPresetsDrawer />
@@ -18,6 +25,7 @@ function handlePaletteImport(palette: Parameters<typeof setCurrentPalette>[0]) {
     <PaletteHistoryModal />
     <PaletteShareModal />
     <ModalImport @import="handlePaletteImport" />
+    <ModalContribute />
     <ModalExport :palette="currentPalette" />
     <ModalQa
       :palette="currentPalette"

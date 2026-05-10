@@ -1,7 +1,11 @@
 <template>
   <UApp>
     <NuxtRouteAnnouncer />
-    <PanelNavigation />
-    <slot />
+    <PublicThemeShell>
+      <PublicNavbar />
+      <PanelNavigation />
+      <slot />
+    </PublicThemeShell>
+    <ModalContribute />
   </UApp>
 </template>

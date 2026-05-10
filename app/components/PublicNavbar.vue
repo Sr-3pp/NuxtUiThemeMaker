@@ -1,0 +1,123 @@
+<script setup lang="ts">
+import type { DropdownMenuItem } from '~/types/ui-local'
+
+const { signOut, user } = useAuth()
+const { open: openContributeModal } = useModal('contribute')
+
+const authItems = computed<DropdownMenuItem[][]>(() => {
+  if (!user.value) {
+    return []
+  }
+
+  const items: DropdownMenuItem[][] = [
+    [
+      {
+        label: user.value.name || user.value.email,
+        type: 'label',
+      },
+    ],
+    [
+      {
+        label: 'Workspace',
+        icon: 'i-lucide-briefcase',
+        to: '/workspace',
+      },
+      {
+        label: 'Editor',
+        icon: 'i-lucide-pencil-ruler',
+        to: '/editor',
+      },
+      {
+        label: 'Pricing',
+        icon: 'i-lucide-credit-card',
+        to: '/pricing',
+      },
+    ],
+  ]
+
+  if (user.value.isAdmin && items[1]) {
+    items[1].push({
+      label: 'Panel',
+      icon: 'i-lucide-shield',
+      to: '/panel',
+    })
+  }
+
+  items.push([
+    {
+      label: 'Sign out',
+      icon: 'i-lucide-log-out',
+      onSelect: async () => {
+        await signOut()
+        await navigateTo('/')
+      },
+    },
+  ])
+
+  return items
+})
+</script>
+
+<template>
+  <header class="sticky top-0 z-40 border-b border-default bg-default/90 backdrop-blur">
+    <UContainer class="flex flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+      <NuxtLink to="/" class="flex min-w-0 items-center gap-3">
+        <span class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-inverted">
+          <UIcon name="i-lucide-palette" class="size-4" />
+        </span>
+        <div class="min-w-0">
+          <p class="truncate text-sm font-bold text-highlighted sm:text-base">
+            Nuxt UI Theme Builder
+          </p>
+          <p class="hidden text-xs text-muted sm:block">
+            Generate, preview, export, and share Nuxt UI themes.
+          </p>
+        </div>
+      </NuxtLink>
+
+      <nav class="flex flex-wrap items-center gap-2 lg:justify-end">
+        <UButton color="neutral" variant="ghost" to="/nuxt-themes">
+          Nuxt themes
+        </UButton>
+        <UButton color="neutral" variant="ghost" @click="openContributeModal">
+          Contribute
+        </UButton>
+        <UButton color="neutral" variant="ghost" to="/pricing">
+          Pricing
+        </UButton>
+
+        <template v-if="user">
+          <UButton color="neutral" variant="ghost" to="/workspace">
+            Workspace
+          </UButton>
+          <UButton color="primary" variant="soft" to="/editor" icon="i-lucide-pencil-ruler">
+            Open editor
+          </UButton>
+          <UDropdownMenu
+            :items="authItems"
+            :content="{ align: 'end' }"
+            :ui="{ content: 'min-w-48' }"
+          >
+            <UButton
+              :label="user.name || user.email"
+              icon="i-lucide-circle-user"
+              trailing-icon="i-lucide-chevron-down"
+              color="neutral"
+              variant="ghost"
+              class="max-w-52 data-[state=open]:bg-elevated"
+            />
+          </UDropdownMenu>
+        </template>
+
+        <template v-else>
+          <UButton color="neutral" variant="outline" to="/login" icon="i-lucide-log-in">
+            Sign in
+          </UButton>
+          <UButton color="primary" variant="soft" to="/register">
+            Register
+          </UButton>
+        </template>
+      </nav>
+    </UContainer>
+  </header>
+</template>
