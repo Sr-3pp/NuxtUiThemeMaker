@@ -141,7 +141,7 @@ const mobileMenuItems = computed<DropdownMenuItem[][]>(() => {
         <UButton
           color="primary"
           variant="soft"
-          to="/editor"
+          to="/editor?source=landing"
           icon="i-lucide-pencil-ruler"
           aria-label="Open editor"
           class="shrink-0"
