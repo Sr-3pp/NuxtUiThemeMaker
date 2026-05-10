@@ -9,7 +9,7 @@ const props = defineProps<EditorProps>()
 
 const emit = defineEmits<EditorEmits>()
 
-const colorMode = useColorMode()
+const resolvedMode = useResolvedPaletteMode(props.defaultMode ?? 'light')
 const { activeSection } = useEditorSection()
 const editorSections = [
   { label: 'Semantic', value: 'semantic', slot: 'semantic' },
@@ -17,15 +17,7 @@ const editorSections = [
   { label: 'States', value: 'states', slot: 'states' }
 ]
 const activeMode = computed<PaletteModeKey>(() => {
-  if (colorMode.value === 'dark') {
-    return 'dark'
-  }
-
-  if (colorMode.value === 'light') {
-    return 'light'
-  }
-
-  return props.defaultMode ?? 'light'
+  return resolvedMode.value
 })
 </script>
 

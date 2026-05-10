@@ -80,15 +80,27 @@ const accessLabel = computed(() => {
   return 'Shared with you'
 })
 
-const swatches = computed(() => {
-  const lightColors = paletteDefinition.value.modes.light.color ?? {}
-  const darkColors = paletteDefinition.value.modes.dark.color ?? {}
-  const tokens = ['primary', 'secondary', 'success', 'info', 'warning', 'error']
+const colorTokens = ['primary', 'secondary', 'success', 'info', 'warning', 'error']
 
-  return tokens.map((token) => ({
-    token,
-    value: lightColors[token] ?? darkColors[token] ?? null,
-  }))
+const modeSwatches = computed(() => {
+  return (['light', 'dark'] as const).map((mode) => {
+    const colors = paletteDefinition.value.modes[mode].color ?? {}
+
+    return {
+      mode,
+      label: mode === 'light' ? 'Light' : 'Dark',
+      swatches: colorTokens.map((token) => ({
+        token,
+        value: colors[token] ?? null,
+      })),
+    }
+  })
+})
+
+const availableSwatchCount = computed(() => {
+  return modeSwatches.value.reduce((count, mode) => {
+    return count + mode.swatches.filter(swatch => swatch.value).length
+  }, 0)
 })
 </script>
 
@@ -123,32 +135,50 @@ const swatches = computed(() => {
             {{ versionLabel }}
           </UBadge>
           <UBadge color="neutral" variant="soft">
-            {{ swatches.filter(swatch => swatch.value).length }}/{{ swatches.length }}
+            {{ availableSwatchCount }}/{{ colorTokens.length * modeSwatches.length }}
           </UBadge>
         </div>
       </div>
 
-      <div class="space-y-2">
-        <div class="grid grid-cols-6 gap-2">
+      <div class="space-y-3">
+        <div class="space-y-2 rounded-lg border border-default bg-muted/20 p-3">
           <div
-            v-for="swatch in swatches"
-            :key="swatch.token"
-            class="space-y-2"
+            v-for="mode in modeSwatches"
+            :key="mode.mode"
+            class="grid grid-cols-[3rem_1fr] items-center gap-2"
           >
-            <div
-              class="h-12 rounded -lg border border-default bg-muted/60"
-              :style="swatch.value ? { backgroundColor: swatch.value } : undefined"
-            />
-            <p class="truncate text-[11px] uppercase tracking-[0.14em] text-muted">
-              {{ swatch.token }}
+            <p class="text-[11px] font-medium uppercase tracking-[0.12em] text-muted">
+              {{ mode.label }}
             </p>
+            <div class="grid grid-cols-6 gap-1.5">
+              <div
+                v-for="swatch in mode.swatches"
+                :key="`${mode.mode}-${swatch.token}`"
+                class="h-5 rounded-md border border-default bg-muted/60"
+                :title="`${mode.label} ${swatch.token}`"
+                :style="swatch.value ? { backgroundColor: swatch.value } : undefined"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-[3rem_1fr] items-center gap-2">
+            <span aria-hidden="true" />
+            <div class="grid grid-cols-6 gap-1.5">
+              <p
+                v-for="token in colorTokens"
+                :key="token"
+                class="truncate text-[10px] uppercase tracking-[0.08em] text-muted"
+              >
+                {{ token }}
+              </p>
+            </div>
           </div>
         </div>
 
         <p class="text-sm text-muted">
           {{
-            swatches.some(swatch => swatch.value)
-              ? 'Main palette colors at a glance.'
+            availableSwatchCount
+              ? 'Light and dark palette colors at a glance.'
               : 'Blank palette ready to be filled.'
           }}
         </p>

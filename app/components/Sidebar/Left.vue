@@ -105,13 +105,6 @@ const authItems = computed<DropdownMenuItem[][]>(() => {
         }
       },
       {
-        label: 'Landing demo',
-        icon: 'i-lucide-house',
-        onSelect: () => {
-          void navigateTo('/')
-        }
-      },
-      {
         label: 'Panel',
         icon: 'i-lucide-inbox',
         onSelect: () => {
@@ -133,7 +126,14 @@ const authItems = computed<DropdownMenuItem[][]>(() => {
 })
 
 const palettesItems = computed<NavigationMenuItem[][]>(() => [[
-  ...(user.value ? [{
+  ...(user.value ? [
+    {
+    label: 'Landing demo',
+    icon: 'i-lucide-house',
+    onSelect: () => {
+      void navigateTo('/')
+    }
+  },{
     label: 'My Palettes',
     icon: 'i-lucide-inbox',
     onSelect: () => openOwnPalettes()
@@ -142,12 +142,6 @@ const palettesItems = computed<NavigationMenuItem[][]>(() => [[
     icon: 'i-lucide-briefcase',
     onSelect: () => {
       void navigateTo('/workspace')
-    }
-  }, {
-    label: 'Landing demo',
-    icon: 'i-lucide-house',
-    onSelect: () => {
-      void navigateTo('/')
     }
   }] : []),
   {

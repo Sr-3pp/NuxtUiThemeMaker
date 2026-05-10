@@ -5,7 +5,7 @@ import type {
 import type { PaletteDefinition } from '~/types/palette'
 import type { StoredPalette } from '~/types/palette-store'
 import { FREE_PLAN_PALETTE_GENERATION_LIMIT } from '~/data/pricing'
-import { defaultPalettes } from '~/utils/paletteRegistry'
+import { getRandomDefaultPalette } from '~/utils/paletteRegistry'
 import { clonePaletteDefinition, createEditablePalette } from '~/utils/palette-domain'
 import { exportPaletteJson } from '~/utils/paletteExport'
 import { attachPaletteRuntimeUi } from '~/utils/palette-runtime-ui'
@@ -19,7 +19,7 @@ import {
 } from '~/utils/landing-demo-session'
 
 function getDefaultLandingPalette() {
-  return clonePaletteDefinition(defaultPalettes[0]!)
+  return clonePaletteDefinition(getRandomDefaultPalette())
 }
 
 function formatPaletteFileName(name: string) {
@@ -42,13 +42,28 @@ export function useLandingPaletteWorkflow() {
 
   const promptInput = useState('landing-demo-prompt-input', () => '')
   const generated = useState<LandingGeneratedPaletteState>('landing-demo-generated', createEmptyLandingGeneratedState)
+  const defaultLandingPalette = useState<PaletteDefinition | null>('landing-demo-default-palette', () => null)
   const restoredFromSession = useState('landing-demo-restored', () => false)
   const isSaving = ref(false)
 
-  const activePalette = computed(() => generated.value.palette ?? getDefaultLandingPalette())
+  const activePalette = computed(() => {
+    if (generated.value.palette) {
+      return generated.value.palette
+    }
+
+    return defaultLandingPalette.value ?? getDefaultLandingPalette()
+  })
   const hasGeneratedPalette = computed(() => Boolean(generated.value.palette))
   const isGenerating = computed(() => generated.value.status === 'loading')
   const remainingGuestRunsLabel = `${FREE_PLAN_PALETTE_GENERATION_LIMIT} demo prompts`
+
+  function ensureDefaultLandingPalette() {
+    if (generated.value.palette || defaultLandingPalette.value) {
+      return
+    }
+
+    defaultLandingPalette.value = getDefaultLandingPalette()
+  }
 
   function persistSession() {
     persistLandingDemoSession({
@@ -77,6 +92,8 @@ export function useLandingPaletteWorkflow() {
     if (payload.generated) {
       generated.value = payload.generated
     }
+
+    ensureDefaultLandingPalette()
   }
 
   function applyPaletteState(input: {
@@ -293,8 +310,15 @@ export function useLandingPaletteWorkflow() {
   }, { deep: true })
 
   if (import.meta.client) {
+    restoreSession()
+  }
+
+  ensureDefaultLandingPalette()
+
+  if (import.meta.client) {
     onMounted(() => {
       restoreSession()
+      ensureDefaultLandingPalette()
     })
   }
 

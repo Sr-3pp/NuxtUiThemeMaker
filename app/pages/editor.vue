@@ -1,24 +1,25 @@
 <script setup lang="ts">
 import { emptyPalette } from '~/utils/paletteRegistry'
 import { buildPaletteRuntimeTheme } from '~/utils/palette-theme'
-import { buildSoftwareApplicationJsonLd, indexableSeoRoutes } from '~/utils/seo'
+import { buildSoftwareApplicationJsonLd, getSeoRoute } from '~/utils/seo'
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const siteConfig = useRuntimeConfig()
-const pageSeo = indexableSeoRoutes.find(route => route.path === '/editor') ?? indexableSeoRoutes[0]
-const colorMode = useColorMode()
+const pageSeo = getSeoRoute('/editor')
+const resolvedMode = useResolvedPaletteMode()
 
 usePageSeo({
   title: pageSeo.title,
   description: pageSeo.description,
+  keywords: pageSeo.keywords,
   path: pageSeo.path,
   jsonLd: [
     buildSoftwareApplicationJsonLd(
       siteConfig.public.siteName,
       `${siteConfig.public.siteUrl}/editor`,
-      'Interactive Nuxt UI palette builder with previews, token editing, export, and sharing.',
+      'Interactive Nuxt UI theme editor with previews, token editing, accessible color checks, export, and sharing.',
     ),
   ],
 })
@@ -32,12 +33,9 @@ usePaletteRuntimeUi({
 const disableInteractivePreviews = ref(false)
 
 const activeEditorPalette = computed(() => currentPalette.value ?? emptyPalette)
-const activeEditorMode = computed(() => {
-  return colorMode.value === 'dark' ? 'dark' : 'light'
-})
 
 const editorTheme = computed<Record<string, string>>(() => {
-  return buildPaletteRuntimeTheme(activeEditorPalette.value, activeEditorMode.value)
+  return buildPaletteRuntimeTheme(activeEditorPalette.value, resolvedMode.value)
 })
 
 const documentThemeSnapshot = import.meta.client

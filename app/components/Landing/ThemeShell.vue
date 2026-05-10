@@ -11,14 +11,14 @@ const props = withDefaults(defineProps<{
   isLoading: false,
 })
 
-const colorMode = useColorMode()
+const resolvedMode = useResolvedPaletteMode()
 
 usePaletteRuntimeUi({
   palette: toRef(props, 'palette'),
 })
 
 const shellTheme = computed(() => {
-  const mode = colorMode.value === 'dark' ? 'dark' : 'light'
+  const mode = resolvedMode.value
   const modeColors = props.palette.modes[mode]
 
   return {
