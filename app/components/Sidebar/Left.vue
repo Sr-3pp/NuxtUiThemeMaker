@@ -93,13 +93,6 @@ const authItems = computed<DropdownMenuItem[][]>(() => {
     ],
     [
       {
-        label: 'Landing demo',
-        icon: 'i-lucide-house',
-        onSelect: () => {
-          void navigateTo('/')
-        }
-      },
-      {
         label: 'My Palettes',
         icon: 'i-lucide-inbox',
         onSelect: () => openOwnPalettes()
