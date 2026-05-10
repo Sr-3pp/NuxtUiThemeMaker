@@ -66,7 +66,6 @@ if (import.meta.client && documentThemeSnapshot) {
       'landing-theme-shell--generated': shouldShowGeneratedState,
       'landing-theme-shell--loading': shouldShowLoadingState,
     }"
-    :style="shellTheme"
   >
     <slot />
   </div>
