@@ -84,7 +84,6 @@ function registerPricingSection(node: Element | ComponentPublicInstance | null) 
         :helper-text="helperText || `Guests can try ${remainingGuestRunsLabel} in demo mode, then sign up to save palettes.`"
         :cta="cta"
         @submit="generateFromPrompt"
-        @open-editor="openEditor"
       />
 
       <LandingGeneratedPaletteSummary

@@ -7,7 +7,6 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  openEditor: []
   submit: []
   'update:modelValue': [value: string]
 }>()
@@ -104,10 +103,10 @@ const { user } = useAuth()
 
             <div class="flex flex-col gap-3 sm:flex-row sm:min-w-max">
               <UButton
+                to="/editor?source=landing"
                 color="neutral"
                 variant="ghost"
                 icon="i-lucide-pencil-ruler"
-                @click="emit('openEditor')"
               >
                 Open editor
               </UButton>

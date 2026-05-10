@@ -1,0 +1,176 @@
+{
+  "name": "Patisserie Luxe",
+  "modes": {
+    "light": {
+      "color": {
+        "primary": "#be185d",
+        "secondary": "#b45309",
+        "success": "#15803d",
+        "info": "#0369a1",
+        "warning": "#a16207",
+        "error": "#b91c1c"
+      },
+      "text": {
+        "default": "#431407",
+        "dimmed": "#713f12",
+        "muted": "#92400e",
+        "toned": "#be185d",
+        "highlighted": "#be185d",
+        "inverted": "#ffffff"
+      },
+      "bg": {
+        "default": "#fffbf0",
+        "muted": "#fdf2f8",
+        "elevated": "#ffffff",
+        "accented": "#be185d",
+        "inverted": "#2d1b2d"
+      },
+      "ui": {
+        "border": "#f5d0fe",
+        "border-muted": "#fae8ff",
+        "border-accented": "#f9a8d4",
+        "ring": "#be185d"
+      },
+      "radius": {
+        "default": "0.625rem",
+        "sm": "0.375rem",
+        "md": "0.625rem",
+        "lg": "0.875rem",
+        "xl": "1.25rem"
+      }
+    },
+    "dark": {
+      "color": {
+        "primary": "#f472b6",
+        "secondary": "#fbbf24",
+        "success": "#4ade80",
+        "info": "#38bdf8",
+        "warning": "#fb923c",
+        "error": "#f87171"
+      },
+      "text": {
+        "default": "#fff1f2",
+        "dimmed": "#fda4af",
+        "muted": "#f9a8d4",
+        "toned": "#f472b6",
+        "highlighted": "#fbcfe8",
+        "inverted": "#1e1b1b"
+      },
+      "bg": {
+        "default": "#2d1b2d",
+        "muted": "#3b233b",
+        "elevated": "#4d2d4d",
+        "accented": "#f472b6",
+        "inverted": "#fffbf0"
+      },
+      "ui": {
+        "border": "#5b21b6",
+        "border-muted": "#4c1d95",
+        "border-accented": "#f472b6",
+        "ring": "#f472b6"
+      },
+      "radius": {
+        "default": "0.625rem",
+        "sm": "0.375rem",
+        "md": "0.625rem",
+        "lg": "0.875rem",
+        "xl": "1.25rem"
+      }
+    }
+  },
+  "colors": {
+    "primary": {
+      "50": "#fcf3f7",
+      "100": "#f7e3ec",
+      "200": "#edbed2",
+      "300": "#e195b4",
+      "400": "#cf5487",
+      "500": "#be185d",
+      "600": "#a71552",
+      "700": "#901247",
+      "800": "#760f3a",
+      "900": "#5b0c2d",
+      "950": "#440921"
+    },
+    "secondary": {
+      "50": "#fbf6f3",
+      "100": "#f6eae1",
+      "200": "#eacfba",
+      "300": "#ddb08e",
+      "400": "#c88049",
+      "500": "#b45309",
+      "600": "#9e4908",
+      "700": "#893f07",
+      "800": "#703306",
+      "900": "#562804",
+      "950": "#411e03"
+    },
+    "success": {
+      "50": "#f3f9f5",
+      "100": "#e3f0e8",
+      "200": "#bddbc9",
+      "300": "#93c5a6",
+      "400": "#52a16f",
+      "500": "#15803d",
+      "600": "#127136",
+      "700": "#10612e",
+      "800": "#0d4f26",
+      "900": "#0a3d1d",
+      "950": "#082e16"
+    },
+    "info": {
+      "50": "#f2f8fa",
+      "100": "#e1edf4",
+      "200": "#b8d5e5",
+      "300": "#8bbad4",
+      "400": "#4590b9",
+      "500": "#0369a1",
+      "600": "#035c8e",
+      "700": "#02507a",
+      "800": "#024164",
+      "900": "#01324d",
+      "950": "#01263a"
+    },
+    "warning": {
+      "50": "#faf7f3",
+      "100": "#f4ece1",
+      "200": "#e5d3ba",
+      "300": "#d4b78d",
+      "400": "#b98b47",
+      "500": "#a16207",
+      "600": "#8e5606",
+      "700": "#7a4a05",
+      "800": "#643d04",
+      "900": "#4d2f03",
+      "950": "#3a2303"
+    },
+    "error": {
+      "50": "#fcf4f4",
+      "100": "#f7e4e4",
+      "200": "#ebbfbf",
+      "300": "#df9797",
+      "400": "#cb5757",
+      "500": "#b91c1c",
+      "600": "#a31919",
+      "700": "#8d1515",
+      "800": "#731111",
+      "900": "#590d0d",
+      "950": "#430a0a"
+    }
+  },
+  "aliases": {
+    "primary": "primary",
+    "secondary": "secondary",
+    "neutral": "neutral",
+    "success": "success",
+    "info": "info",
+    "warning": "warning",
+    "error": "error"
+  },
+  "components": {},
+  "ui": {},
+  "metadata": {
+    "version": 2,
+    "normalizedAt": null
+  }
+}
