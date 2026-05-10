@@ -427,6 +427,31 @@ describe('useThemeAiModal', () => {
     expect(open.value).toBe(false)
   })
 
+  it('sends the uploaded starter reference image to palette generation', async () => {
+    const result = createGeneratedPaletteResult('Reference Studio')
+    generatePaletteMock.mockResolvedValueOnce(result)
+
+    const { useThemeAiModal } = await import('../../app/composables/useThemeAiModal')
+    const modal = useThemeAiModal(ref(true), ref(createEditablePalette()))
+
+    modal.starterPrompt.value = 'Turn this screenshot into a starter theme'
+    modal.starterReferenceImage.value = {
+      data: 'ZmFrZS1pbWFnZS1iYXNlNjQ=',
+      mimeType: 'image/png',
+      name: 'reference.png',
+    }
+
+    await modal.handleStarterTheme()
+
+    expect(generatePaletteMock).toHaveBeenCalledWith(expect.objectContaining({
+      prompt: 'Turn this screenshot into a starter theme',
+      referenceImage: {
+        data: 'ZmFrZS1pbWFnZS1iYXNlNjQ=',
+        mimeType: 'image/png',
+      },
+    }))
+  })
+
   it('keeps the primary tool tabs on starter when the modal opens with QA issues', async () => {
     const { useThemeAiModal } = await import('../../app/composables/useThemeAiModal')
     const open = ref(false)

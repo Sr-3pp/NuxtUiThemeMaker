@@ -3,7 +3,7 @@ import { paletteDefinitionSchema, paletteResponseSchema } from '~~/server/domain
 
 const AI_PROMPT_MAX_LENGTH = 1500
 const AI_REFERENCE_SUMMARY_MAX_LENGTH = 2500
-const AI_REFERENCE_IMAGE_DATA_MAX_LENGTH = 3_000_000
+const AI_REFERENCE_IMAGE_DATA_MAX_LENGTH = 7_000_000
 
 const hexColorSchema = z.string().trim().regex(/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, 'Expected a hex color')
 const optionalHexColorSchema = z.union([hexColorSchema, z.null()])

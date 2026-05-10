@@ -54,7 +54,7 @@ describe('theme AI modal starter utils', () => {
     await handleThemeAiReferenceImageUpload(event, target, showValidationToast, showErrorToast)
 
     expect(target.value).toBeNull()
-    expect(showValidationToast).toHaveBeenCalledWith('Unsupported image type', 'Use a PNG, JPEG, WEBP, or GIF reference image.')
+    expect(showValidationToast).toHaveBeenCalledWith('Unsupported image type', 'Use a PNG, JPEG, or WEBP reference image.')
     expect(showErrorToast).not.toHaveBeenCalled()
     expect((event.target as HTMLInputElement).value).toBe('')
   })

@@ -369,7 +369,7 @@ describe('palette generate api handler', () => {
     await expect(handler(createPostEvent({
       prompt: 'Turn this screenshot into a starter theme',
       referenceImage: {
-        data: 'a'.repeat(3_000_001),
+        data: 'a'.repeat(7_000_001),
         mimeType: 'image/png',
       },
     }) as H3Event)).rejects.toMatchObject({
