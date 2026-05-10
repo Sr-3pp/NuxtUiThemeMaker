@@ -16,7 +16,7 @@ usePaletteRuntimeUi({
   palette: activePalette,
 })
 
-const shellTheme = computed(() => {
+const shellTheme = computed<Record<string, string>>(() => {
   const mode = resolvedMode.value
   const modeColors = activePalette.value.modes[mode]
 
