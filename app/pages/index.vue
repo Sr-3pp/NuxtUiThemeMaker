@@ -2,10 +2,10 @@
 import type { StoredPalette } from '~/types/palette-store'
 import type { ComponentPublicInstance } from 'vue'
 import type { DropdownMenuItem } from '~/types/ui-local'
-import { buildSiteJsonLd, buildSoftwareApplicationJsonLd, indexableSeoRoutes } from '~/utils/seo'
+import { buildNuxtThemesFaqJsonLd, buildSiteJsonLd, buildSoftwareApplicationJsonLd, getSeoRoute } from '~/utils/seo'
 
 const siteConfig = useRuntimeConfig()
-const pageSeo = indexableSeoRoutes.find(route => route.path === '/') ?? indexableSeoRoutes[0]
+const pageSeo = getSeoRoute('/')
 const { cta, helperText } = usePaletteGenerationAccess()
 const { signOut, user } = useAuth()
 const {
@@ -37,14 +37,16 @@ const isSaved = computed(() => generated.value.persistence.lifecycle === 'saved'
 usePageSeo({
   title: pageSeo.title,
   description: pageSeo.description,
+  keywords: pageSeo.keywords,
   path: pageSeo.path,
   jsonLd: [
     buildSiteJsonLd(siteConfig.public.siteName, siteConfig.public.siteUrl, siteConfig.public.siteDescription),
     buildSoftwareApplicationJsonLd(
       siteConfig.public.siteName,
       siteConfig.public.siteUrl,
-      'AI-assisted Nuxt UI palette builder with live theme previews, export, sharing, and workspace workflows.',
+      'AI-assisted Nuxt themes and Nuxt UI palette builder with live theme previews, export, sharing, and workspace workflows.',
     ),
+    buildNuxtThemesFaqJsonLd(),
   ],
 })
 
@@ -142,12 +144,15 @@ const authItems = computed<DropdownMenuItem[][]>(() => {
               Nuxt UI Theme Builder
             </p>
             <p class="text-sm leading-relaxed text-muted lg:text-base">
-              Generate a palette here, then refine it in the full editor and workspace.
+              Generate Nuxt themes here, then refine palettes in the full editor and workspace.
             </p>
           </div>
 
           <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
             <template v-if="user">
+              <UButton color="neutral" variant="ghost" to="/nuxt-themes" size="lg">
+                Nuxt themes
+              </UButton>
               <UButton color="neutral" variant="ghost" to="/pricing" size="lg">
                 Pricing
               </UButton>
@@ -174,6 +179,9 @@ const authItems = computed<DropdownMenuItem[][]>(() => {
               </UDropdownMenu>
             </template>
             <template v-else>
+              <UButton color="neutral" variant="ghost" to="/nuxt-themes" size="lg">
+                Nuxt themes
+              </UButton>
               <UButton color="neutral" variant="ghost" to="/pricing" size="lg">
                 Pricing
               </UButton>
@@ -275,7 +283,7 @@ const authItems = computed<DropdownMenuItem[][]>(() => {
                 Export
               </p>
               <p class="mt-3 text-sm leading-relaxed text-muted">
-                Download JSON, CSS, or app-ready config once the palette is strong enough to ship.
+                Download JSON, CSS, or app-ready config once the Nuxt theme is strong enough to ship.
               </p>
             </UCard>
           </div>

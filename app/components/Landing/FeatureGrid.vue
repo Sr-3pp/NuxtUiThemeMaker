@@ -1,8 +1,8 @@
 <script setup lang="ts">
 const featureCards = [
   {
-    title: 'Generate starter palettes',
-    description: 'Use a prompt to create a first-pass theme, then continue editing token-by-token.',
+    title: 'Generate Nuxt themes',
+    description: 'Use a prompt to create a first-pass Nuxt UI theme, then continue editing token-by-token.',
     icon: 'i-lucide-sparkles',
   },
   {
@@ -12,7 +12,7 @@ const featureCards = [
   },
   {
     title: 'Build ramps and variants',
-    description: 'Generate ramps, directions, and component-level variations without rebuilding the palette by hand.',
+    description: 'Generate color ramps, visual directions, and component-level variations without rebuilding the Nuxt theme by hand.',
     icon: 'i-lucide-layers-3',
   },
   {
@@ -40,10 +40,10 @@ const featureCards = [
         Product workflow
       </p>
       <h2 class="text-3xl font-bold tracking-tight text-highlighted lg:text-4xl">
-        AI is the entry point, not the whole product.
+        A complete workflow for Nuxt UI themes
       </h2>
       <p class="max-w-3xl text-base leading-relaxed text-muted lg:text-lg">
-        The landing prompt gets users into a theme quickly. The rest of the app helps them validate, refine, export, and share it.
+        The landing prompt gets users into a Nuxt theme quickly. The rest of the app helps them validate, refine, export, and share it.
       </p>
     </div>
 

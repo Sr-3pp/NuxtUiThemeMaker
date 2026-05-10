@@ -2,12 +2,12 @@
 import { isPaidPricingPlanId, pricingPlans } from '~/data/pricing'
 import type { BillingStatus } from '~/types/billing'
 import type { PaidPricingPlan, PricingPlanId } from '~/types/pricing'
-import { indexableSeoRoutes } from '~/utils/seo'
+import { getSeoRoute } from '~/utils/seo'
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
-const pageSeo = indexableSeoRoutes.find(route => route.path === '/pricing') ?? indexableSeoRoutes[0]
+const pageSeo = getSeoRoute('/pricing')
 const { user, refetchSession } = useAuth()
 const { createCheckoutSession } = useStripeCheckout()
 const { showErrorToast } = useErrorToast()
@@ -25,6 +25,7 @@ const { data: billingStatus, refresh: refreshBillingStatus } = await useFetch<Bi
 usePageSeo({
   title: pageSeo.title,
   description: pageSeo.description,
+  keywords: pageSeo.keywords,
   path: pageSeo.path,
 })
 

@@ -23,14 +23,14 @@ const { user } = useAuth()
     <div class="relative mx-auto max-w-5xl space-y-10 text-center sm:space-y-12">
       <div class="space-y-6">
         <UBadge color="primary" variant="soft" size="lg" class="rounded-full px-4 py-1.5 text-sm font-medium">
-          AI-first theme generation
+          AI-first Nuxt theme generation
         </UBadge>
         <h1 class="mx-auto max-w-4xl text-5xl font-bold tracking-tight text-highlighted sm:text-6xl lg:text-7xl">
-          Architect your
-          <span class="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"> Nuxt UI theme</span>
+          Generate Nuxt themes for
+          <span class="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"> Nuxt UI apps</span>
         </h1>
         <p class="mx-auto max-w-3xl text-base leading-relaxed text-muted sm:text-lg lg:text-xl">
-          Describe your product, mood, or interface direction. The landing preview updates live, and the same result carries forward into the full editor.
+          Describe your product, mood, or interface direction. The landing preview updates live, and the same Nuxt UI theme carries forward into the full editor.
         </p>
       </div>
 
@@ -92,7 +92,7 @@ const { user } = useAuth()
 
           <div class="flex flex-col gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex flex-wrap items-center gap-3 text-sm text-default">
-              <span>Landing uses the real generator and live app config.</span>
+              <span>Landing uses the real Nuxt theme generator and live app config.</span>
               <NuxtLink
                 v-if="props.cta"
                 :to="props.cta.to"

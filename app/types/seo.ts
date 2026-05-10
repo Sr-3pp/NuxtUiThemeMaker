@@ -5,6 +5,7 @@ export interface SeoRouteDefinition {
   title: string
   description: string
   changefreq: 'daily' | 'weekly' | 'monthly'
+  keywords?: string[]
   priority: string
 }
 
@@ -13,6 +14,7 @@ export interface PageSeoOptions {
   description: MaybeRefOrGetter<string>
   path?: MaybeRefOrGetter<string>
   image?: MaybeRefOrGetter<string>
+  keywords?: MaybeRefOrGetter<string[] | undefined>
   robots?: MaybeRefOrGetter<string>
   type?: MaybeRefOrGetter<'website' | 'article'>
   jsonLd?: MaybeRefOrGetter<Record<string, unknown> | Array<Record<string, unknown>> | undefined>

@@ -27,6 +27,7 @@ export function usePageSeo(options: PageSeoOptions) {
   const siteUrl = config.public.siteUrl
   const title = computed(() => toValue(options.title))
   const description = computed(() => toValue(options.description))
+  const keywords = computed(() => toValue(options.keywords)?.join(', '))
   const canonicalPath = computed(() => toValue(options.path) ?? route.path)
   const canonical = computed(() => joinUrl(siteUrl, canonicalPath.value))
   const socialImage = computed(() => joinUrl(siteUrl, toValue(options.image) ?? '/og-image.svg'))
@@ -47,6 +48,14 @@ export function usePageSeo(options: PageSeoOptions) {
       type: 'application/ld+json',
       innerHTML: JSON.stringify(entry),
     })),
+    meta: keywords.value
+      ? [
+          {
+            name: 'keywords',
+            content: keywords.value,
+          },
+        ]
+      : [],
   }))
 
   useSeoMeta({

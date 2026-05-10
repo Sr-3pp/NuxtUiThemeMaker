@@ -1,24 +1,25 @@
 <script setup lang="ts">
 import { emptyPalette } from '~/utils/paletteRegistry'
 import { buildPaletteRuntimeTheme } from '~/utils/palette-theme'
-import { buildSoftwareApplicationJsonLd, indexableSeoRoutes } from '~/utils/seo'
+import { buildSoftwareApplicationJsonLd, getSeoRoute } from '~/utils/seo'
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const siteConfig = useRuntimeConfig()
-const pageSeo = indexableSeoRoutes.find(route => route.path === '/editor') ?? indexableSeoRoutes[0]
+const pageSeo = getSeoRoute('/editor')
 const colorMode = useColorMode()
 
 usePageSeo({
   title: pageSeo.title,
   description: pageSeo.description,
+  keywords: pageSeo.keywords,
   path: pageSeo.path,
   jsonLd: [
     buildSoftwareApplicationJsonLd(
       siteConfig.public.siteName,
       `${siteConfig.public.siteUrl}/editor`,
-      'Interactive Nuxt UI palette builder with previews, token editing, export, and sharing.',
+      'Interactive Nuxt UI theme editor with previews, token editing, accessible color checks, export, and sharing.',
     ),
   ],
 })
