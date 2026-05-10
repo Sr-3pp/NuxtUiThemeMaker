@@ -110,14 +110,14 @@ const selectedHistoryId = computed(() => props.history.find(entry => entry.resul
           <UFormField label="Reference image">
             <input
               type="file"
-              accept="image/png,image/jpeg,image/webp,image/gif"
+              accept="image/png,image/jpeg,image/webp"
               class="block w-full text-sm text-muted"
               @change="emit('upload-image', $event)"
             >
           </UFormField>
 
           <p class="text-xs text-muted">
-            Optional. PNG, JPEG, WEBP, or GIF up to 5 MB.
+            Optional. PNG, JPEG, or WEBP up to 5 MB.
           </p>
 
           <UAlert

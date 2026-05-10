@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PaletteDefinition } from '~/types/palette'
+import type { EditablePalette } from '~/types/palette-editor'
 import {
   exportPaletteAppConfig,
   exportPaletteBundleTs,
@@ -11,12 +11,23 @@ import {
 } from '~/utils/paletteExport'
 
 const props = defineProps<{
-  palette: PaletteDefinition | null
+  palette: EditablePalette | null
 }>()
 
 const { isOpen: open } = useModal('export-palette')
+const toast = useToast()
 const selectedExport = ref<'json' | 'bundle' | 'appConfig' | 'ts' | 'components' | 'snippet' | 'js' | 'css'>('json')
 const copyState = ref<'idle' | 'copied' | 'error'>('idle')
+const isPaletteSaved = computed(() => Boolean(props.palette?._id))
+const canExportPalette = computed(() => Boolean(props.palette && isPaletteSaved.value))
+
+function showSaveRequiredToast() {
+  toast.add({
+    title: 'Save palette first',
+    description: 'You need to save the palette before you can export it.',
+    color: 'warning',
+  })
+}
 
 const exportOptions = [
   { label: 'JSON', value: 'json', description: 'Full palette definition for import/export.' },
@@ -70,6 +81,11 @@ function formatPaletteFileName(name: string) {
 }
 
 function exportCurrentPalette() {
+  if (!canExportPalette.value) {
+    showSaveRequiredToast()
+    return
+  }
+
   if (!props.palette || !import.meta.client) {
     return
   }
@@ -100,6 +116,11 @@ function exportCurrentPalette() {
 }
 
 async function copyCurrentExport() {
+  if (!canExportPalette.value) {
+    showSaveRequiredToast()
+    return
+  }
+
   if (!activeExport.value || !import.meta.client) {
     return
   }
@@ -126,6 +147,15 @@ async function copyCurrentExport() {
   >
     <template #body>
       <div class="space-y-4">
+        <UAlert
+          v-if="props.palette && !isPaletteSaved"
+          color="warning"
+          variant="soft"
+          icon="i-lucide-save"
+          title="Save palette first"
+          description="You need to save the palette first to be able to export it."
+        />
+
         <div class="grid gap-3">
           <button
             v-for="option in exportOptions"
@@ -159,7 +189,7 @@ async function copyCurrentExport() {
           block
           color="neutral"
           variant="outline"
-          :disabled="!props.palette"
+          :disabled="!canExportPalette"
           @click="copyCurrentExport()"
         >
           {{ copyState === 'copied' ? 'Copied' : copyState === 'error' ? 'Copy failed' : 'Copy export' }}
@@ -168,7 +198,7 @@ async function copyCurrentExport() {
         <UButton
           block
           color="primary"
-          :disabled="!props.palette"
+          :disabled="!canExportPalette"
           @click="exportCurrentPalette()"
         >
           Download {{ exportOptions.find(option => option.value === selectedExport)?.label }}

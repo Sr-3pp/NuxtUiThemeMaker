@@ -15,12 +15,22 @@ const {
   close: closeCommunityPalettes,
 } = useModal('community-palettes')
 
-const { currentPalette, resetCurrentPalette } = usePaletteState()
+const { currentPalette, isCurrentPaletteSaved, resetCurrentPalette } = usePaletteState()
 const { open: openImportModal } = useModal('import-palette')
 const { open: openExportModal } = useModal('export-palette')
+const toast = useToast()
 
 function handleExportOpen() {
   if (!currentPalette.value) {
+    return
+  }
+
+  if (!isCurrentPaletteSaved.value) {
+    toast.add({
+      title: 'Save palette first',
+      description: 'You need to save the palette before you can export it.',
+      color: 'warning',
+    })
     return
   }
 
@@ -164,6 +174,7 @@ const palettesItems = computed<NavigationMenuItem[][]>(() => [[
   {
     label: 'Export',
     icon: 'i-lucide-file-output',
+    description: isCurrentPaletteSaved.value ? undefined : 'Save first to export.',
     onSelect: () => handleExportOpen()
   }
 ]])

@@ -2,7 +2,7 @@ import type { Ref } from 'vue'
 import type { PaletteReferenceImageAsset } from '~/types/palette-generation'
 
 const MAX_REFERENCE_IMAGE_BYTES = 5 * 1024 * 1024
-const SUPPORTED_REFERENCE_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'] as const
+const SUPPORTED_REFERENCE_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const
 
 export function normalizeThemeAiHexColor(value: string) {
   const color = value.trim().toLowerCase()
@@ -56,7 +56,7 @@ export async function handleThemeAiReferenceImageUpload(
 
   if (!SUPPORTED_REFERENCE_IMAGE_TYPES.includes(file.type as typeof SUPPORTED_REFERENCE_IMAGE_TYPES[number])) {
     target.value = null
-    showValidationToast('Unsupported image type', 'Use a PNG, JPEG, WEBP, or GIF reference image.')
+    showValidationToast('Unsupported image type', 'Use a PNG, JPEG, or WEBP reference image.')
     input.value = ''
     return
   }
