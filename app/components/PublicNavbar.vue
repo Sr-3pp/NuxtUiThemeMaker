@@ -4,6 +4,21 @@ import type { DropdownMenuItem } from '~/types/ui-local'
 const { signOut, user } = useAuth()
 const { open: openContributeModal } = useModal('contribute')
 
+const guestItems: DropdownMenuItem[][] = [
+  [
+    {
+      label: 'Sign in',
+      icon: 'i-lucide-log-in',
+      to: '/login',
+    },
+    {
+      label: 'Register',
+      icon: 'i-lucide-user-plus',
+      to: '/register',
+    },
+  ],
+]
+
 const authItems = computed<DropdownMenuItem[][]>(() => {
   if (!user.value) {
     return []
@@ -85,13 +100,13 @@ const authItems = computed<DropdownMenuItem[][]>(() => {
         <UButton color="neutral" variant="ghost" to="/pricing">
           Pricing
         </UButton>
+        <UButton color="primary" variant="soft" to="/editor" icon="i-lucide-pencil-ruler">
+          Open editor
+        </UButton>
 
         <template v-if="user">
           <UButton color="neutral" variant="ghost" to="/workspace">
             Workspace
-          </UButton>
-          <UButton color="primary" variant="soft" to="/editor" icon="i-lucide-pencil-ruler">
-            Open editor
           </UButton>
           <UDropdownMenu
             :items="authItems"
@@ -109,14 +124,23 @@ const authItems = computed<DropdownMenuItem[][]>(() => {
           </UDropdownMenu>
         </template>
 
-        <template v-else>
-          <UButton color="neutral" variant="outline" to="/login" icon="i-lucide-log-in">
-            Sign in
-          </UButton>
-          <UButton color="primary" variant="soft" to="/register">
-            Register
-          </UButton>
-        </template>
+        <UDropdownMenu
+          v-else
+          :items="guestItems"
+          :content="{ align: 'end' }"
+          :ui="{ content: 'min-w-44' }"
+        >
+          <UButton
+            label="Account"
+            icon="i-lucide-circle-user"
+            trailing-icon="i-lucide-chevron-down"
+            color="neutral"
+            variant="outline"
+            class="data-[state=open]:bg-elevated"
+          />
+        </UDropdownMenu>
+
+        <UColorModeSwitch />
       </nav>
     </UContainer>
   </header>
