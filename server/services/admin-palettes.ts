@@ -8,6 +8,20 @@ import {
 import { getPaletteLifecycleStatus } from '~~/server/domain/palette'
 import { generateUniquePaletteSlug, parsePaletteObjectId } from '~~/server/services/palette-helpers'
 
+export async function getAdminManagedPalette(paletteId: string) {
+  const objectId = parsePaletteObjectId(paletteId)
+  const existingPalette = await findPaletteById(objectId)
+
+  if (!existingPalette) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: 'Palette not found',
+    })
+  }
+
+  return existingPalette
+}
+
 export async function updateAdminManagedPalette(
   paletteId: string,
   input: AdminPaletteUpdateInput,

@@ -85,6 +85,11 @@ function resolveFlatClassColorValue(
 
   const rawValue = normalized.slice(prefix.length)
   const [tokenKey, opacitySuffix] = rawValue.split('/')
+
+  if (!tokenKey) {
+    return undefined
+  }
+
   const modeTokens = palette?.modes?.[mode]
 
   const resolvedBaseValue = utility === 'bg'
@@ -157,7 +162,7 @@ export function getPreviewVariantStyle(
     return buildStyleFromFlatClassString(palette, options?.mode ?? 'light', variantValue)
   }
 
-  return buildStyleFromTokens(normalizeToTokenGroup(variantValue))
+  return buildStyleFromTokens(variantValue)
 }
 
 export function getPreviewVariantClass(

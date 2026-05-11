@@ -35,7 +35,14 @@ const disableInteractivePreviews = ref(false)
 const activeEditorPalette = computed(() => currentPalette.value ?? emptyPalette)
 
 const editorTheme = computed<Record<string, string>>(() => {
-  return buildPaletteRuntimeTheme(activeEditorPalette.value, resolvedMode.value)
+  const modeColors = activeEditorPalette.value.modes[resolvedMode.value]
+
+  return {
+    ...buildPaletteRuntimeTheme(activeEditorPalette.value, resolvedMode.value),
+    '--landing-gradient-primary': modeColors.color?.primary ?? '#4cd964',
+    '--landing-gradient-secondary': modeColors.color?.secondary ?? '#7ab8ff',
+    '--landing-backdrop': modeColors.bg?.default ?? '#090d12',
+  }
 })
 
 const documentThemeSnapshot = import.meta.client

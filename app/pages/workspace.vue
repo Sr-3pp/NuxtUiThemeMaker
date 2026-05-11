@@ -2,7 +2,7 @@
 import type { PaletteReviewThread } from '~/types/palette-review'
 import type { StoredPalette } from '~/types/palette-store'
 import type { StoredPaletteQaReport } from '~/types/theme-qa'
-import type { WorkspacePaletteItem, WorkspaceRequestFetch } from '~/types/workspace'
+import type { WorkspacePaletteItem } from '~/types/workspace'
 
 definePageMeta({
   middleware: ['auth'],
@@ -15,19 +15,10 @@ usePageSeo({
   robots: 'noindex, nofollow',
 })
 
-function apiFetch<T>(
-  url: string,
-  options?: Parameters<WorkspaceRequestFetch>[1],
-): Promise<T> {
-  if (import.meta.server) {
-    return useRequestFetch()(url, options) as Promise<T>
-  }
-
-  return $fetch<T>(url, options) as Promise<T>
-}
+const requestFetch = useAppRequestFetch()
 
 const fetchWorkspaceApi = <T,>(url: string) => {
-  return apiFetch<T>(url, {
+  return requestFetch<T>(url, {
     credentials: 'include',
   })
 }

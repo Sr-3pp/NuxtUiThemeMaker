@@ -1,4 +1,4 @@
-import type { PaletteComponentThemes } from '~/types/palette'
+import type { PaletteComponentThemes, PaletteTokenGroup } from '~/types/palette'
 import { normalizeComponentThemes } from './palette-io'
 import {
   buildFlatVariantClassString,
@@ -16,8 +16,18 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
 
+function isVariantTokenGroup(value: unknown): value is PaletteTokenGroup {
+  return isRecord(value) && Object.values(value).every(entry =>
+    entry == null || typeof entry === 'string'
+  )
+}
+
+function isVariantClassValue(value: unknown): value is string | PaletteTokenGroup {
+  return typeof value === 'string' || isVariantTokenGroup(value)
+}
+
 function normalizeVariantLeafForEditing(value: unknown) {
-  if (typeof value !== 'string' && !isRecord(value)) {
+  if (!isVariantClassValue(value)) {
     return value
   }
 
@@ -38,7 +48,7 @@ function createRuntimeCompoundVariants(componentKey: string, section: Record<str
     }
 
     return Object.entries(colors).flatMap(([color, value]) => {
-      if (typeof value !== 'string' && !isRecord(value)) {
+      if (!isVariantClassValue(value)) {
         return []
       }
 
@@ -98,7 +108,7 @@ export function resolveNuxtUiComponentThemes(components?: PaletteComponentThemes
           Object.entries(value.variants).map(([variant, colors]) => [variant, isRecord(colors)
             ? Object.fromEntries(
               Object.entries(colors).map(([color, leafValue]) => {
-                if (typeof leafValue !== 'string' && !isRecord(leafValue)) {
+                if (!isVariantClassValue(leafValue)) {
                   return [color, leafValue]
                 }
 
@@ -110,7 +120,7 @@ export function resolveNuxtUiComponentThemes(components?: PaletteComponentThemes
         )
         : value.variants
 
-      const normalizedValue = {
+      const normalizedValue: Record<string, unknown> = {
         ...value,
         variants: normalizedVariants,
       }

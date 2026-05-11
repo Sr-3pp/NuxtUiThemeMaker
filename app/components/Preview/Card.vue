@@ -2,7 +2,7 @@
 withDefaults(defineProps<{
   title: string
   description?: string
-  variant?: string
+  variant?: 'solid' | 'outline' | 'soft' | 'subtle'
   cardClass?: string
 }>(), {
   description: undefined,

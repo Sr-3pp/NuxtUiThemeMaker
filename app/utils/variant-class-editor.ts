@@ -232,7 +232,7 @@ export function toFlatVariantClassFields(
   return fields
 }
 
-export function isStructuredFlatVariantFields(value: string | PaletteTokenGroup | null | undefined) {
+export function isStructuredFlatVariantFields(value: unknown): value is PaletteTokenGroup {
   if (!value || typeof value === 'string') {
     return false
   }
