@@ -8,6 +8,8 @@ export interface DropdownMenuItem {
   label?: string
   icon?: string
   type?: 'label'
+  color?: 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral'
+  kbds?: string[]
   disabled?: boolean
   to?: string
   href?: string

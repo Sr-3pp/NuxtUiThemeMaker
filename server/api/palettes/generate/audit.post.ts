@@ -52,7 +52,7 @@ function normalizeAuditFix(rawFix: unknown): AuditFix | null {
     }
   }
 
-  const [, mode, token, reason] = match
+  const [, mode = 'shared', token = 'unknown', reason = trimmed] = match
 
   return {
     token: token.trim(),

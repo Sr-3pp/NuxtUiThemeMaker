@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PreviewInteractiveProps } from '~/types/theme-preview'
+import type { DropdownMenuItem } from '~/types/ui-local'
 import { getPreviewButtonStyle, getPreviewInputStyle } from '~/utils/preview-overrides'
 
 const props = defineProps<PreviewInteractiveProps>()
@@ -7,7 +8,7 @@ const props = defineProps<PreviewInteractiveProps>()
 const isModalOpen = ref(false)
 const isDrawerOpen = ref(false)
 
-const dropdownItems = [
+const dropdownItems: DropdownMenuItem[][] = [
   [
     { label: 'Open palette editor', icon: 'i-lucide-sliders-horizontal', kbds: ['cmd', 'e'] },
     { label: 'Duplicate preset', icon: 'i-lucide-copy' }

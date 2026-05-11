@@ -15,7 +15,7 @@ usePageSeo({
   robots: 'noindex, nofollow',
 })
 
-const requestFetch = import.meta.server ? useRequestFetch() : $fetch
+const requestFetch = useAppRequestFetch()
 const toast = useToast()
 const { showErrorToast } = useErrorToast()
 

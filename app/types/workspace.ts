@@ -7,7 +7,3 @@ export interface WorkspacePaletteItem {
   reviewThread: PaletteReviewThread
   qa: StoredPaletteQaReport | null
 }
-
-export type WorkspaceRequestFetch = <T>(url: string, options?: {
-  credentials?: RequestCredentials
-}) => Promise<T>
