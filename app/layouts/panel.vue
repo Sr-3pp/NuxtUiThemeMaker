@@ -2,7 +2,6 @@
   <UApp>
     <NuxtRouteAnnouncer />
     <PublicThemeShell>
-      <PublicNavbar />
       <PanelNavigation />
       <slot />
     </PublicThemeShell>

@@ -178,7 +178,10 @@ export function buildPaletteRampTheme(colors?: PaletteColorScales) {
 }
 
 export function buildPaletteRuntimeTheme(palette: PaletteDefinition, mode: PaletteModeKey) {
-  return buildPaletteModeTheme(palette.modes[mode])
+  return {
+    ...buildPaletteRampTheme(palette.colors),
+    ...buildPaletteModeTheme(palette.modes[mode]),
+  }
 }
 
 export function buildPaletteThemeData(palette: PaletteDefinition): PaletteThemeData {

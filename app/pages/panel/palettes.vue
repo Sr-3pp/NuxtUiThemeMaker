@@ -4,6 +4,7 @@ import type { TableColumn } from '@nuxt/ui/components/Table.vue'
 import type { TableCellContext } from '~/types/ui-local'
 import { z } from 'zod'
 import type { AdminPaletteListItem } from '~/types/admin-palette'
+import type { StoredPalette } from '~/types/palette-store'
 
 definePageMeta({
   layout: 'panel',
@@ -20,6 +21,7 @@ usePageSeo({
 const requestFetch = import.meta.server ? useRequestFetch() : $fetch
 const toast = useToast()
 const { showErrorToast } = useErrorToast()
+const { setCurrentPalette } = usePaletteState()
 
 const { data: palettes, refresh, status } = await useAsyncData('admin-palettes', () =>
   requestFetch<AdminPaletteListItem[]>('/api/admin/palettes', {
@@ -32,6 +34,7 @@ const isEditOpen = ref(false)
 const isDeleteOpen = ref(false)
 const isSaving = ref(false)
 const isDeleting = ref(false)
+const previewingPaletteId = ref<string | null>(null)
 const selectedPalette = ref<AdminPaletteListItem | null>(null)
 
 const editState = reactive({
@@ -76,6 +79,25 @@ function openEdit(palette: AdminPaletteListItem) {
 function openDelete(palette: AdminPaletteListItem) {
   selectedPalette.value = palette
   isDeleteOpen.value = true
+}
+
+async function openPalettePreview(palette: AdminPaletteListItem) {
+  previewingPaletteId.value = palette.id
+
+  try {
+    const paletteForPreview = await requestFetch<StoredPalette>(`/api/admin/palettes/${palette.id}`, {
+      credentials: 'include',
+    })
+
+    setCurrentPalette(paletteForPreview)
+    await navigateTo('/editor')
+  }
+  catch (error) {
+    showErrorToast(error, 'Failed to open palette preview.')
+  }
+  finally {
+    previewingPaletteId.value = null
+  }
 }
 
 function closeEdit() {
@@ -193,6 +215,14 @@ const tableColumns: TableColumn<AdminPaletteListItem>[] = [
       const UButton = resolveComponent('UButton')
 
       return h('div', { class: 'flex items-center justify-end gap-2' }, [
+        h(UButton, {
+          color: 'primary',
+          variant: 'soft',
+          size: 'xs',
+          icon: 'i-lucide-eye',
+          loading: previewingPaletteId.value === row.original.id,
+          onClick: () => openPalettePreview(row.original),
+        }, () => 'Preview'),
         h(UButton, {
           color: 'neutral',
           variant: 'outline',

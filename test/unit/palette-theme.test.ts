@@ -3,6 +3,7 @@ import {
   buildNuxtUiConfig,
   buildPaletteModeTheme,
   buildPaletteRampTheme,
+  buildPaletteRuntimeTheme,
   buildPaletteThemeData,
   parsePaletteThemeTokens,
 } from '../../app/utils/palette-theme'
@@ -59,6 +60,45 @@ describe('palette theme utils', () => {
         '950': '#062e18',
       },
     })).toEqual({
+      '--ui-color-primary-50': '#f0fff4',
+      '--ui-color-primary-500': '#11aa55',
+      '--ui-color-primary-950': '#062e18',
+    })
+  })
+
+  it('builds runtime themes with semantic tokens and color ramps', () => {
+    const theme = buildPaletteRuntimeTheme({
+      name: 'Forest Glow',
+      modes: {
+        light: {
+          color: { primary: '#11aa55' },
+          bg: { default: '#f8fafc' },
+        },
+        dark: {
+          color: { primary: '#44dd88' },
+          bg: { default: '#020617' },
+        },
+      },
+      colors: {
+        primary: {
+          '50': '#f0fff4',
+          '100': null,
+          '200': null,
+          '300': null,
+          '400': null,
+          '500': '#11aa55',
+          '600': null,
+          '700': null,
+          '800': null,
+          '900': null,
+          '950': '#062e18',
+        },
+      },
+    }, 'light')
+
+    expect(theme).toMatchObject({
+      '--ui-bg': '#f8fafc',
+      '--ui-primary': '#11aa55',
       '--ui-color-primary-50': '#f0fff4',
       '--ui-color-primary-500': '#11aa55',
       '--ui-color-primary-950': '#062e18',
