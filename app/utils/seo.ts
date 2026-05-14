@@ -4,14 +4,17 @@ import type { SeoRouteDefinition } from '~/types/seo'
 export const indexableSeoRoutes: SeoRouteDefinition[] = [
   {
     path: '/',
-    title: 'Nuxt Themes and Nuxt UI Theme Generator',
-    description: 'Generate Nuxt themes and Nuxt UI color palettes with AI, live component previews, contrast QA, exports, sharing, and a saved theme workspace.',
+    title: 'Theme Builder for Nuxt UI - Home',
+    description: 'Create beautiful, customizable Nuxt UI themes with AI palettes, live component previews, variant editing, QA, export, and sharing.',
     changefreq: 'weekly',
     keywords: [
+      'theme builder for nuxt ui',
       'nuxt themes',
       'nuxt ui themes',
       'nuxt theme generator',
       'nuxt ui theme builder',
+      'nuxt ui custom colors',
+      'nuxt ui variants',
       'nuxt color palette',
       'nuxt ui color palette',
       'nuxt design tokens',
@@ -106,13 +109,69 @@ export function getSeoRoute(path: string): SeoRouteDefinition {
   }
 }
 
+function normalizeSiteUrl(siteUrl: string) {
+  return new URL('/', siteUrl).toString()
+}
+
+function omitJsonLdContext(entry: Record<string, unknown>) {
+  const jsonLd = { ...entry }
+
+  delete jsonLd['@context']
+
+  return jsonLd
+}
+
 export function buildSiteJsonLd(siteName: string, siteUrl: string, siteDescription: string) {
+  const normalizedSiteUrl = normalizeSiteUrl(siteUrl)
+
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
+    '@id': new URL('/#website', normalizedSiteUrl).toString(),
+    inLanguage: 'en',
     name: siteName,
-    url: siteUrl,
+    url: normalizedSiteUrl,
     description: siteDescription,
+  }
+}
+
+export function buildWebPageJsonLd(siteName: string, siteUrl: string, path: string, name: string, description: string) {
+  const normalizedSiteUrl = normalizeSiteUrl(siteUrl)
+  const pageUrl = new URL(path, normalizedSiteUrl).toString()
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    '@id': `${pageUrl}#webpage`,
+    inLanguage: 'en',
+    name,
+    description,
+    url: pageUrl,
+    isPartOf: {
+      '@id': new URL('/#website', normalizedSiteUrl).toString(),
+      '@type': 'WebSite',
+      name: siteName,
+      url: normalizedSiteUrl,
+    },
+    potentialAction: [
+      {
+        '@type': 'ReadAction',
+        target: [pageUrl],
+      },
+    ],
+  }
+}
+
+export function buildHomeSeoGraphJsonLd(siteName: string, siteUrl: string, siteDescription: string, pageTitle: string) {
+  const site = buildSiteJsonLd(siteName, siteUrl, siteDescription)
+  const page = buildWebPageJsonLd(siteName, siteUrl, '/', pageTitle, siteDescription)
+
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      omitJsonLdContext(site),
+      omitJsonLdContext(page),
+    ],
   }
 }
 

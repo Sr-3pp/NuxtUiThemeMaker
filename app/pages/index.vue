@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { StoredPalette } from '~/types/palette-store'
 import type { ComponentPublicInstance } from 'vue'
-import { buildNuxtThemesFaqJsonLd, buildSiteJsonLd, buildSoftwareApplicationJsonLd, getSeoRoute } from '~/utils/seo'
+import { buildHomeSeoGraphJsonLd, buildNuxtThemesFaqJsonLd, buildSoftwareApplicationJsonLd, getSeoRoute } from '~/utils/seo'
 
 const siteConfig = useRuntimeConfig()
 const pageSeo = getSeoRoute('/')
@@ -38,7 +38,7 @@ usePageSeo({
   keywords: pageSeo.keywords,
   path: pageSeo.path,
   jsonLd: [
-    buildSiteJsonLd(siteConfig.public.siteName, siteConfig.public.siteUrl, siteConfig.public.siteDescription),
+    buildHomeSeoGraphJsonLd(siteConfig.public.siteName, siteConfig.public.siteUrl, siteConfig.public.siteDescription, pageSeo.title),
     buildSoftwareApplicationJsonLd(
       siteConfig.public.siteName,
       siteConfig.public.siteUrl,
