@@ -1,11 +1,24 @@
 import { ObjectId } from 'mongodb'
+import type { UpdateFilter } from 'mongodb'
 import type { PricingPlanId } from '~/types/pricing'
 import { getMongoDb } from '~~/server/utils/mongodb'
 
 export const USER_COLLECTIONS = ['user', 'users'] as const
+type BillingInterval = 'monthly' | 'yearly'
+interface UserDocument extends Record<string, unknown> {
+  _id?: ObjectId | string
+  id?: string
+  email?: string
+  name?: string
+  plan?: PricingPlanId | 'free'
+  planExpiresAt?: Date | null
+  planInterval?: BillingInterval | null
+  stripeSubscriptionId?: string | null
+  aiPaletteGenerationsUsed?: number
+}
 
 function getUserFilters(userId: string) {
-  const filters: Record<string, unknown>[] = [
+  const filters: UserDocument[] = [
     { id: userId },
     { _id: userId },
   ]
@@ -17,6 +30,54 @@ function getUserFilters(userId: string) {
   return filters
 }
 
+function getFindOneAndUpdateDocument(result: unknown): UserDocument | null {
+  if (!result) {
+    return null
+  }
+
+  if (typeof result === 'object' && 'value' in result) {
+    return (result.value as UserDocument | null | undefined) ?? null
+  }
+
+  return result as UserDocument
+}
+
+function getUserDocumentKey(document: UserDocument) {
+  return String(document.id ?? document._id)
+}
+
+function sortUserDocuments(
+  documents: UserDocument[],
+  sort: Record<string, 1 | -1> | undefined,
+) {
+  const [sortEntry] = Object.entries(sort ?? {})
+
+  if (!sortEntry) {
+    return documents
+  }
+
+  const [field, direction] = sortEntry
+
+  return [...documents].sort((left, right) => {
+    const leftValue = left[field]
+    const rightValue = right[field]
+
+    if (leftValue instanceof Date && rightValue instanceof Date) {
+      return (leftValue.getTime() - rightValue.getTime()) * direction
+    }
+
+    if (typeof leftValue === 'string' && typeof rightValue === 'string') {
+      return leftValue.localeCompare(rightValue) * direction
+    }
+
+    if (typeof leftValue === 'number' && typeof rightValue === 'number') {
+      return (leftValue - rightValue) * direction
+    }
+
+    return 0
+  })
+}
+
 export async function listUserDocuments(
   options?: {
     filter?: Record<string, unknown>
@@ -25,66 +86,61 @@ export async function listUserDocuments(
   },
 ): Promise<Record<string, unknown>[]> {
   const db = await getMongoDb()
+  const usersById = new Map<string, UserDocument>()
 
   for (const collectionName of USER_COLLECTIONS) {
-    const documents = await db.collection(collectionName)
+    const documents = await db.collection<UserDocument>(collectionName)
       .find(options?.filter ?? {}, {
         projection: options?.projection,
       })
       .sort(options?.sort ?? {})
       .toArray()
 
-    if (documents.length > 0 || collectionName === USER_COLLECTIONS[USER_COLLECTIONS.length - 1]) {
-      return documents
+    for (const document of documents) {
+      usersById.set(getUserDocumentKey(document), {
+        ...usersById.get(getUserDocumentKey(document)),
+        ...document,
+      })
     }
   }
 
-  return []
+  return sortUserDocuments(Array.from(usersById.values()), options?.sort)
 }
 
 export async function incrementAiPaletteGenerationsUsed(userId: string) {
   const db = await getMongoDb()
   const filters = getUserFilters(userId)
+  const usageIncrement = { $inc: { aiPaletteGenerationsUsed: 1 } } as unknown as UpdateFilter<UserDocument>
+  let updatedUser: UserDocument | null = null
 
   for (const collectionName of USER_COLLECTIONS) {
-    for (const filter of filters) {
-      const result = await db.collection(collectionName).findOneAndUpdate(
-        filter,
-        { $inc: { aiPaletteGenerationsUsed: 1 } },
-        {
-          returnDocument: 'after',
-        },
-      )
+    const result = await db.collection<UserDocument>(collectionName).findOneAndUpdate(
+      { $or: filters },
+      usageIncrement,
+      {
+        returnDocument: 'after',
+      },
+    )
+    const document = getFindOneAndUpdateDocument(result)
 
-      if (!result) {
-        continue
-      }
-
-      if (typeof result === 'object' && 'value' in result) {
-        if (result.value) {
-          return result.value
-        }
-
-        continue
-      }
-
-      return result
+    if (document) {
+      updatedUser = document
     }
   }
 
-  return null
+  return updatedUser
 }
 
 async function updateUserAcrossCollections(
   userId: string,
-  update: Record<string, unknown>,
+  update: UserDocument,
 ) {
   const db = await getMongoDb()
   const filters = getUserFilters(userId)
 
   for (const collectionName of USER_COLLECTIONS) {
     for (const filter of filters) {
-      const result = await db.collection(collectionName).findOneAndUpdate(
+      const result = await db.collection<UserDocument>(collectionName).findOneAndUpdate(
         filter,
         { $set: update },
         {
@@ -92,19 +148,11 @@ async function updateUserAcrossCollections(
         },
       )
 
-      if (!result) {
-        continue
+      const document = getFindOneAndUpdateDocument(result)
+
+      if (document) {
+        return document
       }
-
-      if (typeof result === 'object' && 'value' in result) {
-        if (result.value) {
-          return result.value
-        }
-
-        continue
-      }
-
-      return result
     }
   }
 
@@ -117,7 +165,7 @@ export async function findUserById(userId: string) {
 
   for (const collectionName of USER_COLLECTIONS) {
     for (const filter of filters) {
-      const document = await db.collection(collectionName).findOne(filter)
+      const document = await db.collection<UserDocument>(collectionName).findOne(filter)
 
       if (document) {
         return document
@@ -132,7 +180,7 @@ export async function findUserByEmail(email: string) {
   const db = await getMongoDb()
 
   for (const collectionName of USER_COLLECTIONS) {
-    const document = await db.collection(collectionName).findOne({ email })
+    const document = await db.collection<UserDocument>(collectionName).findOne({ email })
 
     if (document) {
       return document
@@ -186,7 +234,7 @@ export async function findUserByStripeCustomerId(stripeCustomerId: string) {
   const db = await getMongoDb()
 
   for (const collectionName of USER_COLLECTIONS) {
-    const document = await db.collection(collectionName).findOne({ stripeCustomerId })
+    const document = await db.collection<UserDocument>(collectionName).findOne({ stripeCustomerId })
 
     if (document) {
       return document

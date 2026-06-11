@@ -1,17 +1,11 @@
-import { createError, defineEventHandler, getRouterParam } from 'h3'
+import { defineEventHandler } from 'h3'
 import { requireAuthSession } from '~~/server/utils/auth-session'
 import { deletePaletteForUser } from '~~/server/services/palette-service'
+import { requireRouterParam } from '~~/server/utils/route-params'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireAuthSession(event)
-  const id = getRouterParam(event, 'id')
-
-  if (!id) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Palette id is required',
-    })
-  }
+  const id = requireRouterParam(event, 'id', 'palette id')
 
   await deletePaletteForUser(id, user.id)
 

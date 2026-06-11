@@ -373,7 +373,11 @@ describe('palette generate api handler', () => {
         mimeType: 'image/png',
       },
     }) as H3Event)).rejects.toMatchObject({
-      name: 'ZodError',
+      statusCode: 400,
+      statusMessage: 'Validation Error',
+      data: {
+        name: 'ZodError',
+      },
     })
 
     expect(generateContentMock).not.toHaveBeenCalled()

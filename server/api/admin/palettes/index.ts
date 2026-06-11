@@ -1,18 +1,9 @@
-import { listAdminPalettes } from "~~/server/db/repositories/admin/palettes-repository"
-import { requireAuthSession } from '~~/server/utils/auth-session'
+import { defineEventHandler } from 'h3'
+import { listAdminPalettes } from '~~/server/db/repositories/admin/palettes-repository'
+import { requireAdminSession } from '~~/server/utils/admin-auth'
 
 export default defineEventHandler(async (event) => {
-  const session = await requireAuthSession(event)
+  await requireAdminSession(event)
 
-  if (!session || !session.user.isAdmin) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Admin access required',
-    })
-  }
-
-  const palettes = await listAdminPalettes()
-
-  return palettes
-
+  return listAdminPalettes()
 })

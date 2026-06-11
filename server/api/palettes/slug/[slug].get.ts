@@ -1,18 +1,12 @@
-import { createError, defineEventHandler, getRouterParam } from 'h3'
+import { createError, defineEventHandler } from 'h3'
 import { toStoredPalette } from '~~/server/domain/palette'
 import { findPaletteBySlug } from '~~/server/db/repositories/palette-repository'
 import { getOptionalAuthSession } from '~~/server/utils/auth-session'
+import { requireRouterParam } from '~~/server/utils/route-params'
 
 export default defineEventHandler(async (event) => {
   const session = await getOptionalAuthSession(event)
-  const slug = getRouterParam(event, 'slug')
-
-  if (!slug) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Palette slug is required',
-    })
-  }
+  const slug = requireRouterParam(event, 'slug', 'palette slug')
 
   const palette = await findPaletteBySlug(slug)
 

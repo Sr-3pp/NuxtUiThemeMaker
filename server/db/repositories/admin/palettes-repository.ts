@@ -2,18 +2,7 @@ import { ObjectId } from 'mongodb'
 import type { AdminPaletteListItem } from '~/types/admin-palette'
 import { getPaletteCollection } from '~~/server/db/collections/palettes'
 import { listUserDocuments } from '~~/server/db/repositories/user-repository'
-
-function normalizeDate(value: unknown) {
-  if (value instanceof Date) {
-    return value.toISOString()
-  }
-
-  if (typeof value === 'string') {
-    return value
-  }
-
-  return new Date(0).toISOString()
-}
+import { toIsoDate, toNullableIsoDate } from '~~/server/utils/serialize'
 
 export async function listAdminPalettes(): Promise<AdminPaletteListItem[]> {
   const collection = await getPaletteCollection()
@@ -70,8 +59,8 @@ export async function listAdminPalettes(): Promise<AdminPaletteListItem[]> {
     isPublic: Boolean(palette.isPublic),
     lifecycleStatus: palette.lifecycleStatus === 'published' ? 'published' : 'draft',
     version: typeof palette.version === 'number' ? palette.version : 1,
-    publishedAt: palette.publishedAt instanceof Date ? palette.publishedAt.toISOString() : null,
-    createdAt: normalizeDate(palette.createdAt),
-    updatedAt: normalizeDate(palette.updatedAt),
+    publishedAt: toNullableIsoDate(palette.publishedAt),
+    createdAt: toIsoDate(palette.createdAt),
+    updatedAt: toIsoDate(palette.updatedAt),
   }))
 }

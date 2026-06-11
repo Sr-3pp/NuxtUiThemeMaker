@@ -1,4 +1,4 @@
-import { defineEventHandler, readBody } from 'h3'
+import { defineEventHandler, readValidatedBody } from 'h3'
 import { z } from 'zod'
 import {
   paletteAuditGenerateRequestSchema,
@@ -92,7 +92,7 @@ function ensureValidAuditResult(rawResult: unknown, fallbackPalette: PaletteDefi
 
 export default defineEventHandler(async (event) => {
   const { session, access } = await setupAiEndpoint(event)
-  const body = paletteAuditGenerateRequestSchema.parse(await readBody(event))
+  const body = await readValidatedBody(event, paletteAuditGenerateRequestSchema.parse)
   const report = getPaletteQaReport(body.palette)
 
   const prompt = [
