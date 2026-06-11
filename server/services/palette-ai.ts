@@ -2,16 +2,34 @@ import { createError } from 'h3'
 import { GoogleGenAI, type ContentListUnion } from '@google/genai'
 import { ZodError, type ZodSchema } from 'zod'
 
-const GEMINI_MODEL = 'gemini-flash-latest'
+const GEMINI_MODEL_FALLBACKS = [
+  'gemini-flash-latest',
+  'gemini-2.5-flash-lite',
+  'gemini-2.0-flash-lite',
+  'gemini-2.0-flash',
+  'gemini-2.5-flash',
+] as const
 const TRANSIENT_AI_STATUS_CODES = new Set([429, 500, 502, 503, 504])
 const TRANSIENT_AI_STATUS_TEXTS = new Set(['RESOURCE_EXHAUSTED', 'UNAVAILABLE'])
 const AI_RETRY_DELAYS_MS = [250, 750]
 const AI_MAX_OUTPUT_TOKENS = 8192
+const DEFAULT_AI_RETRY_AFTER_SECONDS = 60
 
 class IncompleteAiJsonError extends Error {
   constructor(message: string) {
     super(message)
     this.name = 'IncompleteAiJsonError'
+  }
+}
+
+class AiModelsUnavailableError extends Error {
+  retryAfterSeconds: number
+
+  constructor(retryAfterSeconds: number, cause: unknown) {
+    super('All AI models are temporarily unavailable')
+    this.name = 'AiModelsUnavailableError'
+    this.retryAfterSeconds = retryAfterSeconds
+    this.cause = cause
   }
 }
 
@@ -145,6 +163,7 @@ function extractAiErrorDetails(error: unknown) {
     statusCode?: unknown
     code?: unknown
     status?: unknown
+    statusMessage?: unknown
     error?: {
       code?: unknown
       status?: unknown
@@ -153,13 +172,21 @@ function extractAiErrorDetails(error: unknown) {
   }
 
   const nestedError = candidate.error
-  const statusCode = [candidate.statusCode, candidate.code, nestedError?.code]
+  const statusCode = [
+    candidate.statusCode,
+    candidate.code,
+    typeof candidate.status === 'number' ? candidate.status : null,
+    nestedError?.code,
+  ]
     .find(value => typeof value === 'number')
 
-  const statusText = [candidate.status, nestedError?.status]
+  const statusText = [
+    typeof candidate.status === 'string' ? candidate.status : null,
+    nestedError?.status,
+  ]
     .find(value => typeof value === 'string') ?? ''
 
-  const message = [candidate.message, nestedError?.message]
+  const message = [candidate.message, candidate.statusMessage, nestedError?.message]
     .find(value => typeof value === 'string') ?? ''
 
   return {
@@ -169,8 +196,48 @@ function extractAiErrorDetails(error: unknown) {
   }
 }
 
+function extractAiRetryAfterSeconds(error: unknown) {
+  if (!error || typeof error !== 'object') {
+    return DEFAULT_AI_RETRY_AFTER_SECONDS
+  }
+
+  const candidate = error as {
+    retryAfter?: unknown
+    retryAfterSeconds?: unknown
+    data?: {
+      retryAfter?: unknown
+      retryAfterSeconds?: unknown
+    }
+    message?: unknown
+    error?: {
+      message?: unknown
+    }
+  }
+
+  const explicitRetryAfter = [
+    candidate.retryAfter,
+    candidate.retryAfterSeconds,
+    candidate.data?.retryAfter,
+    candidate.data?.retryAfterSeconds,
+  ].find(value => typeof value === 'number' && Number.isFinite(value) && value > 0)
+
+  if (typeof explicitRetryAfter === 'number') {
+    return Math.ceil(explicitRetryAfter)
+  }
+
+  const message = [candidate.message, candidate.error?.message]
+    .find(value => typeof value === 'string') ?? ''
+
+  const retryAfterMatch = message.match(/(\d+)\s*s(?:ec(?:ond)?s?)?/i)
+  const retryAfterSeconds = Number.parseInt(retryAfterMatch?.[1] ?? '', 10)
+
+  return Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+    ? retryAfterSeconds
+    : DEFAULT_AI_RETRY_AFTER_SECONDS
+}
+
 function isRetryableAiError(error: unknown) {
-  if (error instanceof IncompleteAiJsonError) {
+  if (error instanceof IncompleteAiJsonError || error instanceof AiModelsUnavailableError) {
     return true
   }
 
@@ -187,17 +254,32 @@ function isRetryableAiError(error: unknown) {
   return /high demand|try again later|temporar(?:ily)? unavailable/i.test(message)
 }
 
+function isAiModelFallbackError(error: unknown) {
+  const { statusCode, statusText, message } = extractAiErrorDetails(error)
+
+  if (statusCode === 429 || statusCode === 503) {
+    return true
+  }
+
+  if (TRANSIENT_AI_STATUS_TEXTS.has(statusText)) {
+    return true
+  }
+
+  return /high demand|try again later|temporar(?:ily)? unavailable/i.test(message)
+}
+
 async function requestStructuredPaletteAiContent(
   ai: GoogleGenAI,
   contents: ContentListUnion,
   responseSchema?: Record<string, unknown>,
 ) {
   let lastError: unknown
+  let retryAfterSeconds = DEFAULT_AI_RETRY_AFTER_SECONDS
 
-  for (let attempt = 0; attempt <= AI_RETRY_DELAYS_MS.length; attempt += 1) {
+  for (const model of GEMINI_MODEL_FALLBACKS) {
     try {
       return await ai.models.generateContent({
-        model: GEMINI_MODEL,
+        model,
         contents,
         config: {
           responseMimeType: 'application/json',
@@ -208,15 +290,22 @@ async function requestStructuredPaletteAiContent(
     } catch (error) {
       lastError = error
 
-      if (!isRetryableAiError(error) || attempt === AI_RETRY_DELAYS_MS.length) {
+      if (!isAiModelFallbackError(error)) {
         throw error
       }
 
-      await waitForAiRetry(AI_RETRY_DELAYS_MS[attempt]!)
+      retryAfterSeconds = extractAiRetryAfterSeconds(error)
+      const { statusCode, statusText } = extractAiErrorDetails(error)
+
+      console.warn('AI model fallback after transient provider error:', {
+        model,
+        statusCode,
+        statusText,
+      })
     }
   }
 
-  throw lastError
+  throw new AiModelsUnavailableError(retryAfterSeconds, lastError)
 }
 
 export function getGeminiApiKey() {
@@ -249,15 +338,7 @@ export async function generateStructuredPaletteAiResult<T>({
 
   for (let attempt = 0; attempt <= AI_RETRY_DELAYS_MS.length; attempt += 1) {
     try {
-      const response = await ai.models.generateContent({
-        model: GEMINI_MODEL,
-        contents: contents ?? [prompt],
-        config: {
-          responseMimeType: 'application/json',
-          responseSchema,
-          maxOutputTokens: AI_MAX_OUTPUT_TOKENS,
-        },
-      })
+      const response = await requestStructuredPaletteAiContent(ai, contents ?? [prompt], responseSchema)
 
       if (!response?.text) {
         throw new IncompleteAiJsonError('Gemini returned an empty response')
@@ -276,6 +357,18 @@ export async function generateStructuredPaletteAiResult<T>({
 
       if (error && typeof error === 'object' && 'statusCode' in error) {
         throw error
+      }
+
+      if (error instanceof AiModelsUnavailableError) {
+        console.error('AI provider temporarily unavailable:', error)
+
+        throw createError({
+          statusCode: 429,
+          statusMessage: 'All AI models are at capacity right now. Please try again shortly.',
+          data: {
+            retryAfter: error.retryAfterSeconds,
+          },
+        })
       }
 
       if (!isRetryableAiError(error) || attempt === AI_RETRY_DELAYS_MS.length) {

@@ -38,7 +38,8 @@ export function useLandingPaletteWorkflow() {
   const { generatePalette, saveNewPalette } = usePaletteApi()
   const { user } = useAuth()
   const { setCurrentPalette } = usePaletteState()
-  const { access: generationAccess } = usePaletteGenerationAccess()
+  const generationAccessState = usePaletteGenerationAccess()
+  const { access: generationAccess } = generationAccessState
 
   const promptInput = useState('landing-demo-prompt-input', () => '')
   const generated = useState<LandingGeneratedPaletteState>('landing-demo-generated', createEmptyLandingGeneratedState)
@@ -145,6 +146,11 @@ export function useLandingPaletteWorkflow() {
       return
     }
 
+    if (generationAccessState.isCoolingDown.value) {
+      showErrorToast(new Error(generationAccessState.helperText.value), generationAccessState.helperText.value)
+      return
+    }
+
     // Check if user has access to AI generation
     if (!generationAccess.value.canGenerate) {
       if (generationAccess.value.reason === 'unauthenticated') {
@@ -193,6 +199,7 @@ export function useLandingPaletteWorkflow() {
         errorMessage: null,
       }
 
+      generationAccessState.tryStartCooldownFromError(error)
       showErrorToast(error, 'Failed to generate a palette.')
       persistSession()
     }

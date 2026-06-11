@@ -5,6 +5,13 @@ const getOptionalAuthSessionMock = vi.fn()
 const assertPaletteGenerationAllowedMock = vi.fn()
 const incrementPaletteGenerationUsageIfNeededMock = vi.fn()
 const generateContentMock = vi.fn()
+const geminiModelFallbacks = [
+  'gemini-flash-latest',
+  'gemini-2.5-flash-lite',
+  'gemini-2.0-flash-lite',
+  'gemini-2.0-flash',
+  'gemini-2.5-flash',
+]
 
 vi.mock('~~/server/utils/auth-session', () => ({
   getOptionalAuthSession: getOptionalAuthSessionMock,
@@ -417,7 +424,7 @@ describe('palette generate api handler', () => {
     expect(incrementPaletteGenerationUsageIfNeededMock).not.toHaveBeenCalled()
   })
 
-  it('retries transient Gemini overload errors before succeeding', async () => {
+  it('uses Gemini model fallbacks after transient overload errors before succeeding', async () => {
     const session = {
       user: {
         id: 'user-1',
@@ -463,10 +470,19 @@ describe('palette generate api handler', () => {
 
     expect(result).toMatchObject({ palette: { name: 'Coastal Ledger' }, ui: {} })
     expect(generateContentMock).toHaveBeenCalledTimes(3)
+    expect(generateContentMock).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      model: geminiModelFallbacks[0],
+    }))
+    expect(generateContentMock).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      model: geminiModelFallbacks[1],
+    }))
+    expect(generateContentMock).toHaveBeenNthCalledWith(3, expect.objectContaining({
+      model: geminiModelFallbacks[2],
+    }))
     expect(incrementPaletteGenerationUsageIfNeededMock).toHaveBeenCalledWith(session, access)
   })
 
-  it('returns 503 after transient Gemini overload errors exhaust retries', async () => {
+  it('returns a structured cooldown after every Gemini fallback is unavailable', async () => {
     const session = {
       user: {
         id: 'user-1',
@@ -487,37 +503,27 @@ describe('palette generate api handler', () => {
       freeRemaining: 1,
       reason: 'allowed',
     })
-    generateContentMock
-      .mockRejectedValueOnce({
-        error: {
-          code: 503,
-          message: 'This model is currently experiencing high demand. Please try again later.',
-          status: 'UNAVAILABLE',
-        },
-      })
-      .mockRejectedValueOnce({
-        error: {
-          code: 503,
-          message: 'This model is currently experiencing high demand. Please try again later.',
-          status: 'UNAVAILABLE',
-        },
-      })
-      .mockRejectedValueOnce({
-        error: {
-          code: 503,
-          message: 'This model is currently experiencing high demand. Please try again later.',
-          status: 'UNAVAILABLE',
-        },
-      })
+    generateContentMock.mockRejectedValue({
+      error: {
+        code: 503,
+        message: 'This model is currently experiencing high demand. Please try again in 37s.',
+        status: 'UNAVAILABLE',
+      },
+    })
 
     const { default: handler } = await import('~~/server/api/palettes/generate')
 
     await expect(handler(createPostEvent({ prompt: 'Ocean dashboard' }) as H3Event)).rejects.toMatchObject({
-      statusCode: 503,
-      statusMessage: 'AI provider is temporarily unavailable. Please try again shortly.',
+      statusCode: 429,
+      statusMessage: 'All AI models are at capacity right now. Please try again shortly.',
+      data: {
+        retryAfter: 37,
+      },
     })
 
-    expect(generateContentMock.mock.calls.length).toBeGreaterThanOrEqual(3)
+    expect(generateContentMock.mock.calls.length).toBe(geminiModelFallbacks.length)
+    expect(generateContentMock.mock.calls.slice(0, geminiModelFallbacks.length).map(([request]) => request.model))
+      .toEqual(geminiModelFallbacks)
     expect(incrementPaletteGenerationUsageIfNeededMock).not.toHaveBeenCalled()
   })
 })
