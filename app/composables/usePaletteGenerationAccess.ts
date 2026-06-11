@@ -3,6 +3,7 @@ import { FREE_PLAN_PALETTE_GENERATION_LIMIT } from '~/data/pricing'
 export function usePaletteGenerationAccess() {
   const { user } = useAuth()
   const { getPaletteGenerationAccess } = usePaletteApi()
+  const cooldown = useAiGenerationCooldown()
   const { data, status, refresh } = getPaletteGenerationAccess()
 
   const guestAccess = computed(() => ({
@@ -16,7 +17,7 @@ export function usePaletteGenerationAccess() {
   } as const))
   const isGuest = computed(() => !user.value)
   const access = computed(() => isGuest.value ? guestAccess.value : data.value)
-  const isDisabled = computed(() => !access.value.canGenerate)
+  const isDisabled = computed(() => !access.value.canGenerate || cooldown.isCoolingDown.value)
 
   watch(() => user.value?.id ?? null, () => {
     refresh()
@@ -24,6 +25,10 @@ export function usePaletteGenerationAccess() {
 
   const helperText = computed(() => {
     const currentPlan = user.value?.plan ?? 'free'
+
+    if (cooldown.isCoolingDown.value) {
+      return `AI models are busy. Try again in ${cooldown.cooldownSeconds.value}s.`
+    }
 
     if (access.value.isAdminUnlimited) {
       return 'Unlimited AI runs enabled for admin accounts.'
@@ -51,6 +56,10 @@ export function usePaletteGenerationAccess() {
   })
 
   const cta = computed(() => {
+    if (cooldown.isCoolingDown.value) {
+      return null
+    }
+
     if (access.value.reason === 'unauthenticated') {
       return {
         label: 'Register',
@@ -70,11 +79,15 @@ export function usePaletteGenerationAccess() {
 
   return {
     access,
+    clearCooldown: cooldown.clearCooldown,
+    cooldownSeconds: cooldown.cooldownSeconds,
     cta,
     helperText,
+    isCoolingDown: cooldown.isCoolingDown,
     isDisabled,
     isGuest,
     refresh,
     status,
+    tryStartCooldownFromError: cooldown.tryStartCooldownFromError,
   }
 }

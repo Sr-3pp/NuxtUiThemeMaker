@@ -2,6 +2,7 @@
 const props = defineProps<{
   cta?: { label: string, to: string } | null
   helperText?: string
+  isDisabled?: boolean
   isLoading?: boolean
   modelValue: string
 }>()
@@ -38,7 +39,7 @@ const { user } = useAuth()
           <UTextarea
             :model-value="props.modelValue"
             :rows="7"
-            :disabled="!user"
+            :disabled="!user || props.isDisabled"
             autoresize
             size="xl"
             variant="none"
@@ -115,7 +116,7 @@ const { user } = useAuth()
                 color="primary"
                 icon="i-lucide-sparkles"
                 :loading="props.isLoading"
-                :disabled="!user"
+                :disabled="!user || props.isDisabled"
                 class="min-w-44 justify-center"
                 @click="emit('submit')"
               >

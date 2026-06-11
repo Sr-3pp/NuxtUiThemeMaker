@@ -99,6 +99,12 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
     })
   }
 
+  async function handleGenerationError(error: unknown, fallback: string) {
+    access.tryStartCooldownFromError(error)
+    showErrorToast(error, fallback)
+    await access.refresh()
+  }
+
   function addBrandColor(target: Ref<string[]>, input: Ref<string>, label: string) {
     addThemeAiBrandColor(target, input, label, showValidationToast)
   }
@@ -173,8 +179,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
         pushThemeAiResultHistory(starterHistory, historyId, starterPalette, starterPalette.name, summarizeThemeAiPrompt(starterPrompt.value, 'Starter theme'))
       },
       handleError: async (error) => {
-        showErrorToast(error, themeAiMessages.starter.generateError)
-        await access.refresh()
+        await handleGenerationError(error, themeAiMessages.starter.generateError)
       },
     })
   }
@@ -205,8 +210,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
         )
       },
       handleError: async (error) => {
-        showErrorToast(error, themeAiMessages.directions.generateError)
-        await access.refresh()
+        await handleGenerationError(error, themeAiMessages.directions.generateError)
       },
     })
   }
@@ -239,8 +243,7 @@ export function useThemeAiModal(open: Ref<boolean>, palette: Ref<EditablePalette
         )
       },
       handleError: async (error) => {
-        showErrorToast(error, themeAiMessages.ramps.generateError)
-        await access.refresh()
+        await handleGenerationError(error, themeAiMessages.ramps.generateError)
       },
     })
   }

@@ -5,7 +5,7 @@ import { buildHomeSeoGraphJsonLd, buildNuxtThemesFaqJsonLd, buildSoftwareApplica
 
 const siteConfig = useRuntimeConfig()
 const pageSeo = getSeoRoute('/')
-const { cta, helperText } = usePaletteGenerationAccess()
+const { cta, helperText, isDisabled } = usePaletteGenerationAccess()
 const {
   activePalette,
   generated,
@@ -81,6 +81,7 @@ function registerPricingSection(node: Element | ComponentPublicInstance | null) 
       <LandingHeroPrompt
         v-model="promptInput"
         :is-loading="isGenerating"
+        :is-disabled="isDisabled"
         :helper-text="helperText || `Guests can try ${remainingGuestRunsLabel} in demo mode, then sign up to save palettes.`"
         :cta="cta"
         @submit="generateFromPrompt"
