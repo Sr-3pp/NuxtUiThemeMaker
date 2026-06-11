@@ -1,9 +1,9 @@
-import { createError, defineEventHandler, readBody } from 'h3'
+import { defineEventHandler, readValidatedBody } from 'h3'
 import { z } from 'zod'
 import { isPaidPricingPlanId } from '../../../../app/data/pricing'
 import type { PaidPricingPlan } from '~/types/pricing'
 import { sendPricingPlanPurchaseConfirmationEmail, sendRegistrationConfirmationEmail } from '~~/server/services/email-service'
-import { requireAuthSession } from '~~/server/utils/auth-session'
+import { requireAdminSession } from '~~/server/utils/admin-auth'
 
 const bodySchema = z.discriminatedUnion('template', [
   z.object({
@@ -21,16 +21,9 @@ const bodySchema = z.discriminatedUnion('template', [
 ])
 
 export default defineEventHandler(async (event) => {
-  const session = await requireAuthSession(event)
+  await requireAdminSession(event)
 
-  if (!session.user.isAdmin) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Admin access required',
-    })
-  }
-
-  const body = bodySchema.parse(await readBody(event))
+  const body = await readValidatedBody(event, bodySchema.parse)
 
   if (body.template === 'registration') {
     await sendRegistrationConfirmationEmail({

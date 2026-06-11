@@ -2,30 +2,7 @@ import { isPricingPlanId } from '~/data/pricing'
 import { getEffectivePaletteGenerationLimit } from '~/data/limits'
 import type { AdminUserListItem } from '~/types/admin-user'
 import { listUserDocuments } from '~~/server/db/repositories/user-repository'
-
-function normalizeDate(value: unknown) {
-  if (value instanceof Date) {
-    return value.toISOString()
-  }
-
-  if (typeof value === 'string') {
-    return value
-  }
-
-  return new Date(0).toISOString()
-}
-
-function normalizeNullableDate(value: unknown) {
-  if (value instanceof Date) {
-    return value.toISOString()
-  }
-
-  if (typeof value === 'string') {
-    return value
-  }
-
-  return null
-}
+import { toIsoDate, toNullableIsoDate } from '~~/server/utils/serialize'
 
 export async function listAdminUsers(): Promise<AdminUserListItem[]> {
   const users = await listUserDocuments({
@@ -75,14 +52,14 @@ export async function listAdminUsers(): Promise<AdminUserListItem[]> {
       planInterval: user.planInterval === 'monthly' || user.planInterval === 'yearly'
         ? user.planInterval
         : null,
-      planExpiresAt: normalizeNullableDate(user.planExpiresAt),
+      planExpiresAt: toNullableIsoDate(user.planExpiresAt),
       aiPaletteGenerationsUsed,
       aiPaletteGenerationLimit,
       aiPaletteGenerationsRemaining: aiPaletteGenerationLimit === null
         ? null
         : Math.max(aiPaletteGenerationLimit - aiPaletteGenerationsUsed, 0),
-      createdAt: normalizeDate(user.createdAt),
-      updatedAt: normalizeDate(user.updatedAt),
+      createdAt: toIsoDate(user.createdAt),
+      updatedAt: toIsoDate(user.updatedAt),
     }
   })
 }

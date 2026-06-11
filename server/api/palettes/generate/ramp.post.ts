@@ -1,4 +1,4 @@
-import { defineEventHandler, readBody } from 'h3'
+import { defineEventHandler, readValidatedBody } from 'h3'
 import { paletteRampGenerateRequestSchema, paletteRampGenerateResponseSchema } from '~~/server/domain/palette-ai-schema'
 import { generateStructuredPaletteAiResult } from '~~/server/services/palette-ai'
 import { setupAiEndpoint, finalizeAiEndpoint } from '~~/server/utils/ai-event-handler'
@@ -16,7 +16,7 @@ const instructions = [
 
 export default defineEventHandler(async (event) => {
   const { session, access } = await setupAiEndpoint(event)
-  const body = paletteRampGenerateRequestSchema.parse(await readBody(event))
+  const body = await readValidatedBody(event, paletteRampGenerateRequestSchema.parse)
 
   const prompt = [
     body.paletteName ? `Palette name: ${body.paletteName}.` : null,

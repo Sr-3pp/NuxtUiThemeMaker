@@ -1,5 +1,5 @@
 import { createPartFromBase64, createPartFromText } from '@google/genai'
-import { defineEventHandler, readBody } from 'h3'
+import { defineEventHandler, readValidatedBody } from 'h3'
 import { paletteGenerateRequestSchema } from '~~/server/domain/palette-ai-schema'
 import { paletteDefinitionSchema, paletteResponseSchema } from '~~/server/domain/palette-schema'
 import { generateStructuredPaletteAiResult } from '~~/server/services/palette-ai'
@@ -43,7 +43,7 @@ function buildPaletteGenerationContents(promptText: string, referenceImage?: {
 
 export default defineEventHandler(async (event) => {
   const { session, access } = await setupAiEndpoint(event)
-  const body = paletteGenerateRequestSchema.parse(await readBody(event))
+  const body = await readValidatedBody(event, paletteGenerateRequestSchema.parse)
 
   const promptParts = [
     `Theme request: ${body.prompt}.`,

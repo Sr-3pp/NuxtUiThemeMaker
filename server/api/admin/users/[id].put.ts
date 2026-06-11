@@ -1,8 +1,9 @@
-
+import { defineEventHandler, readValidatedBody } from 'h3'
 import { z } from 'zod'
 import type { AdminUserUpdateInput } from '~/types/admin-user'
 import { updateAdminManagedUser } from '~~/server/services/admin-users'
-import { requireAuthSession } from '~~/server/utils/auth-session'
+import { requireAdminSession } from '~~/server/utils/admin-auth'
+import { requireRouterParam } from '~~/server/utils/route-params'
 
 const updateAdminUserSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
@@ -12,26 +13,10 @@ const updateAdminUserSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const session = await requireAuthSession(event)
+  const session = await requireAdminSession(event)
+  const userId = requireRouterParam(event, 'id', 'user id')
 
-  if (!session.user.isAdmin) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Admin access required',
-    })
-  }
-
-  const userId = getRouterParam(event, 'id')
-
-  if (!userId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Missing user id',
-    })
-  }
-
-  const body = await readBody(event)
-  const parsedBody = updateAdminUserSchema.parse(body)
+  const parsedBody = await readValidatedBody(event, updateAdminUserSchema.parse)
 
   await updateAdminManagedUser(session.user.id, userId, {
     name: parsedBody.name,

@@ -1,25 +1,11 @@
-
+import { defineEventHandler } from 'h3'
 import { deleteAdminManagedPalette } from '~~/server/services/admin-palettes'
-import { requireAuthSession } from '~~/server/utils/auth-session'
+import { requireAdminSession } from '~~/server/utils/admin-auth'
+import { requireRouterParam } from '~~/server/utils/route-params'
 
 export default defineEventHandler(async (event) => {
-  const session = await requireAuthSession(event)
-
-  if (!session.user.isAdmin) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Admin access required',
-    })
-  }
-
-  const paletteId = getRouterParam(event, 'id')
-
-  if (!paletteId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Missing palette id',
-    })
-  }
+  await requireAdminSession(event)
+  const paletteId = requireRouterParam(event, 'id', 'palette id')
 
   await deleteAdminManagedPalette(paletteId)
 
